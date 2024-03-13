@@ -1,0 +1,57 @@
+import RegisterModel from "../../DB/models/Register.model.js";
+import CourseModel from "../../DB/models/course.model.js";
+import studentExamModel from "../../DB/models/studentExams.model.js";
+
+export const createStudentExams = async (userId) => {
+  try {
+    if (!userId) {
+      throw new Error("User Id not sent");
+    }
+
+    const addstudentExams = {
+      StudentId: userId,
+      CoursesExamed: [],
+      TotalGpa: 0,
+    };
+    const result = await studentExamModel.create(addstudentExams);
+    if (!result) {
+      throw new Error("Failed to create student exams");
+    }
+    return result;
+  } catch (error) {
+    throw new Error(error);
+  }
+};
+
+export const getAllValidCourses = async (passedCoursesIds, userId) => {
+  // delete courses its already user register it
+  const Registered = await RegisterModel.findOne({ StudentId: userId });
+  let newpassedCoursesIds = passedCoursesIds;
+  if (Registered) {
+    const coursesRegisterd = Registered.coursesRegisterd;
+    newpassedCoursesIds = Array.from(
+      new Set(passedCoursesIds.concat(coursesRegisterd))
+    );
+  }
+
+  const newCourses = await CourseModel.find({
+    _id: { $nin: newpassedCoursesIds },
+    OpenForRegistration: true,
+  });
+  const validCourses = newCourses.filter((course) => {
+    if (!course?.Prerequisites || course.Prerequisites.length === 0) {
+      return true;
+    } else {
+      return course.Prerequisites.every((ele) =>
+        newpassedCoursesIds.toString().includes(ele.toString())
+      );
+    }
+  });
+
+  let validCoursesIds = [];
+  for (const course of validCourses) {
+    validCoursesIds.push(course._id);
+  }
+
+  return { validCoursesIds, validCourses };
+};
