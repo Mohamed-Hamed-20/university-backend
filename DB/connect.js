@@ -1,13 +1,17 @@
-import monngoose from "mongoose";
-//connect With DataBase
+import mongoose from "mongoose";
+
+// تعيين الخيار strictQuery إلى false لتجنب التحذير
+mongoose.set("strictQuery", false);
+
+// دالة للاتصال بقاعدة البيانات
 const connectDB = async () => {
-  await monngoose
-    .connect(process.env.DB_url)
-    .then(() => {
-      console.log("DB connected");
-    })
-    .catch((error) => {
-      console.log("error in connection :(");
-    });
+  try {
+    // الاتصال بقاعدة البيانات باستخدام رابط المُحيط
+    await mongoose.connect(process.env.DB_url);
+    console.log("DB connected");
+  } catch (error) {
+    console.error("Error in connection:", error);
+  }
 };
+
 export default connectDB;

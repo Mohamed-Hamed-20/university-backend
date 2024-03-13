@@ -1,7 +1,7 @@
 {
   "name": "university",
   "version": "1.0.0",
-  "description": "",
+  "description": "A Node.js backend application for a university management system.",
   "main": "index.js",
   "type": "module",
   "scripts": {
@@ -11,8 +11,13 @@
   "engines": {
     "node": "18.x"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "university",
+    "backend",
+    "Node.js",
+    "Express"
+  ],
+  "author": "mohamed hamed abdelazizs",
   "license": "ISC",
   "dependencies": {
     "bcrypt": "^5.1.1",
@@ -22,14 +27,11 @@
     "express-rate-limit": "^7.1.5",
     "joi": "^17.9.2",
     "jsonwebtoken": "^9.0.2",
-    "mongoose": "^7.4.0",
+    "mongoose": "^6.0.12",
     "morgan": "^1.10.0",
     "multer": "^1.4.5-lts.1",
     "nanoid": "^4.0.2",
     "nodemailer": "^6.9.4",
     "slugify": "^1.6.6"
-  },
-  "devDependencies": {
-    "nodemon": "^3.1.0"
   }
 }
