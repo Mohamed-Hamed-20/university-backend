@@ -4,7 +4,13 @@
   "builds": [
     {
       "src": "./index.js",
-      "use": "@vercel/node"
+      "use": "@vercel/node",
+      "env": {
+        "NODE_ENV": "production"
+      },
+      "scripts": {
+        "build": "npm install && npm run build"
+      }
     }
   ],
   "routes": [
@@ -12,13 +18,5 @@
       "src": "/(.*)",
       "dest": "/"
     }
-  ],
-  "builds": {
-    "env": {
-      "NODE_ENV": "production"
-    },
-    "scripts": {
-      "build": "npm install && npm run build"
-    }
-  }
+  ]
 }
