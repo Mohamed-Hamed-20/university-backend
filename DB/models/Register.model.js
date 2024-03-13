@@ -6,6 +6,11 @@ const Registerschema = new Schema(
       ref: "user",
       required: true,
     },
+    semsterId: {
+      type: Types.ObjectId,
+      ref: "semster",
+      required: true,
+    },
     Available_CoursesId: {
       type: Types.ObjectId,
       ref: "availableCourse",

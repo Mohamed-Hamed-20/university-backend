@@ -6,6 +6,7 @@ import { asyncHandler } from "../../utils/errorHandling.js";
 
 export const addToRegister = asyncHandler(async (req, res, next) => {
   const userId = req.user._id;
+  const semsterId = req.user.semesterId;
   const { courseId } = req.query;
   // Get course information
   const course = await CourseModel.findById(courseId);
@@ -54,6 +55,7 @@ export const addToRegister = asyncHandler(async (req, res, next) => {
       Available_CoursesId: availableCourses._id,
       Available_Hours: newHours,
       coursesRegisterd: coursesRegisterd,
+      semsterId: semsterId,
     };
     result = await RegisterModel.create(newRegister);
   } else {

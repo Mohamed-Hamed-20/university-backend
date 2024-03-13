@@ -12,6 +12,7 @@ import ExamsInRouter from "./routes/studentExams.routes.js";
 import AvailablecourseRouter from "./routes/AvailableCourses.routes.js";
 import RegisterRouter from "./routes/Register.routes.js";
 import StudentCourseGrateRouter from "./routes/StudentCourseGrate.routes.js";
+import GratesInSemsterRouter from "./routes/GratesInSemster.routes.js";
 import { GlobalErrorHandling } from "./utils/errorHandling.js";
 import morgan from "morgan";
 import { hellowpage } from "./utils/templetHtml.js";
@@ -59,7 +60,7 @@ export const bootstrap = (app, express) => {
   app.use("/Api/student", AvailablecourseRouter);
   app.use("/Api/student/register", RegisterRouter);
   app.use("/Api/instructor/StudentCourseGrateRouter", StudentCourseGrateRouter);
-
+  app.use("/Api/student/GratesInSemster", GratesInSemsterRouter);
   //Welcome Page
   app.get("/", async (req, res, next) => {
     console.log({ IP: req.ip });

@@ -1,4 +1,4 @@
-export const calculateGradeAndPoints = (totalGrate) => {
+export const calculateGradeAndPoints = (totalGrate, creditHours) => {
   let points;
   let grade;
 
@@ -52,5 +52,30 @@ export const calculateGradeAndPoints = (totalGrate) => {
     grade = "F";
   }
 
-  return { points, grade };
+  const gpa = points / creditHours;
+  return { points, grade, gpa };
+};
+// Function to calculate cumulative GPA considering the old GPA
+export const calculateCumulativeGPA = ({
+  points,
+  creditHours,
+  oldGPA,
+  oldCreditHours,
+}) => {
+  console.log({ points, creditHours, oldGPA, oldCreditHours });
+  // Calculate total points including the old GPA
+
+  if (!oldGPA || !oldCreditHours) {
+    oldGPA = 0;
+    oldCreditHours = 0;
+  }
+  const totalPoints = oldGPA * oldCreditHours + points * creditHours;
+
+  // Calculate total credit hours including the old credit hours
+  const totalCreditHours = oldCreditHours + creditHours;
+
+  // Calculate cumulative GPA
+  const cumulativeGPA = totalPoints / totalCreditHours;
+
+  return { cumulativeGPA, totalCreditHours };
 };

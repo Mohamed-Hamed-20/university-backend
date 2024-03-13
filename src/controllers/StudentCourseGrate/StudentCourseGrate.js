@@ -1,13 +1,18 @@
 import RegisterModel from "../../../DB/models/Register.model.js";
 import StudentCourseGrateModel from "../../../DB/models/StudentCourseGrate.model.js";
+import CourseModel from "../../../DB/models/course.model.js";
 import { arrayofstring, filterArray } from "../../utils/arrayobjectIds.js";
 import { calculateGradeAndPoints } from "../../utils/calcgrates.js";
 import { asyncHandler } from "../../utils/errorHandling.js";
+import { addToGratesSemster } from "../StudentGratesInSemster/GratesInSemster.js";
 
 export const addcoursegrate = asyncHandler(async (req, res, next) => {
   const { courseId, studentId, FinalExam, Oral, Practical, Midterm } = req.body;
-  console.log(req.user.Materials);
-  console.log(courseId);
+
+  const course = await CourseModel.findById(courseId);
+  if (!course) {
+    return next(new Error("Invaild CourseId", { cause: 400 }));
+  }
   //check if he instructor to this course
   const Materials = await arrayofstring(req.user.Materials);
   if (!Materials.includes(courseId.toString())) {
@@ -38,9 +43,11 @@ export const addcoursegrate = asyncHandler(async (req, res, next) => {
   const TotalGrate = FinalExam + Midterm + YearWorks;
 
   //calc  grade, points
-  const { grade, points } = calculateGradeAndPoints(TotalGrate);
-  console.log(grade, points);
-  if (!grade || points) {
+  const { grade, points, gpa } = calculateGradeAndPoints(
+    TotalGrate,
+    course.credit_hour
+  );
+  if (!grade || !points) {
     return next(new Error("server Error", { cause: 500 }));
   }
 
@@ -62,17 +69,26 @@ export const addcoursegrate = asyncHandler(async (req, res, next) => {
     return next(new Error("server Error try again later:(", { cause: 500 }));
   }
 
-  //filter coursesRegisterd and store new result
+  // تحديث السيمستر مودل و كل العمليات بي الجديد
+  const addsuccess = await addToGratesSemster({
+    GrateInfo: result,
+    course: course,
+    register: register,
+  });
+  if (!addsuccess) {
+    return next(new Error("error in semster add", { cause: 500 }));
+  }
+
+  // filter coursesRegisterd and store new result
   const coursesRegisterd = filterArray(register.coursesRegisterd, courseId);
   register.coursesRegisterd = coursesRegisterd;
   await register.save();
 
-
-
-  
-
-
-  return res.json({ messgae: "Done grate added successfully", result: result });
+  return res.json({
+    messgae: "Done grate added successfully",
+    result: result,
+    addsuccess,
+  });
 });
 export const updatecoursegrate = asyncHandler(async (req, res, next) => {});
 export const deletecoursegrate = asyncHandler(async (req, res, next) => {});
