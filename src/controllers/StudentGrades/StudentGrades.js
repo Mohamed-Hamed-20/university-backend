@@ -3,7 +3,7 @@ import { StudentGradeModel } from "../../../DB/models/StudentGrades.model.js";
 import semsterModel from "../../../DB/models/semster.model.js";
 import userModel from "../../../DB/models/user.model.js";
 import { filterArray } from "../../utils/arrayobjectIds.js";
-import { calculateCumulativeGPA } from "../../utils/calcgrates.js";
+import { calculateCumulativeGPA } from "../../utils/calcGrates.js";
 import { asyncHandler } from "../../utils/errorHandling.js";
 import { updateSemster } from "../../utils/updatesemster.js";
 
