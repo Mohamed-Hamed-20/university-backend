@@ -9,11 +9,11 @@ export const addcourse = {
       course_name: joi
         .string()
         .min(3)
-        .max(30)
+        .max(60)
         .required()
         .messages(customMessages),
       credit_hour: joi.number().valid(2, 3).required().messages(customMessages),
-      desc: joi.string().min(20).max(200).optional().messages(customMessages),
+      desc: joi.string().min(20).max(300).optional().messages(customMessages),
       OpenForRegistration: joi.boolean().optional().messages(customMessages),
       Prerequisites: joi
         .array()
@@ -30,11 +30,11 @@ export const updatecourse = {
       course_name: joi
         .string()
         .min(3)
-        .max(30)
+        .max(60)
         .optional()
         .messages(customMessages),
       credit_hour: joi.number().valid(2, 3).optional().messages(customMessages),
-      desc: joi.string().min(20).max(200).optional().messages(customMessages),
+      desc: joi.string().min(20).max(300).optional().messages(customMessages),
       OpenForRegistration: joi.boolean().optional().messages(customMessages),
       Prerequisites: joi
         .array()

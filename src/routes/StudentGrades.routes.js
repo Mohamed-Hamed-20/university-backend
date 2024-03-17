@@ -16,8 +16,6 @@ router.post(
   sagc.addgrate
 );
 
-
-
 // router.put(
 //   "/updatecoursegrate",
 //   valid(vSchema.updatecoursegrate),

@@ -6,13 +6,13 @@ const CourseSchema = new mongoose.Schema(
       type: String,
       required: true,
       min: 3,
-      max: 30,
+      max: 60,
     },
     desc: {
       type: String,
       required: false,
       min: 20,
-      max: 200,
+      max: 300,
     },
     credit_hour: {
       type: Number,

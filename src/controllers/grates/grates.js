@@ -2,7 +2,7 @@ import RegisterModel from "../../../DB/models/Register.model.js";
 import { GradeModel } from "../../../DB/models/StudentGrades.model.js";
 import CourseModel from "../../../DB/models/course.model.js";
 import { arrayofstring } from "../../utils/arrayobjectIds.js";
-import { calculateGradeAndPoints } from "../../utils/calcgrates.js";
+import { calculateGradeAndPoints } from "../../utils/calcGrates.js";
 import { asyncHandler } from "../../utils/errorHandling.js";
 
 export const uploadgrate = asyncHandler(async (req, res, next) => {

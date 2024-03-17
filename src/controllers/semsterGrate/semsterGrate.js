@@ -1,5 +1,5 @@
 import { SemesterGradeModel } from "../../../DB/models/StudentGrades.model.js";
-import { calculateCumulativeGPA } from "../../utils/calcgrates.js";
+import { calculateCumulativeGPA } from "../../utils/calcGrates.js";
 import { asyncHandler } from "../../utils/errorHandling.js";
 
 export const addTosemster = asyncHandler(async (req, res, next) => {
