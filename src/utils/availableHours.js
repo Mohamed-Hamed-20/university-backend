@@ -6,6 +6,7 @@ export const availableHoursForUser = async ({
     let availablehour;
     if (!RegisterInfo || RegisterInfo.coursesRegisterd.length == 0) {
       if (TotalGpa >= 2 && TotalGpa <= 4) {
+        console.log("Hi boy");
         availablehour = 18;
       } else if (TotalGpa >= 1 && TotalGpa < 2) {
         availablehour = 15;

@@ -16,6 +16,7 @@ router.post(
 router.patch(
   "/deleteCourse",
   isAuth([roles.admin, roles.stu]),
+  valid(vSchema.deleteFromRegister),
   acc.deleteFromRegister
 );
 

@@ -1,5 +1,5 @@
-import TotalGratesModel from "../../../DB/models/TotalGrates.model.js";
-import SemesterModel from "../../../DB/models/semster.model.js";
+// import TotalGratesModel from "../../../DB/models/StudentGrades.model.js";
+import semsterModel from "../../../DB/models/semster.model.js";
 import userModel from "../../../DB/models/user.model.js";
 import { generateToken, storeRefreshToken } from "../../utils/Token.js";
 import { ApiFeature } from "../../utils/apiFeature.js";
@@ -64,12 +64,12 @@ export const Getuser = asyncHandler(async (req, res, next) => {
       new Error("Invalid User Data please Try Again", { cause: 500 })
     );
   }
-  const semester = await SemesterModel.findById(user.semesterId);
+  const semster = await semsterModel.findById(user.semsterId);
   const result = {
     Full_Name: user.Full_Name,
     National_Id: user.National_Id,
     Student_Code: user.Student_Code,
-    semester: semester,
+    semster: semster,
     Date_of_Birth: user.Date_of_Birth,
     PhoneNumber: user.PhoneNumber,
     gender: user.gender,
@@ -84,7 +84,7 @@ export const addStudent = asyncHandler(async (req, res, next) => {
     National_Id,
     Student_Code,
     Date_of_Birth,
-    semesterId,
+    semsterId,
     PhoneNumber,
     gender,
     department,
@@ -116,9 +116,9 @@ export const addStudent = asyncHandler(async (req, res, next) => {
   }
 
   // التحقق من صحة معرف الفصل الدراسي
-  const semester = await SemesterModel.findById(semesterId);
-  if (!semester) {
-    return next(new Error("Invalid semester Id", { cause: 400 }));
+  const semster = await semsterModel.findById(semsterId);
+  if (!semster) {
+    return next(new Error("Invalid semster Id", { cause: 400 }));
   }
 
   // بناء كائن الطالب
@@ -127,7 +127,7 @@ export const addStudent = asyncHandler(async (req, res, next) => {
     National_Id,
     Student_Code,
     Date_of_Birth,
-    semesterId: semester._id,
+    semsterId: semster._id,
     PhoneNumber,
     gender,
     role: "user",
@@ -158,7 +158,7 @@ export const updateStudent = asyncHandler(async (req, res, next) => {
     Full_Name,
     National_Id,
     Student_Code,
-    semesterId,
+    semsterId,
     Date_of_Birth,
     PhoneNumber,
     gender,
@@ -215,12 +215,12 @@ export const updateStudent = asyncHandler(async (req, res, next) => {
     delete user.password;
   }
 
-  if (semesterId && user.semesterId != semesterId) {
-    const findsemster = await SemesterModel.findById(semesterId);
+  if (semsterId && user.semsterId != semsterId) {
+    const findsemster = await semsterModel.findById(semsterId);
     if (!findsemster) {
       return next(new Error("Invalid Semster Id ", { cause: 404 }));
     }
-    user.semesterId = semesterId || user.semesterId;
+    user.semsterId = semsterId || user.semsterId;
   }
   user.gender = gender || user.gender;
   user.Date_of_Birth = Date_of_Birth || user.Date_of_Birth;
@@ -254,7 +254,7 @@ export const searchuser = asyncHandler(async (req, res, next) => {
     "gender",
     "PhoneNumber",
     "Date_of_Birth",
-    "semesterId",
+    "semsterId",
     "Student_Code",
   ];
   const searchFields = [
@@ -266,7 +266,7 @@ export const searchuser = asyncHandler(async (req, res, next) => {
 
   const options = {
     select: "Academic_Year term level",
-    path: "semesterId",
+    path: "semsterId",
   };
 
   const apiFeatureInstance = new ApiFeature(

@@ -26,7 +26,7 @@ const userSchema = new Schema(
       maxlength: 14,
     },
 
-    semesterId: {
+    semsterId: {
       type: Types.ObjectId,
       ref: "semster",
       required: true,

@@ -14,7 +14,6 @@ export const valid = (schema) => {
         if (validationResult.error) {
           // إضافة كل رسالة خطأ ككائن منفصل
           validationResult.error.details.forEach((errorDetail) => {
-            console.log(errorDetail);
             Validation_error.push({
               message: errorDetail.message.replace(/\"/g, ""),
               path: errorDetail?.path[0],

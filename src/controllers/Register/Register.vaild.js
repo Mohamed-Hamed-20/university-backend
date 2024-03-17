@@ -8,3 +8,11 @@ export const addToRegister = {
     })
     .required(),
 };
+
+export const deleteFromRegister = {
+  query: joi
+    .object({
+      courseId: generalFields._id.required().messages(customMessages),
+    })
+    .required(),
+};

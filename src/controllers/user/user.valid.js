@@ -1,10 +1,6 @@
 import joi from "joi";
 import { generalFields } from "../../middleware/validation.js";
 
-
-
-
-
 export const registeruser = {
   body: joi
     .object({
@@ -17,7 +13,7 @@ export const registeruser = {
         .string()
         .pattern(/^[0-9]{14}$/)
         .required(),
-      semesterId: generalFields._id.required(),
+      semsterId: generalFields._id.required(),
       Date_of_Birth: joi.date().iso().required(),
       PhoneNumber: generalFields.PhoneNumber.required(),
       department: generalFields.department.optional(),
@@ -53,7 +49,7 @@ export const updateStudent = {
         .string()
         .pattern(/^[0-9]{14}$/)
         .optional(),
-      semesterId: generalFields._id.optional(),
+      semsterId: generalFields._id.optional(),
       Date_of_Birth: joi.date().iso().optional(),
       PhoneNumber: generalFields.PhoneNumber.optional(),
       department: generalFields.department.optional(),

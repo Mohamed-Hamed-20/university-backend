@@ -1,9 +1,9 @@
-import SemesterModel from "../../../DB/models/semster.model.js";
+import semsterModel from "../../../DB/models/semster.model.js";
 import { asyncHandler } from "../../utils/errorHandling.js";
 
 export const addsemster = asyncHandler(async (req, res, next) => {
   const { name, level, Academic_Year, term, MinAvailableHours } = req.body;
-  const chkname = await SemesterModel.findOne({ name: name });
+  const chkname = await semsterModel.findOne({ name: name });
   if (chkname) {
     return next(new Error("Semster name is already Exist", { cause: 400 }));
   }
@@ -15,7 +15,7 @@ export const addsemster = asyncHandler(async (req, res, next) => {
     term,
     MinAvailableHours,
   };
-  const result = await SemesterModel.create(semster);
+  const result = await semsterModel.create(semster);
   if (!result) {
     return next(new Error("ERROR Server try later", { cause: 500 }));
   }
@@ -26,24 +26,24 @@ export const addsemster = asyncHandler(async (req, res, next) => {
 
 export const updatesemster = asyncHandler(async (req, res, next) => {
   const { name, level, Academic_Year, term, MinAvailableHours } = req.body;
-  const { semesterId } = req.query;
-  const semester = await SemesterModel.findById(semesterId);
-  if (!semester) {
+  const { semsterId } = req.query;
+  const semster = await semsterModel.findById(semsterId);
+  if (!semster) {
     return next(new Error("Invalid Semster Id", { cause: 400 }));
   }
-  if (name && name != semester.name) {
-    const chknamesemster = await SemesterModel.findOne({ name: name });
-    if (chknamesemster && chknamesemster._id.toString() !== semesterId) {
+  if (name && name != semster.name) {
+    const chknamesemster = await semsterModel.findOne({ name: name });
+    if (chknamesemster && chknamesemster._id.toString() !== semsterId) {
       return next(new Error("Semster Name Is already Exist", { cause: 400 }));
     }
-    semester.name = name;
+    semster.name = name;
   }
 
-  semester.level = level || semester.level;
-  semester.Academic_Year = Academic_Year || semester.Academic_Year;
-  semester.term = term || semester.term;
-  semester.MinAvailableHours = MinAvailableHours || semester.MinAvailableHours;
-  const result = await SemesterModel.findByIdAndUpdate(semesterId, semester, {
+  semster.level = level || semster.level;
+  semster.Academic_Year = Academic_Year || semster.Academic_Year;
+  semster.term = term || semster.term;
+  semster.MinAvailableHours = MinAvailableHours || semster.MinAvailableHours;
+  const result = await semsterModel.findByIdAndUpdate(semsterId, semster, {
     new: true,
   });
   if (!result) {
@@ -51,17 +51,17 @@ export const updatesemster = asyncHandler(async (req, res, next) => {
   }
   return res
     .status(200)
-    .json({ message: "semester Is Updated SuccessFully", semester: result });
+    .json({ message: "semster Is Updated SuccessFully", semster: result });
 });
 
 export const deletesemster = asyncHandler(async (req, res, next) => {
-  const { semesterId } = req.query;
-  const deletedSemester = await SemesterModel.findByIdAndDelete(semesterId);
-  if (!deletedSemester) {
-    return next(new Error("Invalid semester Id", { cause: 404 }));
+  const { semsterId } = req.query;
+  const deletedsemster = await semsterModel.findByIdAndDelete(semsterId);
+  if (!deletedsemster) {
+    return next(new Error("Invalid semster Id", { cause: 404 }));
   }
   res.json({
-    message: "Semester deleted successfully",
-    semester: deletedSemester,
+    message: "semster deleted successfully",
+    semster: deletedsemster,
   });
 });

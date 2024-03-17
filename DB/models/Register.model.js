@@ -1,7 +1,7 @@
 import { Schema, model, Types } from "mongoose";
 const Registerschema = new Schema(
   {
-    StudentId: {
+    studentId: {
       type: Types.ObjectId,
       ref: "user",
       required: true,
@@ -11,11 +11,7 @@ const Registerschema = new Schema(
       ref: "semster",
       required: true,
     },
-    Available_CoursesId: {
-      type: Types.ObjectId,
-      ref: "availableCourse",
-      required: true,
-    },
+
     Available_Hours: {
       type: Number,
       required: true,

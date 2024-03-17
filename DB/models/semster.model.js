@@ -1,10 +1,9 @@
 import mongoose from "mongoose";
 
-const SemesterSchema = new mongoose.Schema(
+const semsterSchema = new mongoose.Schema(
   {
     name: {
       type: String,
-      required: true,
       min: 4,
       max: 55,
     },
@@ -16,7 +15,6 @@ const SemesterSchema = new mongoose.Schema(
     },
     Academic_Year: {
       type: String,
-      required: true,
       max: 14,
       min: 5,
     },
@@ -25,15 +23,15 @@ const SemesterSchema = new mongoose.Schema(
       enum: ["one", "two", "Summer"],
       required: true,
     },
-    MinAvailableHours: {
-      type: Number,
-      required: true,
-      max: 144,
-    },
+    // MinAvailableHours: {
+    //   type: Number,
+    //   required: true,
+    //   max: 144,
+    // },
   },
   { timestamps: true }
 );
 
-const SemesterModel = mongoose.model("semster", SemesterSchema);
+const semsterModel = mongoose.model("semster", semsterSchema);
 
-export default SemesterModel;
+export default semsterModel;

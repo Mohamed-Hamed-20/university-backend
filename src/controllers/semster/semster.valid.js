@@ -31,14 +31,14 @@ export const updatesemster = {
     .required(),
   query: joi
     .object({
-      semesterId: generalFields._id.required(),
+      semsterId: generalFields._id.required(),
     })
     .required(),
 };
 export const deletesemster = {
   query: joi
     .object({
-      semesterId: generalFields._id.required(),
+      semsterId: generalFields._id.required(),
     })
     .required(),
 };

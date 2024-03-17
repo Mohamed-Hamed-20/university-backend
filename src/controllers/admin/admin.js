@@ -1,7 +1,7 @@
 import { adminModel } from "../../../DB/models/admin.model.js";
 import CourseModel from "../../../DB/models/course.model.js";
 import { InstructorModel } from "../../../DB/models/instructor.model.js";
-import SemesterModel from "../../../DB/models/semster.model.js";
+import semsterModel from "../../../DB/models/semster.model.js";
 import trainingmodel from "../../../DB/models/training.model.js";
 import userModel from "../../../DB/models/user.model.js";
 import { generateToken, storeRefreshToken } from "../../utils/Token.js";
@@ -251,7 +251,7 @@ export const info = asyncHandler(async (req, res, next) => {
   const students = await userModel.countDocuments();
   const admins = await adminModel.countDocuments();
   const instructors = await InstructorModel.countDocuments();
-  const semsters = await SemesterModel.countDocuments();
+  const semsters = await semsterModel.countDocuments();
   const training = await trainingmodel.countDocuments();
 
   return res.status(200).json({
