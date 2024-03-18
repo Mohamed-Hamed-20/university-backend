@@ -84,7 +84,9 @@ export const addToRegister = asyncHandler(async (req, res, next) => {
     availableCourses.Available_Courses.filter(
       (item) => item.toString() !== courseId.toString()
     );
-  await availableCourses.save();
+  (await availableCourses.save()).populate({
+    path,
+  });
 
   return res.json({ message: "Course added successfully", result });
 });
@@ -131,4 +133,19 @@ export const deleteFromRegister = asyncHandler(async (req, res, next) => {
   return res
     .status(200)
     .json({ message: "Course deleted successfully", result });
+});
+
+export const getRegister = asyncHandler(async (req, res, next) => {
+  const userId = req.user._id;
+  console.log(userId);
+  const register = await RegisterModel.findOne({ studentId: userId })
+    .populate({
+      path: "coursesRegisterd",
+      select: "course_name credit_hour  desc _id",
+    })
+    .exec();
+  if (!register) {
+    return next(new Error("user doesn't have register table", { cause: 400 }));
+  }
+  return res.status(200).json({ message: "Done", register });
 });

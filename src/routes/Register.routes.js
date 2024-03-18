@@ -20,4 +20,6 @@ router.patch(
   acc.deleteFromRegister
 );
 
+router.get("/getRegister", isAuth([roles.admin, roles.stu]), acc.getRegister);
+
 export default router;
