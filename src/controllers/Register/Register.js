@@ -137,15 +137,23 @@ export const deleteFromRegister = asyncHandler(async (req, res, next) => {
 
 export const getRegister = asyncHandler(async (req, res, next) => {
   const userId = req.user._id;
+  const semsterId = req.user.semsterId;
   console.log(userId);
-  const register = await RegisterModel.findOne({ studentId: userId })
+  let register;
+  register = await RegisterModel.findOne({ studentId: userId })
     .populate({
       path: "coursesRegisterd",
       select: "course_name credit_hour  desc _id",
     })
     .exec();
   if (!register) {
-    return next(new Error("user doesn't have register table", { cause: 400 }));
+    const createnewregister = {
+      studentId: userId,
+      semsterId,
+      Available_Hours: 18,
+      coursesRegisterd: [],
+    };
+    register = await RegisterModel.create(createnewregister);
   }
   return res.status(200).json({ message: "Done", register });
 });
