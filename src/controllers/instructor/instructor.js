@@ -25,15 +25,6 @@ export const login = asyncHandler(async (req, res, next) => {
     return next(new Error("Invalid Email or password", { cause: 404 }));
   }
 
-  // if (!user.isconfrimed) {
-  //   return next(
-  //     new Error(
-  //       "your Email Not verfied Did you want send to you verfication link to confirm your email",
-  //       { cause: 404 }
-  //     )
-  //   );
-  // }
-
   //generate accessToken
   const accessToken = await generateToken({
     payload: { userId: user._id, role: user.role, IpAddress: req.ip },

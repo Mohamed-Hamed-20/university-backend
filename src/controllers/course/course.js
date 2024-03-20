@@ -14,6 +14,7 @@ export const addCourse = asyncHandler(async (req, res, next) => {
     instructorId,
     OpenForRegistration,
     desc,
+    department,
   } = req.body;
 
   const course = {};
@@ -40,19 +41,11 @@ export const addCourse = asyncHandler(async (req, res, next) => {
     course.Prerequisites = foundPrerequisites;
   }
 
-  // Check if instructorId is provided and valid
-  if (instructorId) {
-    const instructor = await InstructorModel.findById(instructorId);
-    if (!instructor || instructor.role !== "instructor") {
-      return next(new Error("Invalid instructorId", { status: 404 }));
-    }
-    course.instructorId = instructorId;
-  }
-
   // Assign OpenForRegistration and description if provided
   if (OpenForRegistration) course.OpenForRegistration = OpenForRegistration;
 
   if (desc) course.desc = desc;
+  if (department) course.department = department;
 
   // Assign credit hour
   course.credit_hour = credit_hour;
@@ -70,7 +63,7 @@ export const updatecourse = asyncHandler(async (req, res, next) => {
     course_name,
     Prerequisites,
     credit_hour,
-    instructorId,
+    department,
     OpenForRegistration,
     desc,
   } = req.body;
@@ -108,20 +101,12 @@ export const updatecourse = asyncHandler(async (req, res, next) => {
     }
   }
 
-  if (instructorId && instructorId != course?.instructorId?.toString()) {
-    console.log("Insta check");
-    const instructor = await InstructorModel.findById(instructorId);
-    if (!instructor) {
-      return next(new Error("Invalid instructor Id", { cause: 404 }));
-    }
-    course.instructorId = instructor._id;
-  }
-
   if (credit_hour) course.credit_hour = credit_hour;
 
   if (OpenForRegistration) course.OpenForRegistration = OpenForRegistration;
 
   if (desc) course.desc = desc;
+  if (department) course.department = department;
 
   await course.save();
   return res.status(200).json({ message: "course  Successfully", course });
@@ -145,11 +130,11 @@ export const searchcourse = asyncHandler(async (req, res, next) => {
     "desc",
     "_id",
     "credit_hour",
-    "instructorId",
+    "department",
     "OpenForRegistration",
     "Prerequisites",
   ];
-  const searchFields = ["course_name", "desc"];
+  const searchFields = ["course_name", "desc", "department"];
 
   const apiFeatureInstance = new ApiFeature(
     CourseModel.find(),

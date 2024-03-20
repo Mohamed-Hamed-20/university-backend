@@ -11,6 +11,11 @@ const GrateSchema = new mongoose.Schema({
     ref: "course",
     required: true,
   },
+  creditHours: {
+    type: Number,
+    required: true,
+    enum: [2, 3],
+  },
   Points: {
     type: Number,
     min: 0,
@@ -58,6 +63,11 @@ const GrateSchema = new mongoose.Schema({
     max: 100,
     required: true,
   },
+  semsterId: {
+    type: Types.ObjectId,
+    ref: "Semster",
+    required: true,
+  },
 });
 
 const semsterGradeSchema = new mongoose.Schema({
@@ -68,19 +78,7 @@ const semsterGradeSchema = new mongoose.Schema({
   },
   semsterId: {
     type: Types.ObjectId,
-    ref: "semster",
-    required: true,
-  },
-  GpaInsemster: {
-    type: Number,
-    min: 0,
-    max: 4,
-    required: true,
-  },
-  HoursInsemster: {
-    type: Number,
-    min: 0,
-    max: 18,
+    ref: "Semster",
     required: true,
   },
   courseGrates: [
@@ -96,17 +94,6 @@ const studentGradesSchema = new mongoose.Schema({
   studentId: {
     type: Types.ObjectId,
     ref: "user",
-    required: true,
-  },
-  TotalGpa: {
-    type: Number,
-    required: true,
-    min: 0,
-    max: 4,
-    default: 2,
-  },
-  totalCreditHours: {
-    type: Number,
     required: true,
   },
   semsterGratesIds: [

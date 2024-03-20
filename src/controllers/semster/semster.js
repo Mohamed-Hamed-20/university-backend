@@ -1,8 +1,10 @@
 import semsterModel from "../../../DB/models/semster.model.js";
+import settingModel from "../../../DB/models/setting.model.js";
+import { ApiFeature } from "../../utils/apiFeature.js";
 import { asyncHandler } from "../../utils/errorHandling.js";
 
 export const addsemster = asyncHandler(async (req, res, next) => {
-  const { name, level, Academic_Year, term, MinAvailableHours } = req.body;
+  const { name, year, term, Max_Hours } = req.body;
   const chkname = await semsterModel.findOne({ name: name });
   if (chkname) {
     return next(new Error("Semster name is already Exist", { cause: 400 }));
@@ -10,10 +12,9 @@ export const addsemster = asyncHandler(async (req, res, next) => {
 
   const semster = {
     name: name,
-    level,
-    Academic_Year,
     term,
-    MinAvailableHours,
+    year,
+    Max_Hours,
   };
   const result = await semsterModel.create(semster);
   if (!result) {
@@ -25,7 +26,7 @@ export const addsemster = asyncHandler(async (req, res, next) => {
 });
 
 export const updatesemster = asyncHandler(async (req, res, next) => {
-  const { name, level, Academic_Year, term, MinAvailableHours } = req.body;
+  const { name, year, term, Max_Hours } = req.body;
   const { semsterId } = req.query;
   const semster = await semsterModel.findById(semsterId);
   if (!semster) {
@@ -39,13 +40,10 @@ export const updatesemster = asyncHandler(async (req, res, next) => {
     semster.name = name;
   }
 
-  semster.level = level || semster.level;
-  semster.Academic_Year = Academic_Year || semster.Academic_Year;
+  semster.year = year || semster.year;
   semster.term = term || semster.term;
-  semster.MinAvailableHours = MinAvailableHours || semster.MinAvailableHours;
-  const result = await semsterModel.findByIdAndUpdate(semsterId, semster, {
-    new: true,
-  });
+  semster.Max_Hours = Max_Hours;
+  const result = await semster.save();
   if (!result) {
     return next(new Error("Unexpected Error :(", { cause: 500 }));
   }
@@ -64,4 +62,54 @@ export const deletesemster = asyncHandler(async (req, res, next) => {
     message: "semster deleted successfully",
     semster: deletedsemster,
   });
+});
+
+export const getsemster = asyncHandler(async (req, res, next) => {
+  const setting = await settingModel.findById(process.env.MainsettingId);
+  const semster = await semsterModel.findById(setting.MainSemsterId);
+  if (!semster) {
+    return next(new Error("semster not found", { cause: 404 }));
+  }
+  return res.status(200).json({ message: "semster Information", semster });
+});
+
+export const searchsemster11 = asyncHandler(async (req, res, next) => {
+  const { courseId } = req.query;
+  const course = await CourseModel.findByIdAndDelete(courseId);
+  if (!course) {
+    return next(new Error("Invalid courseId", { cause: 404 }));
+  }
+  //response
+  return res
+    .status(200)
+    .json({ message: "course delete Successfully", course });
+});
+
+export const searchsemster = asyncHandler(async (req, res, next) => {
+  const allowFields = ["name", "year", "_id", "startDate", "term", "Max_Hours"];
+  const searchFields = ["name", "year", "term"];
+
+  const apiFeatureInstance = new ApiFeature(
+    semsterModel.find(),
+    req.query,
+    allowFields
+  )
+    .search(searchFields)
+    .pagination()
+    .sort()
+    .select()
+    .filter();
+
+  const semsters = await apiFeatureInstance.MongoseQuery;
+
+  return res
+    .status(200)
+    .json({ message: "Done All semsters Information", semsters });
+});
+
+export const count = asyncHandler(async (req, res, next) => {
+  console.log(req.query.num);
+  const count = await CourseModel.find().countDocuments({});
+  console.log(count);
+  return res.json({ count: count });
 });

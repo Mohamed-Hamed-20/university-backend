@@ -5,6 +5,7 @@ export const addgrate = {
   body: joi
     .object({
       courseId: generalFields._id.required(),
+      semsterId: generalFields._id.required(),
       studentId: generalFields._id.required(),
       FinalExam: joi.number().min(0).max(50).required(),
       Oral: joi.number().min(0).max(10).required(),
@@ -13,6 +14,64 @@ export const addgrate = {
     })
     .required(),
 };
-export const updatecoursegrate = {};
-export const deletecoursegrate = {};
-export const Getcoursegrate = {};
+export const updatecoursegrate = {
+  body: joi
+    .object({
+      courseId: generalFields._id.optional(),
+      semsterId: generalFields._id.optional(),
+      studentId: generalFields._id.optional(),
+      FinalExam: joi.number().min(0).max(50).optional(),
+      Oral: joi.number().min(0).max(10).optional(),
+      Practical: joi.number().min(0).max(20).optional(),
+      Midterm: joi.number().min(0).max(20).optional(),
+    })
+    .required(),
+  query: joi
+    .object({
+      GradeId: generalFields._id.required(),
+    })
+    .required(),
+};
+
+// semsterId,
+// studentId,
+// courseId,
+// FinalExam,
+// Oral,
+// Practical,
+// Midterm,
+export const deletecoursegrate = {
+  query: joi
+    .object({
+      GradeId: generalFields._id.required(),
+    })
+    .required(),
+  body: joi
+    .object({
+      backToRegister: joi.string().valid("yes", "no").required(),
+    })
+    .required(),
+};
+export const studentsGratesIncourse = {
+  query: joi
+    .object({
+      sort: joi.string(),
+      select: joi.string().min(3).max(100),
+      page: joi.number().min(0).max(33),
+      size: joi.number().min(0).max(23),
+      search: joi.string().min(0).max(100),
+      courseId: generalFields._id.required(),
+      semsterId: generalFields._id.required(),
+    })
+    .required(),
+};
+
+export const gradeSingleuser = {};
+
+export const stugrades = {
+  query: joi
+    .object({
+      studentId: generalFields._id.optional(),
+    })
+    .required(),
+};

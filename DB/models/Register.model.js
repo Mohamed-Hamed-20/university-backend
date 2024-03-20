@@ -6,12 +6,6 @@ const Registerschema = new Schema(
       ref: "user",
       required: true,
     },
-    semsterId: {
-      type: Types.ObjectId,
-      ref: "semster",
-      required: true,
-    },
-
     Available_Hours: {
       type: Number,
       required: true,
@@ -22,7 +16,6 @@ const Registerschema = new Schema(
       {
         type: Types.ObjectId,
         ref: "course",
-        unique: true,
       },
     ],
   },

@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import { pagenation } from "./pagination.js";
 
 export class ApiFeature {
@@ -44,14 +45,12 @@ export class ApiFeature {
   }
 
   populate(options) {
-    console.log(options);
     if (!this.QueryData.select?.includes(`${options.path}`)) {
       return this;
     }
     this.MongoseQuery.populate({ path: options.path, select: options.select });
     return this;
   }
-  //search
   //search
   search(searchFields) {
     const { search } = this.QueryData;
@@ -61,6 +60,7 @@ export class ApiFeature {
           [field]: { $regex: new RegExp(search, "i") },
         })),
       };
+      console.log(searchQuery);
       this.MongoseQuery.find(searchQuery);
     }
     return this;

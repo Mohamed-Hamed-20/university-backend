@@ -196,7 +196,7 @@ export const hellowpage = async () => {
             <p>Location: ${process.env.location}</p>
             <div class="social-icons">
                 <a href="${process.env.GitHub}" target="_blank">GitHub</a>
-                <a href="" target="_blank">LinkedIn</a>
+                <a href="${process.env.linkedIn}" target="_blank">LinkedIn</a>
             </div>
         </div>
         <img src="${process.env.profileImg}" alt="Mohamed Hamed">

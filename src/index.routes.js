@@ -3,6 +3,7 @@ import cors from "cors";
 import { rateLimit } from "express-rate-limit";
 import userRouter from "./routes/user.routes.js";
 import adminRouter from "./routes/admin.routes.js";
+import settingRouter from "./routes/setting.routes.js";
 import semsterRouter from "./routes/semster.routes.js";
 import instructorRouter from "./routes/instructor.routes.js";
 import StudentGradesRouter from "./routes/StudentGrades.routes.js";
@@ -49,6 +50,7 @@ export const bootstrap = (app, express) => {
   app.use(limiter);
 
   // API
+  app.use("/Api/admin/setting", settingRouter);
   app.use("/Api/user", userRouter);
   app.use("/Api/admin", adminRouter);
   app.use("/Api/instructor", instructorRouter);

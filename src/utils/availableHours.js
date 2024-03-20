@@ -1,20 +1,31 @@
+import SemesterModel from "../../DB/models/semster.model.js";
+import settingModel from "../../DB/models/setting.model.js";
+
 export const availableHoursForUser = async ({
   TotalGpa,
   RegisterInfo,
 } = {}) => {
   try {
+    const setting = await settingModel.findOne();
+    if (!setting) {
+      throw new Error("Need to provied semsterId first in setting");
+    }
+    const semsterInfo = await SemesterModel.findById(setting.MainSemsterId);
     let availablehour;
     if (!RegisterInfo || RegisterInfo.coursesRegisterd.length == 0) {
-      if (TotalGpa >= 2 && TotalGpa <= 4) {
-        console.log("Hi boy");
-        availablehour = 18;
-      } else if (TotalGpa >= 1 && TotalGpa < 2) {
-        availablehour = 15;
-      } else if (TotalGpa <= 0 && TotalGpa < 1) {
-        availablehour = 12;
+      if (semsterInfo.term == "summer") {
+        availablehour = semsterInfo.Max_Hours;
+      } else {
+        if (TotalGpa >= 2 && TotalGpa <= 4) {
+          availablehour = semsterInfo.Max_Hours;
+        } else if (TotalGpa >= 1 && TotalGpa < 2) {
+          availablehour = semsterInfo.Max_Hours - 3;
+        } else if (TotalGpa <= 0 && TotalGpa < 1) {
+          availablehour = semsterInfo.Max_Hours - 6;
+        }
       }
     } else {
-      availablehour = RegisterInfo.Available_Hours;
+      availablehour = RegisterInfo?.Available_Hours;
     }
     return availablehour;
   } catch (error) {

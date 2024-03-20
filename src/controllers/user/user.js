@@ -67,6 +67,7 @@ export const Getuser = asyncHandler(async (req, res, next) => {
   const semster = await semsterModel.findById(user.semsterId);
   const result = {
     Full_Name: user.Full_Name,
+    _id: user._id,
     National_Id: user.National_Id,
     Student_Code: user.Student_Code,
     semster: semster,
@@ -256,6 +257,7 @@ export const searchuser = asyncHandler(async (req, res, next) => {
     "Date_of_Birth",
     "semsterId",
     "Student_Code",
+    "National_Id",
   ];
   const searchFields = [
     "Full_Name",
@@ -265,7 +267,7 @@ export const searchuser = asyncHandler(async (req, res, next) => {
   ];
 
   const options = {
-    select: "Academic_Year term level",
+    select: "term name year",
     path: "semsterId",
   };
 

@@ -1,4 +1,36 @@
-export const calculateGradeAndPoints = (totalGrate, creditHours) => {
+import { GradeModel } from "../../DB/models/StudentGrades.model.js";
+
+export const calculateGPA = async ({ studentId, studentresult }) => {
+  try {
+    let grades;
+    if (!studentresult) {
+      grades = await GradeModel.find({ studentId }).lean().exec();
+    } else {
+      grades = studentresult;
+    }
+    if (!grades || grades.length === 0) {
+      return { TotalGpa: 2, totalCreditHours: 0 }; // يمكنك تحديد قيمة الـ GPA كـ 0 في هذه الحالة
+    }
+
+    let totalPoints = 0;
+    let totalCreditHours = 0;
+
+    grades.forEach((grade) => {
+      totalPoints += grade.Points * grade.creditHours;
+      totalCreditHours += grade.creditHours;
+    });
+
+    const gpa = totalPoints / totalCreditHours;
+
+    const roundedGPA = Math.round(gpa * 100) / 100;
+
+    return { TotalGpa: roundedGPA, totalCreditHours };
+  } catch (error) {
+    throw new Error("Error calculating GPA");
+  }
+};
+
+export const calculateGradeAndPoints = (totalGrate) => {
   let points;
   let grade;
 
@@ -89,4 +121,58 @@ export const calculateOverallGPA = async (semsters) => {
 
   const overallGPA = totalQualityPoints / totalCreditHours;
   return { overallGPA, totalCreditHours };
+};
+
+export const updateGPA = ({
+  currentGPA,
+  courseGPA,
+  courseCreditHours,
+  totalCreditHours,
+}) => {
+  const totalPoints =
+    currentGPA * totalCreditHours - courseGPA * courseCreditHours;
+
+  const updatedGPA = totalPoints / (totalCreditHours - courseCreditHours);
+
+  // تقريب القيمة
+  const roundedGPA = Math.round(updatedGPA * 1000) / 1000;
+
+  const updatedCreditHours = totalCreditHours - courseCreditHours;
+
+  return { newGPA: roundedGPA, newCreditHours: updatedCreditHours };
+};
+
+export const calculateTotalGPA = async ({ semesters }) => {
+  let updatedSemesters = [];
+
+  for (const semester of semesters) {
+    let totalPoints = 0;
+    let totalCreditHours = 0;
+
+    for (const grade of semester.courseGrates) {
+      totalPoints += grade.Points * grade.creditHours;
+      totalCreditHours += grade.creditHours;
+    }
+
+    const gpaInSemester = totalPoints / totalCreditHours;
+    const hoursInSemester = totalCreditHours;
+
+    semester.gpaInSemester = Math.round(gpaInSemester * 1000) / 1000;
+    semester.hoursInSemester = hoursInSemester;
+
+    updatedSemesters.push(semester);
+  }
+
+  let totalGpa = 0;
+  let totalCreditHours = 0;
+
+  for (const semester of updatedSemesters) {
+    totalGpa += semester.gpaInSemester * semester.hoursInSemester;
+    totalCreditHours += semester.hoursInSemester;
+  }
+
+  const totalGpaOverall =
+    Math.round((totalGpa / totalCreditHours) * 1000) / 1000;
+
+  return { semesters: updatedSemesters, totalGpaOverall, totalCreditHours };
 };

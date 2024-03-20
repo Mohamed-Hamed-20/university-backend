@@ -5,13 +5,9 @@ export const addsemster = {
   body: joi
     .object({
       name: joi.string().min(4).max(55).required(),
-      level: joi
-        .string()
-        .valid("one", "two", "three", "four", "graduated")
-        .required(),
-      term: joi.string().valid("one", "two", "Summer").required(),
-      Academic_Year: joi.string().min(5).max(14).required(),
-      MinAvailableHours: joi.number().min(3).max(144).required(),
+      term: joi.string().valid("one", "two", "summer").required(),
+      year: joi.string().min(5).max(14).required(),
+      Max_Hours: joi.number().min(2).max(26).required(),
     })
     .required(),
 };
@@ -20,13 +16,9 @@ export const updatesemster = {
   body: joi
     .object({
       name: joi.string().min(4).max(55).optional(),
-      level: joi
-        .string()
-        .valid("one", "two", "three", "four", "graduated")
-        .optional(),
-      term: joi.string().valid("one", "two", "Summer").optional(),
-      Academic_Year: joi.string().min(5).max(14).optional(),
-      MinAvailableHours: joi.number().min(3).max(144).optional(),
+      term: joi.string().valid("one", "two", "summer").optional(),
+      year: joi.string().min(5).max(14).optional(),
+      Max_Hours: joi.number().min(2).max(26).optional(),
     })
     .required(),
   query: joi

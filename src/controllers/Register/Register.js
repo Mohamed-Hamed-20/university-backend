@@ -1,13 +1,16 @@
+import { Types } from "mongoose";
 import RegisterModel from "../../../DB/models/Register.model.js";
 import { StudentGradeModel } from "../../../DB/models/StudentGrades.model.js";
 import availableCoursesModel from "../../../DB/models/availableCourses.model.js";
 import CourseModel from "../../../DB/models/course.model.js";
+import { ApiFeature } from "../../utils/apiFeature.js";
+import { arrayofstring } from "../../utils/arrayobjectIds.js";
 import { availableHoursForUser } from "../../utils/availableHours.js";
+import { calculateGPA } from "../../utils/calcGrates.js";
 import { asyncHandler } from "../../utils/errorHandling.js";
 
 export const addToRegister = asyncHandler(async (req, res, next) => {
   const userId = req.user._id;
-  const semsterId = req.user.semsterId;
   const { courseId } = req.query;
   // Get course information
   const course = await CourseModel.findById(courseId);
@@ -34,13 +37,13 @@ export const addToRegister = asyncHandler(async (req, res, next) => {
   // Find user registration information
   const userRegisterInfo = await RegisterModel.findOne({ studentId: userId });
 
-  // Get student total crdit hour and Gpa total
-  const userGrades = await StudentGradeModel.findOne({ studentId: userId });
+  // calculate GPA
+  const { TotalGpa, totalCreditHours } = await calculateGPA(userId);
 
   // Get available hours for the user
   const availableHours = await availableHoursForUser({
-    TotalGpa: userGrades?.TotalGpa || 2,
-    totalCreditHours: userGrades?.totalCreditHours || 0,
+    TotalGpa: TotalGpa,
+    totalCreditHours: totalCreditHours,
     RegisterInfo: userRegisterInfo,
   });
 
@@ -60,7 +63,6 @@ export const addToRegister = asyncHandler(async (req, res, next) => {
       studentId: userId,
       Available_Hours: newHours,
       coursesRegisterd: coursesRegisterd,
-      semsterId: semsterId,
     };
     result = await RegisterModel.create(newRegister);
   } else {
@@ -84,9 +86,7 @@ export const addToRegister = asyncHandler(async (req, res, next) => {
     availableCourses.Available_Courses.filter(
       (item) => item.toString() !== courseId.toString()
     );
-  (await availableCourses.save()).populate({
-    path,
-  });
+  await availableCourses.save();
 
   return res.json({ message: "Course added successfully", result });
 });
@@ -137,7 +137,6 @@ export const deleteFromRegister = asyncHandler(async (req, res, next) => {
 
 export const getRegister = asyncHandler(async (req, res, next) => {
   const userId = req.user._id;
-  const semsterId = req.user.semsterId;
   console.log(userId);
   let register;
   register = await RegisterModel.findOne({ studentId: userId })
@@ -149,11 +148,62 @@ export const getRegister = asyncHandler(async (req, res, next) => {
   if (!register) {
     const createnewregister = {
       studentId: userId,
-      semsterId,
-      Available_Hours: 18,
+      Available_Hours: 0,
       coursesRegisterd: [],
     };
     register = await RegisterModel.create(createnewregister);
   }
   return res.status(200).json({ message: "Done", register });
+});
+
+export const searchRegister = asyncHandler(async (req, res, next) => {
+  const { courseId  } = req.query;
+  const user = req.user;
+
+  // check if he allow to view this courses
+  if (user.role == "instructor") {
+    const Materials = await arrayofstring(user.Materials);
+    if (!Materials.includes(courseId.toString())) {
+      return next(
+        new Error("You are not allowed to upload grades for this course", {
+          status: 403,
+        })
+      );
+    }
+  }
+
+  const allowFields = [
+    "studentId",
+    "_id",
+    "Available_Hours",
+    "coursesRegisterd",
+  ];
+
+  const searchFields = ["studentId", "Available_Hours", "coursesRegisterd"];
+
+  const optionstudent = {
+    select:
+      "Full_Name National_Id Student_Code department gender PhoneNumber Date_of_Birth National_Id",
+    path: "studentId",
+  };
+
+  console.log(find);
+  const apiFeatureInstance = new ApiFeature(
+    RegisterModel.find({ coursesRegisterd: { $in: [courseId] } }),
+    req.query,
+    allowFields
+  )
+    .pagination()
+    .select()
+    .filter()
+    .sort()
+    .search(searchFields)
+    .populate(optionstudent);
+
+  const registers = await apiFeatureInstance.MongoseQuery;
+
+  return res.status(200).json({
+    message: "Done All Student Information",
+    registers: registers,
+  });
 });

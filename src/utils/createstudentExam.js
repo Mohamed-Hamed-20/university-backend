@@ -1,5 +1,5 @@
 import RegisterModel from "../../DB/models/Register.model.js";
-import {StudentGradeModel} from "../../DB/models/StudentGrades.model.js";
+import { StudentGradeModel } from "../../DB/models/StudentGrades.model.js";
 import CourseModel from "../../DB/models/course.model.js";
 
 export const createStudentExams = async (userId) => {
@@ -26,7 +26,11 @@ export const createStudentExams = async (userId) => {
   }
 };
 
-export const getAllValidCourses = async (passedCoursesIds, userId) => {
+export const getAllValidCourses = async ({
+  passedCourses: passedCoursesIds,
+  userId,
+  studepartment,
+}) => {
   // delete courses its already user register it
   const Registered = await RegisterModel.findOne({ studentId: userId });
   let newpassedCoursesIds = passedCoursesIds;
@@ -44,12 +48,36 @@ export const getAllValidCourses = async (passedCoursesIds, userId) => {
 
   // filter only vaild courses
   const validCourses = newCourses.filter((course) => {
-    if (!course?.Prerequisites || course.Prerequisites.length === 0) {
-      return true;
+    if (studepartment) {
+      if (course.department && course.department.length > 0) {
+        if (course.department.includes(studepartment)) {
+          if (!course?.Prerequisites || course.Prerequisites.length === 0) {
+            return true;
+          } else {
+            return course.Prerequisites.every((ele) =>
+              passedCoursesIds.toString().includes(ele.toString())
+            );
+          }
+        } else {
+          return false;
+        }
+      } else {
+        if (!course?.Prerequisites || course.Prerequisites.length === 0) {
+          return true;
+        } else {
+          return course.Prerequisites.every((ele) =>
+            passedCoursesIds.toString().includes(ele.toString())
+          );
+        }
+      }
     } else {
-      return course.Prerequisites.every((ele) =>
-        passedCoursesIds.toString().includes(ele.toString())
-      );
+      if (!course?.Prerequisites || course.Prerequisites.length === 0) {
+        return true;
+      } else {
+        return course.Prerequisites.every((ele) =>
+          passedCoursesIds.toString().includes(ele.toString())
+        );
+      }
     }
   });
 

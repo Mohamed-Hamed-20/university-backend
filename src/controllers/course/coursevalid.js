@@ -1,8 +1,6 @@
 import joi from "joi";
 import { customMessages, generalFields } from "../../middleware/validation.js";
 
-
-
 export const addcourse = {
   body: joi
     .object({
@@ -20,7 +18,7 @@ export const addcourse = {
         .items(generalFields._id.optional())
         .optional()
         .messages(customMessages),
-      instructorId: generalFields._id.optional().messages(customMessages),
+      department: joi.array().items(joi.string().valid("cs", "is", "ai", "sc")),
     })
     .required(),
 };
@@ -41,7 +39,7 @@ export const updatecourse = {
         .items(generalFields._id.optional())
         .optional()
         .messages(customMessages),
-      instructorId: generalFields._id.optional().messages(customMessages),
+      department: joi.array().items(joi.string().valid("cs", "is", "ai", "sc")),
     })
     .required(),
   query: joi

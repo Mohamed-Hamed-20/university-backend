@@ -4,10 +4,7 @@ import {
   StudentGradeModel,
 } from "../../../DB/models/StudentGrades.model.js";
 import AvailableCoursesModel from "../../../DB/models/availableCourses.model.js";
-import {
-  getAllValidCourses,
-  createStudentExams,
-} from "../../utils/createstudentExam.js";
+import { getAllValidCourses } from "../../utils/createstudentExam.js";
 import { asyncHandler } from "../../utils/errorHandling.js";
 
 export const availableCourses = asyncHandler(async (req, res, next) => {
@@ -23,15 +20,15 @@ export const availableCourses = asyncHandler(async (req, res, next) => {
   })
     .select("courseId")
     .lean();
-  console.log(courses);
+
   passedCourses = courses.map((course) => course.courseId);
 
   // Get all valid courses and IDs
-  const { validCourses, validCoursesIds } = await getAllValidCourses(
+  const { validCourses, validCoursesIds } = await getAllValidCourses({
     passedCourses,
-    userId
-  );
-
+    userId,
+    studepartment: req.user.department || null,
+  });
   // Check if available courses exist
   let availableCoursesRecord = await AvailableCoursesModel.findOne({
     studentId: userId,

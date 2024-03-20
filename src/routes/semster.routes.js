@@ -11,21 +11,27 @@ const router = Router();
 
 router.post(
   "/addsemster",
-  isAuth([roles.admin]),
+  isAuth([roles.admin, roles.super]),
   valid(vSchema.addsemster),
   sc.addsemster
 );
 router.put(
   "/updatesemster",
-  isAuth([roles.admin]),
+  isAuth([roles.admin, roles.super]),
   valid(vSchema.updatesemster),
   sc.updatesemster
 );
 router.delete(
   "/deletesemster",
-  isAuth([roles.admin]),
+  isAuth([roles.admin, roles.super]),
   valid(vSchema.deletesemster),
   sc.deletesemster
 );
+router.get(
+  "/searchsemster",
+  isAuth([roles.admin, roles.super]),
+  sc.searchsemster
+);
+router.get("/getsemster", sc.getsemster);
 // missed login with Gmail   <<<<=====
 export default router;

@@ -19,15 +19,16 @@ const CourseSchema = new mongoose.Schema(
       required: true,
       enum: [2, 3],
     },
-    instructorId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Instructor",
-      required: false,
-    },
     OpenForRegistration: {
       type: Boolean,
       default: false,
     },
+    department: [
+      {
+        type: String,
+        enum: ["cs", "is", "sc", "ai"],
+      },
+    ],
     Prerequisites: [
       {
         type: Types.ObjectId,
