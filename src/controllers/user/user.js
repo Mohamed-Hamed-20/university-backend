@@ -64,7 +64,6 @@ export const Getuser = asyncHandler(async (req, res, next) => {
       new Error("Invalid User Data please Try Again", { cause: 500 })
     );
   }
-  const semster = await semsterModel.findById(user.semsterId);
   const result = {
     Full_Name: user.Full_Name,
     _id: user._id,
@@ -85,7 +84,6 @@ export const addStudent = asyncHandler(async (req, res, next) => {
     National_Id,
     Student_Code,
     Date_of_Birth,
-    semsterId,
     PhoneNumber,
     gender,
     department,
@@ -109,17 +107,11 @@ export const addStudent = asyncHandler(async (req, res, next) => {
       return next(new Error("Student Code is Already Exist", { cause: 400 }));
     }
     if (existingStudent.Full_Name === Full_Name) {
-      return next(new Error("Student Name is Already Exist", { cause: 400 }));
+      return next(new Error("Full NaMe Name is Already Exist", { cause: 400 }));
     }
     if (existingStudent.PhoneNumber === PhoneNumber) {
       return next(new Error("phone is Already Exist", { cause: 400 }));
     }
-  }
-
-  // التحقق من صحة معرف الفصل الدراسي
-  const semster = await semsterModel.findById(semsterId);
-  if (!semster) {
-    return next(new Error("Invalid semster Id", { cause: 400 }));
   }
 
   // بناء كائن الطالب
@@ -128,7 +120,6 @@ export const addStudent = asyncHandler(async (req, res, next) => {
     National_Id,
     Student_Code,
     Date_of_Birth,
-    semsterId: semster._id,
     PhoneNumber,
     gender,
     role: "user",
@@ -159,7 +150,6 @@ export const updateStudent = asyncHandler(async (req, res, next) => {
     Full_Name,
     National_Id,
     Student_Code,
-    semsterId,
     Date_of_Birth,
     PhoneNumber,
     gender,
@@ -216,13 +206,6 @@ export const updateStudent = asyncHandler(async (req, res, next) => {
     delete user.password;
   }
 
-  if (semsterId && user.semsterId != semsterId) {
-    const findsemster = await semsterModel.findById(semsterId);
-    if (!findsemster) {
-      return next(new Error("Invalid Semster Id ", { cause: 404 }));
-    }
-    user.semsterId = semsterId || user.semsterId;
-  }
   user.gender = gender || user.gender;
   user.Date_of_Birth = Date_of_Birth || user.Date_of_Birth;
   user.department = department || user.department;
@@ -255,21 +238,16 @@ export const searchuser = asyncHandler(async (req, res, next) => {
     "gender",
     "PhoneNumber",
     "Date_of_Birth",
-    "semsterId",
     "Student_Code",
     "National_Id",
   ];
+
   const searchFields = [
     "Full_Name",
     "PhoneNumber",
     "Student_Code",
     "National_Id",
   ];
-
-  const options = {
-    select: "term name year",
-    path: "semsterId",
-  };
 
   const apiFeatureInstance = new ApiFeature(
     userModel.find({}),
@@ -280,8 +258,7 @@ export const searchuser = asyncHandler(async (req, res, next) => {
     .select()
     .filter()
     .sort()
-    .search(searchFields)
-    .populate(options);
+    .search(searchFields);
 
   const users = await apiFeatureInstance.MongoseQuery;
   return res

@@ -157,53 +157,57 @@ export const getRegister = asyncHandler(async (req, res, next) => {
 });
 
 export const searchRegister = asyncHandler(async (req, res, next) => {
-  const { courseId  } = req.query;
+  const { courseId, studentId } = req.query;
   const user = req.user;
 
-  // check if he allow to view this courses
+  // check if he is allowed to view this courses
   if (user.role == "instructor") {
     const Materials = await arrayofstring(user.Materials);
     if (!Materials.includes(courseId.toString())) {
       return next(
-        new Error("You are not allowed to upload grades for this course", {
+        new Error("You are not allowed to view who registered this course", {
           status: 403,
         })
       );
     }
   }
 
-  const allowFields = [
-    "studentId",
-    "_id",
-    "Available_Hours",
-    "coursesRegisterd",
-  ];
+  let filters = {};
+  if (courseId) filters.coursesRegisterd = courseId;
+  if (studentId) filters.studentId = studentId;
 
-  const searchFields = ["studentId", "Available_Hours", "coursesRegisterd"];
+  const allowFields = ["studentId", "Available_Hours", "coursesRegisterd"];
 
-  const optionstudent = {
+  const optionStudent = {
     select:
-      "Full_Name National_Id Student_Code department gender PhoneNumber Date_of_Birth National_Id",
+      "Full_Name National_Id Student_Code department gender PhoneNumber Date_of_Birth",
     path: "studentId",
   };
+  const optionCourse = {
+    path: "coursesRegisterd",
+    match: { _id: courseId },
+    select: "course_name desc credit_hour",
+  };
 
-  console.log(find);
+  const searchFields = [];
+  const searchFieldsIds = ["studentId", "coursesRegisterd._id"];
   const apiFeatureInstance = new ApiFeature(
-    RegisterModel.find({ coursesRegisterd: { $in: [courseId] } }),
+    RegisterModel.find(filters).lean(),
     req.query,
     allowFields
   )
     .pagination()
-    .select()
-    .filter()
     .sort()
-    .search(searchFields)
-    .populate(optionstudent);
+    .select()
+    .populate(optionStudent)
+    .populate(optionCourse)
+    // .search(searchFields)
+    .searchById(searchFieldsIds);
 
-  const registers = await apiFeatureInstance.MongoseQuery;
+  const results = await apiFeatureInstance.MongoseQuery;
 
   return res.status(200).json({
     message: "Done All Student Information",
-    registers: registers,
+    registers: results,
   });
 });

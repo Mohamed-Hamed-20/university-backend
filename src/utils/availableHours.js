@@ -11,6 +11,9 @@ export const availableHoursForUser = async ({
       throw new Error("Need to provied semsterId first in setting");
     }
     const semsterInfo = await SemesterModel.findById(setting.MainSemsterId);
+    if (!semsterInfo) {
+      throw new Error("semster Info Invaild");
+    }
     let availablehour;
     if (!RegisterInfo || RegisterInfo.coursesRegisterd.length == 0) {
       if (semsterInfo.term == "summer") {

@@ -196,67 +196,68 @@ export const deletecoursegrate = asyncHandler(async (req, res, next) => {
 });
 
 // درجات الطالب فى كورس معين
-export const studentsGratesIncourse = asyncHandler(async (req, res, next) => {
-  const { courseId, semsterId } = req.query;
+export const studentsGratesSearch = asyncHandler(async (req, res, next) => {
+  const { courseId, studentId } = req.query;
   const user = req.user;
 
-  // check if he allow to view this courses
+  // check if he is allowed to view this courses
   if (user.role == "instructor") {
     const Materials = await arrayofstring(user.Materials);
     if (!Materials.includes(courseId.toString())) {
       return next(
-        new Error("You are not allowed to upload grades for this course", {
+        new Error("You are not allowed to view who registered this course", {
           status: 403,
         })
       );
     }
   }
 
-  const allowFields = [
-    "studentId",
-    "_id",
-    "courseId",
-    "creditHours",
-    "Points",
-    "Grade",
-    "FinalExam",
-    "Oral",
-    "Practical",
-    "Midterm",
-    "YearWorks",
-    "TotalGrate",
-  ];
-  const searchFields = ["studentId.Full_Name"];
+  let filters = {};
+  if (studentId) filters.studentId = studentId;
+  // if (courseId) filters.courseId = courseId;
+  const allowFields = ["studentId", "semsterId", "courseGrates"];
 
-  const optionstudent = {
-    select:
-      "Full_Name National_Id Student_Code department gender PhoneNumber Date_of_Birth National_Id",
+  const optionStudent = {
     path: "studentId",
+    select:
+      "Full_Name National_Id Student_Code department gender PhoneNumber Date_of_Birth",
   };
-  const optionCourse = {
-    select: "course_name credit_hour",
-    path: "courseId",
+
+  const optionscourseGrates = {
+    path: "courseGrates",
+    match: { courseId: courseId },
+    select:
+      "creditHours courseId creditHours Points Grade FinalExam  Oral Practical Midterm YearWorks TotalGrate",
   };
-  
+
+  const semsteroptions = {
+    path: "semsterId",
+    select: "name year term  Max_Hours",
+  };
+  const searchFields = [];
+  const searchFieldsIds = ["studentId", "semsterId"];
   const apiFeatureInstance = new ApiFeature(
-    GradeModel.find({ courseId: courseId, semsterId: semsterId })
-      .populate("studentId")
-      .lean(),
+    SemesterGradeModel.find(filters).lean(),
     req.query,
     allowFields
   )
     .pagination()
-    .select()
-    .filter()
     .sort()
-    .populate(optionstudent)
-    .populate(optionCourse)
-    .search(searchFields);
+    .select()
+    .populate(optionStudent)
+    .populate(optionscourseGrates)
+    .populate(semsteroptions)
+    .search(searchFieldsIds)
+    .searchById(searchFieldsIds);
 
-  const grades = await apiFeatureInstance.MongoseQuery;
+  let results = await apiFeatureInstance.MongoseQuery;
+
+  // Filter out students without courseGrates
+  results = results.filter((student) => student.courseGrates.length > 0);
+
   return res
     .status(200)
-    .json({ message: "Done student Grates", grades: grades });
+    .json({ message: "Done student Grates", grades: results });
 });
 
 // جديد

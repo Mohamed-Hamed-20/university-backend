@@ -52,19 +52,22 @@ export const deletecoursegrate = {
     })
     .required(),
 };
-export const studentsGratesIncourse = {
+export const studentsGratesSearch = {
   query: joi
     .object({
       sort: joi.string(),
       select: joi.string().min(3).max(100),
+      searchId: generalFields._id,
       page: joi.number().min(0).max(33),
       size: joi.number().min(0).max(23),
       search: joi.string().min(0).max(100),
+      searchById: generalFields._id,
       courseId: generalFields._id.required(),
-      semsterId: generalFields._id.required(),
     })
     .required(),
 };
+
+
 
 export const gradeSingleuser = {};
 

@@ -13,7 +13,6 @@ export const registeruser = {
         .string()
         .pattern(/^[0-9]{14}$/)
         .required(),
-      semsterId: generalFields._id.required(),
       Date_of_Birth: joi.date().iso().required(),
       PhoneNumber: generalFields.PhoneNumber.required(),
       department: generalFields.department.optional(),
@@ -49,7 +48,6 @@ export const updateStudent = {
         .string()
         .pattern(/^[0-9]{14}$/)
         .optional(),
-      semsterId: generalFields._id.optional(),
       Date_of_Birth: joi.date().iso().optional(),
       PhoneNumber: generalFields.PhoneNumber.optional(),
       department: generalFields.department.optional(),

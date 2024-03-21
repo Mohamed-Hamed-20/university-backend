@@ -25,13 +25,6 @@ const userSchema = new Schema(
       minlength: 14,
       maxlength: 14,
     },
-
-    semsterId: {
-      type: Types.ObjectId,
-      ref: "semster",
-      required: true,
-    },
-
     Date_of_Birth: {
       type: Date,
       required: true,

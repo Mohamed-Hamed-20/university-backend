@@ -16,7 +16,6 @@ router.post(
   sgc.addTosemster
 );
 
-
 // تحديث الدرجة
 router.put(
   "/updategrate",
@@ -35,12 +34,11 @@ router.delete(
   sgc.deleteSemsterGrate
 );
 
-
 router.get(
-  "/studentsGratesIncourse",
-  valid(vSchema.studentsGratesIncourse),
+  "/studentsGratesSearch",
+  valid(vSchema.studentsGratesSearch),
   isAuth([roles.admin, roles.instructor]),
-  gc.studentsGratesIncourse
+  gc.studentsGratesSearch
 );
 
 router.get(
@@ -49,9 +47,6 @@ router.get(
   isAuth([roles.instructor, roles.admin]),
   gc.gradeSingleuser
 );
-
-
-
 
 // صحيفة الطالب التفصيلية
 router.get(

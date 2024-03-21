@@ -48,19 +48,37 @@ export class ApiFeature {
     if (!this.QueryData.select?.includes(`${options.path}`)) {
       return this;
     }
-    this.MongoseQuery.populate({ path: options.path, select: options.select });
+    this.MongoseQuery.populate({
+      path: options.path,
+      select: options.select,
+      match: options?.match,
+    });
     return this;
   }
+
   //search
   search(searchFields) {
     const { search } = this.QueryData;
+    console.log(search);
     if (search) {
       const searchQuery = {
-        $or: searchFields.map((field) => ({
-          [field]: { $regex: new RegExp(search, "i") },
-        })),
+        $or: searchFields.map((field) => {
+          return { [field]: { $regex: new RegExp(search.trim(), "i") } };
+        }),
       };
-      console.log(searchQuery);
+      console.log(JSON.stringify(searchQuery, null, 2));
+      this.MongoseQuery.find(searchQuery);
+    }
+    return this;
+  }
+
+  searchById(searchFields) {
+    const { searchById } = this.QueryData;
+    if (searchById) {
+      const searchQuery = {
+        $or: searchFields.map((field) => ({ [field]: searchById })),
+      };
+      console.log(JSON.stringify(searchQuery, null, 2));
       this.MongoseQuery.find(searchQuery);
     }
     return this;
