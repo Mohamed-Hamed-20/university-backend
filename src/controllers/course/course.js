@@ -22,7 +22,7 @@ export const addCourse = asyncHandler(async (req, res, next) => {
   // Check if the course name already exists
   const chkcourse = await CourseModel.findOne({ course_name: course_name });
   if (chkcourse) {
-    return next(new Error("Course name already exists", { status: 400 }));
+    return next(new Error("Course name already exists", { cause: 400 }));
   } else {
     course.course_name = course_name;
   }

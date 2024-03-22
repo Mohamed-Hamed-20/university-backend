@@ -189,10 +189,9 @@ export const searchRegister = asyncHandler(async (req, res, next) => {
     select: "course_name desc credit_hour",
   };
 
-  const searchFields = [];
-  const searchFieldsIds = ["studentId", "coursesRegisterd._id"];
+  const searchFields = ["studentId"];
   const apiFeatureInstance = new ApiFeature(
-    RegisterModel.find(filters).lean(),
+    RegisterModel.find(filters),
     req.query,
     allowFields
   )
@@ -201,11 +200,8 @@ export const searchRegister = asyncHandler(async (req, res, next) => {
     .select()
     .populate(optionStudent)
     .populate(optionCourse)
-    // .search(searchFields)
-    .searchById(searchFieldsIds);
-
+    .search(searchFields);
   const results = await apiFeatureInstance.MongoseQuery;
-
   return res.status(200).json({
     message: "Done All Student Information",
     registers: results,

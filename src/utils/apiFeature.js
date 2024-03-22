@@ -59,27 +59,23 @@ export class ApiFeature {
   //search
   search(searchFields) {
     const { search } = this.QueryData;
-    console.log(search);
     if (search) {
-      const searchQuery = {
-        $or: searchFields.map((field) => {
-          return { [field]: { $regex: new RegExp(search.trim(), "i") } };
-        }),
-      };
-      console.log(JSON.stringify(searchQuery, null, 2));
-      this.MongoseQuery.find(searchQuery);
-    }
-    return this;
-  }
-
-  searchById(searchFields) {
-    const { searchById } = this.QueryData;
-    if (searchById) {
-      const searchQuery = {
-        $or: searchFields.map((field) => ({ [field]: searchById })),
-      };
-      console.log(JSON.stringify(searchQuery, null, 2));
-      this.MongoseQuery.find(searchQuery);
+      if (mongoose.Types.ObjectId.isValid(search)) {
+        console.log("Hi");
+        const searchQuery = {
+          $or: searchFields.map((field) => ({ [field]: search })),
+        };
+        console.log(JSON.stringify(searchQuery, null, 2));
+        this.MongoseQuery.find(searchQuery);
+      } else {
+        const searchQuery = {
+          $or: searchFields.map((field) => {
+            return { [field]: { $regex: new RegExp(search.trim(), "i") } };
+          }),
+        };
+        console.log(JSON.stringify(searchQuery, null, 2));
+        this.MongoseQuery.find(searchQuery);
+      }
     }
     return this;
   }

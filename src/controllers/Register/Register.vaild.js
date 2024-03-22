@@ -25,7 +25,7 @@ export const searchRegister = {
       page: joi.number().min(0).max(33),
       size: joi.number().min(0).max(23),
       search: joi.string().min(0).max(100),
-      searchById: generalFields._id,
+      // searchById: generalFields._id,
       courseId: generalFields._id.required(),
       studentId: generalFields._id,
     })
