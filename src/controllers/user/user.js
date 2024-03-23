@@ -1,5 +1,6 @@
 // import TotalGratesModel from "../../../DB/models/StudentGrades.model.js";
 import semsterModel from "../../../DB/models/semster.model.js";
+import settingModel from "../../../DB/models/setting.model.js";
 import userModel from "../../../DB/models/user.model.js";
 import { generateToken, storeRefreshToken } from "../../utils/Token.js";
 import { ApiFeature } from "../../utils/apiFeature.js";
@@ -69,6 +70,13 @@ export const Getuser = asyncHandler(async (req, res, next) => {
     studentId: user._id,
   });
   const { level } = await calclevel({ totalCreditHours });
+  const semsterInfo = await settingModel
+    .findOne()
+    .populate({
+      select: "name year term Max_Hours",
+      path: "MainSemsterId",
+    })
+    .select("MainSemsterId");
   const result = {
     Full_Name: user.Full_Name,
     _id: user._id,
@@ -81,6 +89,7 @@ export const Getuser = asyncHandler(async (req, res, next) => {
     level: level,
     TotalGpa,
     totalCreditHours,
+    semsterInfo: semsterInfo.MainSemsterId,
   };
   return res.status(200).json({ message: "Done", result });
 });
