@@ -3,6 +3,7 @@ import semsterModel from "../../../DB/models/semster.model.js";
 import userModel from "../../../DB/models/user.model.js";
 import { generateToken, storeRefreshToken } from "../../utils/Token.js";
 import { ApiFeature } from "../../utils/apiFeature.js";
+import { calclevel, calculateGPA } from "../../utils/calcGrates.js";
 import { asyncHandler } from "../../utils/errorHandling.js";
 import { verifypass } from "../../utils/hashpassword.js";
 
@@ -64,16 +65,22 @@ export const Getuser = asyncHandler(async (req, res, next) => {
       new Error("Invalid User Data please Try Again", { cause: 500 })
     );
   }
+  const { TotalGpa, totalCreditHours } = await calculateGPA({
+    studentId: user._id,
+  });
+  const { level } = await calclevel({ totalCreditHours });
   const result = {
     Full_Name: user.Full_Name,
     _id: user._id,
     National_Id: user.National_Id,
     Student_Code: user.Student_Code,
-    semster: semster,
     Date_of_Birth: user.Date_of_Birth,
     PhoneNumber: user.PhoneNumber,
     gender: user.gender,
     department: user.department,
+    level: level,
+    TotalGpa,
+    totalCreditHours,
   };
   return res.status(200).json({ message: "Done", result });
 });
@@ -242,12 +249,14 @@ export const searchuser = asyncHandler(async (req, res, next) => {
     "National_Id",
   ];
 
-  const searchFields = [
+  const searchFieldsText = [
     "Full_Name",
     "PhoneNumber",
     "Student_Code",
     "National_Id",
   ];
+
+  const searchFieldsIds = ["_id"];
 
   const apiFeatureInstance = new ApiFeature(
     userModel.find({}),
@@ -258,7 +267,7 @@ export const searchuser = asyncHandler(async (req, res, next) => {
     .select()
     .filter()
     .sort()
-    .search(searchFields);
+    .search({ searchFieldsText, searchFieldsIds });
 
   const users = await apiFeatureInstance.MongoseQuery;
   return res

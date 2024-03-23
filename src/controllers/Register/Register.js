@@ -38,7 +38,9 @@ export const addToRegister = asyncHandler(async (req, res, next) => {
   const userRegisterInfo = await RegisterModel.findOne({ studentId: userId });
 
   // calculate GPA
-  const { TotalGpa, totalCreditHours } = await calculateGPA(userId);
+  const { TotalGpa, totalCreditHours } = await calculateGPA({
+    studentId: userId,
+  });
 
   // Get available hours for the user
   const availableHours = await availableHoursForUser({
@@ -189,7 +191,9 @@ export const searchRegister = asyncHandler(async (req, res, next) => {
     select: "course_name desc credit_hour",
   };
 
-  const searchFields = ["studentId"];
+  const searchFieldsIds = ["studentId"];
+  const searchFieldsText = ["studentId.Full_Name"];
+
   const apiFeatureInstance = new ApiFeature(
     RegisterModel.find(filters),
     req.query,
@@ -198,9 +202,9 @@ export const searchRegister = asyncHandler(async (req, res, next) => {
     .pagination()
     .sort()
     .select()
+    .search({ searchFieldsText, searchFieldsIds })
     .populate(optionStudent)
-    .populate(optionCourse)
-    .search(searchFields);
+    .populate(optionCourse);
   const results = await apiFeatureInstance.MongoseQuery;
   return res.status(200).json({
     message: "Done All Student Information",

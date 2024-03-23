@@ -25,7 +25,6 @@ router.put(
   sgc.updateSemsterGrate
 );
 
-// حذف درجة مادة ولكن قبل حزفها يرجعها الى ال جدول المواد المسجلة ام لا
 router.delete(
   "/deletecoursegrate",
   valid(vSchema.deletecoursegrate),

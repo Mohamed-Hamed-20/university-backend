@@ -230,7 +230,8 @@ export const searchAdmin = asyncHandler(async (req, res, next) => {
     "Date_of_Birth",
     "role",
   ];
-  const searchFields = ["FullName", "email", "phone"];
+  const searchFieldsText = ["FullName", "email", "phone"];
+  const searchFieldsIds = ["_id"];
 
   const apiFeatureInstance = new ApiFeature(
     adminModel.find(),
@@ -240,7 +241,7 @@ export const searchAdmin = asyncHandler(async (req, res, next) => {
     .pagination()
     .sort()
     .select()
-    .search(searchFields)
+    .search({ searchFieldsText, searchFieldsIds })
     .filter();
 
   const admin = await apiFeatureInstance.MongoseQuery;

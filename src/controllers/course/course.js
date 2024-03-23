@@ -134,14 +134,15 @@ export const searchcourse = asyncHandler(async (req, res, next) => {
     "OpenForRegistration",
     "Prerequisites",
   ];
-  const searchFields = ["course_name", "desc", "department"];
+  const searchFieldsText = ["course_name", "desc", "department"];
+  const searchFieldsIds = ["_id"];
 
   const apiFeatureInstance = new ApiFeature(
     CourseModel.find(),
     req.query,
     allowFields
   )
-    .search(searchFields)
+    .search({ searchFieldsText, searchFieldsIds })
     .pagination()
     .sort()
     .select()

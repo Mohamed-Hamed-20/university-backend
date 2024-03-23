@@ -176,3 +176,18 @@ export const calculateTotalGPA = async ({ semesters }) => {
 
   return { semesters: updatedSemesters, totalGpaOverall, totalCreditHours };
 };
+
+export const calclevel = async ({ totalCreditHours }) => {
+  let level = "one";
+  if (totalCreditHours >= 141) {
+    level = "graduated";
+  } else if (totalCreditHours >= 98) {
+    level = "four";
+  } else if (totalCreditHours >= 57) {
+    level = "three";
+  } else if (totalCreditHours >= 28) {
+    level = "one";
+  }
+
+  return {level};
+};

@@ -270,7 +270,8 @@ export const searchInstructor = asyncHandler(async (req, res, next) => {
     "Materials",
     "department",
   ];
-  const searchFields = ["FullName", "email", "phone", "department"];
+  const searchFieldsIds = ["_id"];
+  const searchFieldsText = ["FullName", "email", "phone", "department"];
 
   const options = {
     select: "course_name desc credit_hour",
@@ -284,7 +285,7 @@ export const searchInstructor = asyncHandler(async (req, res, next) => {
     .pagination()
     .sort()
     .select()
-    .search(searchFields)
+    .search({ searchFieldsText, searchFieldsIds })
     .filter()
     .populate(options);
 

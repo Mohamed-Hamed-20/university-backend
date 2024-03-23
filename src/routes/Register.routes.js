@@ -3,8 +3,6 @@ import * as acc from "../controllers/Register/Register.js";
 import { valid } from "../middleware/validation.js";
 import * as vSchema from "../controllers/Register/Register.vaild.js";
 import { isAuth, roles } from "../middleware/auth.js";
-import RegisterModel from "../../DB/models/Register.model.js";
-import { ApiFeature } from "../utils/apiFeature.js";
 const router = Router();
 
 //login admin SuperAdmins

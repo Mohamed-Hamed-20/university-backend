@@ -34,6 +34,7 @@ export const addTosemster = asyncHandler(async (req, res, next) => {
   }
 
   if (semster) {
+    console.log(req.Grade._id);
     semster.courseGrates.push(req.Grade._id);
     result = await semster.save();
   }
@@ -68,7 +69,7 @@ export const updateSemsterGrate = asyncHandler(async (req, res, next) => {
   // Check if semster exists
   if (!semster) {
     return next(
-      new Error("Student doesn't have courseGrateId already", { status: 400 })
+      new Error("Student doesn't have courseGrateId already", { cause: 400 })
     );
   }
 

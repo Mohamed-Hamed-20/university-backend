@@ -31,7 +31,7 @@ export const addgrate = asyncHandler(async (req, res, next) => {
   }
 
   if (!result) {
-    return next(new Error("Server Error", { status: 500 }));
+    return next(new Error("Server Error", { cause: 500 }));
   }
 
   // filter coursesRegisterd and store new result

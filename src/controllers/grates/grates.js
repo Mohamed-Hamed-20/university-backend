@@ -27,7 +27,7 @@ export const uploadgrate = asyncHandler(async (req, res, next) => {
   // check course
   const course = await CourseModel.findById(courseId);
   if (!course) {
-    return next(new Error("Course Not found", { status: 404 }));
+    return next(new Error("Course Not found", { cause: 404 }));
   }
 
   // Check if the user is an instructor for this course
@@ -36,7 +36,7 @@ export const uploadgrate = asyncHandler(async (req, res, next) => {
     if (!Materials.includes(courseId.toString())) {
       return next(
         new Error("You are not allowed to upload grades for this course", {
-          status: 403,
+          cause: 403,
         })
       );
     }
@@ -57,7 +57,7 @@ export const uploadgrate = asyncHandler(async (req, res, next) => {
     return next(
       new Error(
         "User is not registered for this course or course grade is already uploaded",
-        { status: 400 }
+        { cause: 400 }
       )
     );
   }
@@ -72,7 +72,7 @@ export const uploadgrate = asyncHandler(async (req, res, next) => {
     course.credit_hour
   );
   if (!grade) {
-    return next(new Error("Server Error", { status: 500 }));
+    return next(new Error("Server Error", { cause: 500 }));
   }
 
   // Create Student Course Grade
@@ -171,7 +171,7 @@ export const updategrate = asyncHandler(async (req, res, next) => {
   // Calculate grade and points
   const { grade, points } = calculateGradeAndPoints(TotalGrate);
   if (!grade) {
-    return next(new Error("Server Error", { status: 500 }));
+    return next(new Error("Server Error", { cause: 500 }));
   }
 
   stuGrade.Points = points;
@@ -234,7 +234,7 @@ export const studentsGratesSearch = asyncHandler(async (req, res, next) => {
     path: "semsterId",
     select: "name year term  Max_Hours",
   };
-  const searchFields = [];
+  const searchFieldsText = ["courseGrates._id", ""];
   const searchFieldsIds = ["studentId", "semsterId"];
   const apiFeatureInstance = new ApiFeature(
     SemesterGradeModel.find(filters).lean(),
@@ -247,8 +247,7 @@ export const studentsGratesSearch = asyncHandler(async (req, res, next) => {
     .populate(optionStudent)
     .populate(optionscourseGrates)
     .populate(semsteroptions)
-    .search(searchFieldsIds)
-    .searchById(searchFieldsIds);
+    .search({ searchFieldsIds, searchFieldsText });
 
   let results = await apiFeatureInstance.MongoseQuery;
 

@@ -19,7 +19,7 @@ export const addtrain = asyncHandler(async (req, res, next) => {
   //check training is already exist
   const check = await trainingmodel.findOne({ training_name: training_name });
   if (check) {
-    return next(new Error("Training already exists", { status: 400 }));
+    return next(new Error("Training already exists", { cause: 400 }));
   } else {
     training.training_name = training_name;
   }
@@ -28,7 +28,7 @@ export const addtrain = asyncHandler(async (req, res, next) => {
   if (instructor_id) {
     const instructor = await InstructorModel.findById(instructor_id);
     if (!instructor || instructor.role !== "instructor") {
-      return next(new Error("Invalid Instructor_Id", { status: 404 }));
+      return next(new Error("Invalid Instructor_Id", { cause: 404 }));
     }
     training.instructor_id = instructor_id;
   }
@@ -58,7 +58,6 @@ export const addtrain = asyncHandler(async (req, res, next) => {
 });
 
 export const alltraining = asyncHandler(async (req, res, next) => {
-  console.log(req.query);
   const allowFields = [
     "training_name",
     "start_date",
@@ -69,7 +68,9 @@ export const alltraining = asyncHandler(async (req, res, next) => {
     "instructor_id",
     "OpenForRegister",
   ];
-  const searchFields = ["training_name", "desc"];
+  const searchFieldsText = ["training_name", "desc"];
+  const searchFieldsIds = ["_id", "instructor_id"];
+
   const options = {
     select: "FullName email phone gender department",
     path: "instructor_id",
@@ -79,12 +80,12 @@ export const alltraining = asyncHandler(async (req, res, next) => {
     req.query,
     allowFields
   )
-    .search(searchFields)
     .pagination()
     .sort()
     .select()
     .filter()
-    .populate(options);
+    .populate(options)
+    .search({ searchFieldsText, searchFieldsIds });
 
   const training = await apiFeatureInstance.MongoseQuery;
 
