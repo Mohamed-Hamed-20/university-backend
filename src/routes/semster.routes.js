@@ -29,9 +29,19 @@ router.delete(
 );
 router.get(
   "/searchsemster",
-  isAuth([roles.admin, roles.super]),
+  isAuth([roles.admin, roles.instructor, roles.super]),
   sc.searchsemster
 );
-router.get("/getsemster", sc.getsemster);
+router.get(
+  "/MainSemsterInfo",
+  isAuth(roles.admin, roles.instructor, roles.stu, roles.super),
+  sc.MainSemsterInfo
+);
+router.get(
+  "/FindSemster",
+  isAuth([roles.admin, roles.super, roles.instructor]),
+  valid(vSchema.FindSemster),
+  sc.FindSemster
+);
 // missed login with Gmail   <<<<=====
 export default router;

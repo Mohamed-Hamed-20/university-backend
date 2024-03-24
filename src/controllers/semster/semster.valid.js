@@ -34,3 +34,11 @@ export const deletesemster = {
     })
     .required(),
 };
+
+export const FindSemster = {
+  query: joi
+    .object({
+      semsterId: generalFields._id.required(),
+    })
+    .required(),
+};

@@ -64,8 +64,8 @@ export const deletesemster = asyncHandler(async (req, res, next) => {
   });
 });
 
-export const getsemster = asyncHandler(async (req, res, next) => {
-  const setting = await settingModel.findById(process.env.MainsettingId);
+export const MainSemsterInfo = asyncHandler(async (req, res, next) => {
+  const setting = await settingModel.findOne();
   const semster = await semsterModel.findById(setting.MainSemsterId);
   if (!semster) {
     return next(new Error("semster not found", { cause: 404 }));
@@ -73,6 +73,18 @@ export const getsemster = asyncHandler(async (req, res, next) => {
   return res.status(200).json({ message: "semster Information", semster });
 });
 
+export const FindSemster = asyncHandler(async (req, res, next) => {
+  const { semsterId } = req.query;
+  const semster = await semsterModel.findById(semsterId);
+
+  if (!semster) {
+    return next(new Error("semsterId not found", { cause: 404 }));
+  }
+  // response
+  return res
+    .status(200)
+    .json({ message: "semster Information", semster: semster });
+});
 export const searchsemster11 = asyncHandler(async (req, res, next) => {
   const { courseId } = req.query;
   const course = await CourseModel.findByIdAndDelete(courseId);
