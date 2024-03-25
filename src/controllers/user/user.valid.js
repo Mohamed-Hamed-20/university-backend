@@ -17,6 +17,7 @@ export const registeruser = {
       PhoneNumber: generalFields.PhoneNumber.required(),
       department: generalFields.department.optional(),
       gender: generalFields.gender.optional(),
+      studentImage: joi.string().optional(),
     })
     .required(),
   // paramas: joi.object().required(),
