@@ -56,7 +56,10 @@ const userSchema = new Schema(
       min: 8,
       max: 24,
     },
-
+    imgName: {
+      type: String,
+      required: false,
+    },
     // img: {
     //   public_id: {
     //     type: String,

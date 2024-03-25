@@ -4,6 +4,12 @@ import settingModel from "../../../DB/models/setting.model.js";
 import userModel from "../../../DB/models/user.model.js";
 import { generateToken, storeRefreshToken } from "../../utils/Token.js";
 import { ApiFeature } from "../../utils/apiFeature.js";
+import {
+  createImg,
+  deleteImg,
+  GetsingleImg,
+  updateImg,
+} from "../../utils/aws.s3.js";
 import { calclevel, calculateGPA } from "../../utils/calcGrates.js";
 import { asyncHandler } from "../../utils/errorHandling.js";
 import { verifypass } from "../../utils/hashpassword.js";
@@ -77,6 +83,12 @@ export const Getuser = asyncHandler(async (req, res, next) => {
       path: "MainSemsterId",
     })
     .select("MainSemsterId");
+
+  let urlImg;
+  if (user?.imgName) {
+    const { url } = await GetsingleImg({ ImgName: user.imgName });
+    urlImg = url;
+  }
   const result = {
     Full_Name: user.Full_Name,
     _id: user._id,
@@ -90,6 +102,7 @@ export const Getuser = asyncHandler(async (req, res, next) => {
     TotalGpa,
     totalCreditHours,
     semsterInfo: semsterInfo.MainSemsterId,
+    url: urlImg,
   };
   return res.status(200).json({ message: "Done", result });
 });
@@ -130,6 +143,13 @@ export const addStudent = asyncHandler(async (req, res, next) => {
     }
   }
 
+  //upload Image
+  const folder = `university/students/${Full_Name}-${Student_Code}`;
+  const { imgName, response } = await createImg({ folder, file: req.file });
+
+  if (response.$metadata.httpStatusCode !== 200) {
+    return next(new Error("Error in uploading Img", { cause: 500 }));
+  }
   // بناء كائن الطالب
   const student = {
     Full_Name,
@@ -139,6 +159,7 @@ export const addStudent = asyncHandler(async (req, res, next) => {
     PhoneNumber,
     gender,
     role: "user",
+    imgName: imgName,
   };
 
   if (department) {
@@ -208,6 +229,15 @@ export const updateStudent = asyncHandler(async (req, res, next) => {
     user.Student_Code = Student_Code;
   }
 
+  if (req.file) {
+    const { imgName, response } = await updateImg({ imgName: user.imgName });
+    if (response.$metadata.httpStatusCode !== 200) {
+      return next(
+        new Error("server Error Image Not update successfully", { cause: 500 })
+      );
+    }
+  }
+
   if (PhoneNumber && user.PhoneNumber != PhoneNumber) {
     const chkphone = await userModel.findOne({
       PhoneNumber: PhoneNumber,
@@ -242,6 +272,12 @@ export const deleteStudent = asyncHandler(async (req, res, next) => {
     .select("_id Full_Name Student_Code gender");
   if (!user) {
     return next("user Id not found", { cause: 404 });
+  }
+  const { response } = await deleteImg({ imgName: user.imgName });
+  if (response.$metadata.httpStatusCode != 200) {
+    return next(
+      new Error("server Error In deleting user Iamge", { cause: 500 })
+    );
   }
   res.json({ message: "user Delete successfully", user: user });
 });

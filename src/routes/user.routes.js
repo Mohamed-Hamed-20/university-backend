@@ -3,6 +3,7 @@ import * as uc from "../controllers/user/user.js";
 import { valid } from "../middleware/validation.js";
 import * as vSchema from "../controllers/user/user.valid.js";
 import { isAuth, roles } from "../middleware/auth.js";
+import { allowedExtensions, multerCloud } from "../utils/aws.s3.js";
 const router = Router();
 
 //user routes
@@ -11,6 +12,7 @@ router.post("/login", valid(vSchema.login), uc.login);
 
 router.post(
   "/addStudent",
+  multerCloud(allowedExtensions.Image).single("studentImage"),
   valid(vSchema.registeruser),
   isAuth([roles.admin]),
   uc.addStudent
@@ -25,6 +27,7 @@ router.get(
 
 router.put(
   "/updateStudent",
+  multerCloud(allowedExtensions.Image).single("studentImage"),
   valid(vSchema.updateStudent),
   isAuth([roles.admin]),
   uc.updateStudent
@@ -44,4 +47,5 @@ router.get(
   uc.searchuser
 );
 
+router.post("/uploadImg", multerCloud(allowedExtensions.Image).single("image"));
 export default router;
