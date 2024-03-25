@@ -63,8 +63,9 @@ export const uploadgrate = asyncHandler(async (req, res, next) => {
   }
 
   // Calculate TotalGrate & YearWorks
-  const YearWorks = Oral + Practical;
-  const TotalGrate = FinalExam + Midterm + YearWorks;
+  const YearWorks = parseInt(Oral) + parseInt(Practical);
+  const TotalGrate =
+    parseInt(FinalExam) + parseInt(Midterm) + parseInt(YearWorks);
 
   // Calculate grade and points
   const { grade, points } = calculateGradeAndPoints(
