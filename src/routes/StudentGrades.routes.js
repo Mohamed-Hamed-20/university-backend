@@ -54,11 +54,11 @@ router.get(
   isAuth([roles.stu, roles.admin]),
   gc.stugrades
 );
-// router.get(
-//   "/Allgrades",
-//   valid(vSchema.Allgrades),
-//   isAuth([roles.admin]),
-//   gc.Allgrades
-// );
+router.get(
+  "/MainsemsterGrate",
+  // valid(vSchema.MainsemsterGrate),
+  isAuth([roles.stu]),
+  gc.MainsemsterGrate
+);
 
 export default router;

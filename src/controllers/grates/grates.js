@@ -5,6 +5,7 @@ import {
 } from "../../../DB/models/StudentGrades.model.js";
 import CourseModel from "../../../DB/models/course.model.js";
 import semsterModel from "../../../DB/models/semster.model.js";
+import settingModel from "../../../DB/models/setting.model.js";
 import userModel from "../../../DB/models/user.model.js";
 import { ApiFeature } from "../../utils/apiFeature.js";
 import { arrayofstring } from "../../utils/arrayobjectIds.js";
@@ -312,4 +313,29 @@ export const stugrades = asyncHandler(async (req, res, next) => {
     totalGpaOverall,
     totalCreditHours,
   });
+});
+
+export const MainsemsterGrate = asyncHandler(async (req, res, next) => {
+  const user = req.user;
+  const setting = await settingModel.findOne();
+  const userGrade = await SemesterGradeModel.findOne({
+    studentId: user._id,
+    semsterId: setting.MainSemsterId,
+  }).populate({
+    path: "courseGrates",
+    populate: {
+      path: "courseId",
+      select: "course_name credit_hour",
+    },
+  });
+
+  if (!userGrade) {
+    return next(
+      new Error("student dosen't have grates in this semster", { cause: 404 })
+    );
+  }
+
+  return res
+    .status(200)
+    .json({ message: "done student grate", result: userGrade });
 });
