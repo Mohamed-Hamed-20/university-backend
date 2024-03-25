@@ -29,12 +29,12 @@ router.delete(
 );
 router.get(
   "/searchsemster",
-  isAuth([roles.admin, roles.instructor, roles.super]),
+  isAuth([roles.instructor, roles.admin, roles.super]),
   sc.searchsemster
 );
 router.get(
   "/MainSemsterInfo",
-  isAuth(roles.admin, roles.instructor, roles.stu, roles.super),
+  isAuth([roles.admin, roles.instructor, roles.stu, roles.super]),
   sc.MainSemsterInfo
 );
 router.get(
