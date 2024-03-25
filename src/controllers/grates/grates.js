@@ -321,13 +321,24 @@ export const MainsemsterGrate = asyncHandler(async (req, res, next) => {
   const userGrade = await SemesterGradeModel.findOne({
     studentId: user._id,
     semsterId: setting.MainSemsterId,
-  }).populate({
-    path: "courseGrates",
-    populate: {
-      path: "courseId",
-      select: "course_name credit_hour",
-    },
-  });
+  })
+    .populate({
+      path: "courseGrates",
+      populate: {
+        path: "courseId",
+        select: "course_name credit_hour",
+      },
+    })
+    .populate({
+      path: "studentId",
+      select:
+        "Full_Name National_Id department gender PhoneNumber Date_of_Birth",
+    })
+    .populate({
+      path: "semsterId",
+      select: "name  year term",
+    })
+    .lean();
 
   if (!userGrade) {
     return next(
