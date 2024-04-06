@@ -69,6 +69,17 @@ const settingSchema = new Schema({
     required: true,
     ref: "Semster",
   },
+  MaxAllowTrainingToRegister: {
+    type: Number,
+    required: true,
+    default: 2,
+    min: 0,
+    max: 10,
+  },
+  AllowTrainingRegister: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 const settingModel = mongoose.model("setting", settingSchema);

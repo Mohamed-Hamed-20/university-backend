@@ -11,6 +11,7 @@ import courseRouter from "./routes/course.routes.js";
 import trainingRouter from "./routes/training.routes.js";
 import AvailablecourseRouter from "./routes/AvailableCourses.routes.js";
 import RegisterRouter from "./routes/Register.routes.js";
+import TrainingResultRouter from "./routes/trainingResult.routes.js";
 import { GlobalErrorHandling } from "./utils/errorHandling.js";
 import morgan from "morgan";
 import { hellowpage } from "./utils/templetHtml.js";
@@ -60,6 +61,7 @@ export const bootstrap = (app, express) => {
   app.use("/Api/student", AvailablecourseRouter);
   app.use("/Api/student/register", RegisterRouter);
   app.use("/Api/student/Grades", StudentGradesRouter);
+  app.use("/Api/TrainingResult", TrainingResultRouter);
 
   //Welcome Page
   app.get("/", async (req, res, next) => {

@@ -186,8 +186,10 @@ export const calclevel = async ({ totalCreditHours }) => {
   } else if (totalCreditHours >= 57) {
     level = "three";
   } else if (totalCreditHours >= 28) {
+    level = "two";
+  } else {
     level = "one";
   }
 
-  return {level};
+  return { level };
 };
