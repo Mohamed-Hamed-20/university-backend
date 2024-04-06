@@ -1,8 +1,4 @@
-import {
-  GradeModel,
-  SemesterGradeModel,
-  StudentGradeModel,
-} from "../../../DB/models/StudentGrades.model.js";
+import { GradeModel } from "../../../DB/models/StudentGrades.model.js";
 import AvailableCoursesModel from "../../../DB/models/availableCourses.model.js";
 import { getAllValidCourses } from "../../utils/createstudentExam.js";
 import { asyncHandler } from "../../utils/errorHandling.js";

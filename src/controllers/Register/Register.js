@@ -1,6 +1,4 @@
-import { Types } from "mongoose";
 import RegisterModel from "../../../DB/models/Register.model.js";
-import { StudentGradeModel } from "../../../DB/models/StudentGrades.model.js";
 import availableCoursesModel from "../../../DB/models/availableCourses.model.js";
 import CourseModel from "../../../DB/models/course.model.js";
 import { ApiFeature } from "../../utils/apiFeature.js";

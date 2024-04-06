@@ -1,9 +1,8 @@
 import { Router } from "express";
-import * as sagc from "../controllers/StudentGrades/StudentGrades.js";
 import * as gc from "../controllers/grates/grates.js";
 import { valid } from "../middleware/validation.js";
 import * as sgc from "../controllers/semsterGrate/semsterGrate.js";
-import * as vSchema from "../controllers/StudentGrades/StudentGrades.vaild.js";
+import * as vSchema from "../controllers/grates/grates.valid.js";
 import { isAuth, roles } from "../middleware/auth.js";
 const router = Router();
 

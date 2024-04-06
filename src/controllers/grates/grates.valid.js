@@ -67,8 +67,6 @@ export const studentsGratesSearch = {
     .required(),
 };
 
-
-
 export const gradeSingleuser = {};
 
 export const stugrades = {

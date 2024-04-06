@@ -90,27 +90,11 @@ const semsterGradeSchema = new mongoose.Schema({
   ],
 });
 
-const studentGradesSchema = new mongoose.Schema({
-  studentId: {
-    type: Types.ObjectId,
-    ref: "user",
-    required: true,
-  },
-  semsterGratesIds: [
-    {
-      type: Types.ObjectId,
-      ref: "semsterGrade",
-      required: true,
-    },
-  ],
-});
+
 
 export const GradeModel = mongoose.model("Grate", GrateSchema);
 export const SemesterGradeModel = mongoose.model(
   "semsterGrade",
   semsterGradeSchema
 );
-export const StudentGradeModel = mongoose.model(
-  "StudentGrades",
-  studentGradesSchema
-);
+

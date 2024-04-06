@@ -1,30 +1,30 @@
 import RegisterModel from "../../DB/models/Register.model.js";
-import { StudentGradeModel } from "../../DB/models/StudentGrades.model.js";
+// import { StudentGradeModel } from "../../DB/models/StudentGrades.model.js";
 import CourseModel from "../../DB/models/course.model.js";
 
-export const createStudentExams = async (userId) => {
-  try {
-    if (!userId) {
-      throw new Error("User Id not sent");
-    }
+// export const createStudentExams = async (userId) => {
+//   try {
+//     if (!userId) {
+//       throw new Error("User Id not sent");
+//     }
 
-    const newUserGrades = {
-      studentId: userId,
-      TotalGpa: 2,
-      totalCreditHours: 0,
-      GradeInsemster: [],
-    };
-    // create student grates
-    const result = await StudentGradeModel.create(newUserGrades);
+//     const newUserGrades = {
+//       studentId: userId,
+//       TotalGpa: 2,
+//       totalCreditHours: 0,
+//       GradeInsemster: [],
+//     };
+//     // create student grates
+//     const result = await StudentGradeModel.create(newUserGrades);
 
-    if (!result) {
-      throw new Error("Failed to create student");
-    }
-    return result;
-  } catch (error) {
-    throw new Error(error);
-  }
-};
+//     if (!result) {
+//       throw new Error("Failed to create student");
+//     }
+//     return result;
+//   } catch (error) {
+//     throw new Error(error);
+//   }
+// };
 
 export const getAllValidCourses = async ({
   passedCourses: passedCoursesIds,
