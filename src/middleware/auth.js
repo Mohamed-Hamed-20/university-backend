@@ -1,10 +1,16 @@
-import jwt from "jsonwebtoken";
 import { generateToken, verifyToken } from "../utils/Token.js";
 import { asyncHandler } from "../utils/errorHandling.js";
 import userModel from "../../DB/models/user.model.js";
 import TokenModel from "../../DB/models/token.model.js";
 import { adminModel } from "../../DB/models/admin.model.js";
 import { InstructorModel } from "../../DB/models/instructor.model.js";
+
+export const roles = {
+  super: "superAdmin",
+  stu: "user",
+  admin: "admin",
+  instructor: "instructor",
+};
 
 export const isAuth = (roles) => {
   return asyncHandler(async (req, res, next) => {
@@ -70,61 +76,66 @@ export const isAuth = (roles) => {
       return next();
     } catch (error) {
       if (error.message.includes("jwt expired")) {
-        // verify refresh token
-        const verifyreftoken = verifyToken({
-          token: refreshToken,
-          signature: process.env.REFRESH_TOKEN_SECRET,
-        });
-        if (!verifyreftoken || verifyreftoken?.IpAddress != req.ip) {
-          return next(
-            new Error("Invalid refresh Token or IP ", { cause: 400 })
-          );
-        }
-        // token  => search in db
-        const reftoken = await TokenModel.findOne({
-          refreshToken: refreshToken,
-          isvalid: true,
-          userId: verifyreftoken.userId,
-        });
-        if (!reftoken) {
-          return next(new Error("Wrong token or Not Valid", { cause: 400 }));
-        }
+        try {
+          // verify refresh token
+          const verifyreftoken = verifyToken({
+            token: refreshToken,
+            signature: process.env.REFRESH_TOKEN_SECRET,
+          });
+          if (!verifyreftoken || verifyreftoken?.IpAddress != req.ip) {
+            return next(
+              new Error("Invalid refresh Token or IP ", { cause: 400 })
+            );
+          }
+          // token  => search in db
+          const reftoken = await TokenModel.findOne({
+            refreshToken: refreshToken,
+            isvalid: true,
+            userId: verifyreftoken.userId,
+          });
+          if (!reftoken) {
+            return next(
+              new Error("Wrong token or user Not found", { cause: 400 })
+            );
+          }
 
-        // generate new token
+          // generate new token
+          const newaccessToken = await generateToken({
+            payload: {
+              userId: reftoken.userId,
+              role: verifyreftoken.role,
+              IpAddress: req.ip,
+            },
+            signature: process.env.ACCESS_TOKEN_SECRET,
+            expiresIn: process.env.accessExpireIn,
+          });
+          if (!newaccessToken) {
+            return next(
+              new Error("token generation fail, payload canot be empty", {
+                cause: 400,
+              })
+            );
+          }
 
-        const newaccessToken = await generateToken({
-          payload: {
-            userId: reftoken.userId,
-            role: verifyreftoken.role,
-            IpAddress: req.ip,
-          },
-          signature: process.env.ACCESS_TOKEN_SECRET,
-          expiresIn: process.env.accessExpireIn,
-        });
-        if (!newaccessToken) {
-          return next(
-            new Error("token generation fail, payload canot be empty", {
-              cause: 400,
-            })
-          );
+          return res.status(200).json({
+            message: "Token refreshed",
+            accessToken: newaccessToken,
+            refreshToken: refreshToken,
+          });
+        } catch (error) {
+          if (error.message.includes("jwt expired")) {
+            return next(
+              new Error("please login again", {
+                cause: 400,
+              })
+            );
+          }
+          return next(new error(error.message, { cause: 400 }));
         }
-
-        return res.status(200).json({
-          message: "Token refreshed",
-          accessToken: newaccessToken,
-          refreshToken: refreshToken,
-        });
       } else {
         throw new Error(error);
         // return next(new Error("invalid token", { cause: 500 }));
       }
     }
   });
-};
-
-export const roles = {
-  super: "superAdmin",
-  stu: "user",
-  admin: "admin",
-  instructor: "instructor",
 };

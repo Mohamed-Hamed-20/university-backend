@@ -53,6 +53,7 @@ export const updateStudent = {
       PhoneNumber: generalFields.PhoneNumber.optional(),
       department: generalFields.department.optional(),
       gender: generalFields.gender.optional(),
+      studentImage: joi.string().optional(),
     })
     .required(),
   // paramas: joi.object().required(),

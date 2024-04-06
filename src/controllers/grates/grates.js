@@ -10,6 +10,7 @@ import userModel from "../../../DB/models/user.model.js";
 import { ApiFeature } from "../../utils/apiFeature.js";
 import { arrayofstring } from "../../utils/arrayobjectIds.js";
 import {
+  calclevel,
   calculateGradeAndPoints,
   calculateTotalGPA,
 } from "../../utils/calcGrates.js";
@@ -291,7 +292,7 @@ export const stugrades = asyncHandler(async (req, res, next) => {
     .populate({
       path: "studentId",
       select:
-        "Full_Name National_Id department gender PhoneNumber Date_of_Birth",
+        "Full_Name National_Id Student_Code department gender PhoneNumber Date_of_Birth",
     })
     .populate({
       path: "semsterId",
@@ -306,12 +307,13 @@ export const stugrades = asyncHandler(async (req, res, next) => {
   } = await calculateTotalGPA({
     semesters,
   });
-
+  const { level } = await calclevel({ totalCreditHours: totalCreditHours });
   return res.status(200).json({
     message: "student Grades Informations",
     semesters: newSemesters,
     totalGpaOverall,
     totalCreditHours,
+    level,
   });
 });
 
