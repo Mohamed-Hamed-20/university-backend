@@ -137,7 +137,6 @@ export const deleteFromRegister = asyncHandler(async (req, res, next) => {
 
 export const getRegister = asyncHandler(async (req, res, next) => {
   const userId = req.user._id;
-  console.log(userId);
   let register;
   register = await RegisterModel.findOne({ studentId: userId })
     .populate({
@@ -166,7 +165,7 @@ export const searchRegister = asyncHandler(async (req, res, next) => {
     if (!Materials.includes(courseId.toString())) {
       return next(
         new Error("You are not allowed to view who registered this course", {
-          status: 403,
+          cause: 403,
         })
       );
     }

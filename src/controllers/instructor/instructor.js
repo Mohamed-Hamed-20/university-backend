@@ -1,11 +1,11 @@
 import CourseModel from "../../../DB/models/course.model.js";
 import { InstructorModel } from "../../../DB/models/instructor.model.js";
+import trainingmodel from "../../../DB/models/training.model.js";
 import { generateToken, storeRefreshToken } from "../../utils/Token.js";
 import { ApiFeature } from "../../utils/apiFeature.js";
 import { arrayofIds } from "../../utils/arrayobjectIds.js";
 import { asyncHandler } from "../../utils/errorHandling.js";
 import { hashpassword, verifypass } from "../../utils/hashpassword.js";
-import { sendconfirmEmail } from "../../utils/sendEmail.js";
 
 export const login = asyncHandler(async (req, res, next) => {
   const { email, password } = req.body;
@@ -60,6 +60,7 @@ export const CreateInstructor = asyncHandler(async (req, res, next) => {
     gender,
     department,
     Materials,
+    Training,
   } = req.body;
 
   const chkExistingData = await InstructorModel.findOne({
@@ -109,7 +110,24 @@ export const CreateInstructor = asyncHandler(async (req, res, next) => {
         )
       );
     }
-    user.Materials = findMaterialsIds;
+    user.Materials = MaterialsIds;
+  }
+
+  if (Training && Training?.length > 0) {
+    const TrainingIds = arrayofIds(Training);
+    const findTrainingIds = await trainingmodel.find({
+      _id: { $in: TrainingIds },
+      OpenForRegister: true,
+    });
+    if (findTrainingIds.length !== Training.length) {
+      return next(
+        new Error(
+          "Invalid One or more Training Ids or Training Not OpenForRegister",
+          { cause: 404 }
+        )
+      );
+    }
+    user.Training = TrainingIds;
   }
 
   // إضافة الأستاذ
@@ -145,6 +163,7 @@ export const updateInstructor = asyncHandler(async (req, res, next) => {
     gender,
     Materials,
     department,
+    Training,
   } = req.body;
   const { userId } = req.query;
 
@@ -205,6 +224,28 @@ export const updateInstructor = asyncHandler(async (req, res, next) => {
       user.Materials = findMaterialsIds;
     }
   }
+
+  if (Training && Training?.length > 0) {
+    const TrainingIds = arrayofIds(Training);
+    if (
+      JSON.stringify(TrainingIds.sort()) !=
+      JSON.stringify(user?.Training?.sort())
+    ) {
+      const findTrainingIds = await trainingmodel.find({
+        _id: { $in: TrainingIds },
+        OpenForRegister: true,
+      });
+      if (findTrainingIds.length !== TrainingIds.length) {
+        return next(
+          new Error(
+            "Invalid One or more Training Ids or Training Not OpenForRegister",
+            { cause: 404 }
+          )
+        );
+      }
+      user.Training = TrainingIds;
+    }
+  }
   user.email = email || user.email;
   user.phone = phone || user.phone;
   user.FullName = FullName || user.FullName;
@@ -234,18 +275,23 @@ export const deleteInstructor = asyncHandler(async (req, res, next) => {
 
 //Get user
 export const Getuser = asyncHandler(async (req, res, next) => {
-  const user = req.user;
+  const userId = req.user._id;
+
+  const user = await InstructorModel.findById(userId)
+    .populate({
+      path: "Training",
+      select: "_id training_name desc requirements start_date end_date",
+    })
+    .populate({
+      path: "Materials",
+      select: "_id course_name desc credit_hour",
+    });
 
   if (!user) {
     return next(
       new Error("Invalid User Data please Try Again", { cause: 500 })
     );
   }
-  await user.populate({
-    path: "Materials",
-    select: "_id course_name desc credit_hour",
-  });
-
   const result = {
     FullName: user.FullName,
     email: user.email,
@@ -255,6 +301,7 @@ export const Getuser = asyncHandler(async (req, res, next) => {
     department: user?.department,
     role: user.role,
     Materials: user.Materials,
+    Training: user.Training,
   };
   return res.status(200).json({ message: "Done", user: result });
 });
@@ -268,6 +315,7 @@ export const searchInstructor = asyncHandler(async (req, res, next) => {
     "gender",
     "Date_of_Birth",
     "Materials",
+    "Training",
     "department",
   ];
   const searchFieldsIds = ["_id"];
@@ -276,6 +324,11 @@ export const searchInstructor = asyncHandler(async (req, res, next) => {
   const options = {
     select: "course_name desc credit_hour",
     path: "Materials",
+  };
+
+  const TrainingOptions = {
+    path: "Training",
+    select: "_id training_name desc requirements start_date end_date",
   };
   const apiFeatureInstance = new ApiFeature(
     InstructorModel.find(),
@@ -287,7 +340,8 @@ export const searchInstructor = asyncHandler(async (req, res, next) => {
     .select()
     .search({ searchFieldsText, searchFieldsIds })
     .filter()
-    .populate(options);
+    .populate(options)
+    .populate(TrainingOptions);
 
   const Instructor = await apiFeatureInstance.MongoseQuery;
   return res

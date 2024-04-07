@@ -11,6 +11,7 @@ export const CreateInstructor = {
       gender: generalFields.gender.optional(),
       department: generalFields.department.required(),
       Materials: joi.array().items(generalFields._id.optional()).optional(),
+      Training: joi.array().items(generalFields._id.optional()).optional(),
     })
     .required(),
 };
@@ -34,6 +35,7 @@ export const updateInstructor = {
       gender: generalFields.gender.optional(),
       department: generalFields.department.optional(),
       Materials: joi.array().items(generalFields._id.optional()).optional(),
+      Training: joi.array().items(generalFields._id.optional()).optional(),
     })
     .required(),
   // paramas: joi.object().required(),

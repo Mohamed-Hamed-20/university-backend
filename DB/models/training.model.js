@@ -39,11 +39,6 @@ const trainingschema = new Schema(
       type: Boolean,
       default: false,
     },
-    semsterId: {
-      type: Types.ObjectId,
-      required: true,
-      ref: "Semster",
-    },
   },
   { timestamps: true }
 );

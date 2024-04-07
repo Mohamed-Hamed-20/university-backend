@@ -75,6 +75,13 @@ const InstructorSchema = new Schema(
         unique: true,
       },
     ],
+    Training: [
+      {
+        type: Types.ObjectId,
+        ref: "Training",
+        unique: true,
+      },
+    ],
   },
   { timestamps: true }
 );
@@ -82,6 +89,10 @@ const InstructorSchema = new Schema(
 InstructorSchema.path("Materials").default(undefined);
 
 InstructorSchema.path("Materials").required(false);
+
+InstructorSchema.path("Training").default(undefined);
+
+InstructorSchema.path("Training").required(false);
 
 export const InstructorModel =
   mongoose.models.InstructorModel || model("Instructor", InstructorSchema);

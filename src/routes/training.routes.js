@@ -14,7 +14,7 @@ router.post(
 router.get(
   "/alltraining",
   valid(vSchema.alltrain),
-  isAuth([roles.admin]),
+  isAuth([roles.admin, roles.stu, roles.instructor]),
   tc.alltraining
 );
 router.put(

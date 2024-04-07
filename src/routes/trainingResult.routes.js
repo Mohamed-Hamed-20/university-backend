@@ -29,13 +29,13 @@ router.put(
 router.get(
   "/student/getSingleTrainingResult",
   valid(vSchema.getSingleTrainingResult),
-  isAuth([roles.admin, roles.instructor, roles.stu]),
+  isAuth([roles.stu]),
   trc.getSingleTrainingResult
 );
 router.get(
   "/SearchTrainingResult",
   valid(vSchema.SearchTrainingResult),
-  isAuth([roles.admin, roles.instructor, roles.stu]),
+  isAuth([roles.admin, roles.instructor]),
   trc.SearchTrainingResult
 );
 export default router;

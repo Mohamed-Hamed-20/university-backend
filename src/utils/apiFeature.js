@@ -52,6 +52,7 @@ export class ApiFeature {
       path: options.path,
       select: options.select,
       match: options?.match,
+      populate: options?.populate,
     });
     return this;
   }
@@ -64,7 +65,7 @@ export class ApiFeature {
         const searchQuery = {
           $or: searchFieldsIds.map((field) => ({ [field]: search })),
         };
-        console.log(JSON.stringify(searchQuery, null, 2));
+        // console.log(JSON.stringify(searchQuery, null, 2));
         this.MongoseQuery.find(searchQuery);
       } else {
         console.log(search);
@@ -73,7 +74,7 @@ export class ApiFeature {
             return { [field]: { $regex: new RegExp(search.trim(), "i") } };
           }),
         };
-        console.log(JSON.stringify(searchQuery, null, 2));
+        // console.log(JSON.stringify(searchQuery, null, 2));
         this.MongoseQuery.find(searchQuery);
       }
     }

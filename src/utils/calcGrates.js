@@ -178,6 +178,7 @@ export const calculateTotalGPA = async ({ semesters }) => {
 };
 
 export const calclevel = async ({ totalCreditHours }) => {
+  totalCreditHours = parseInt(totalCreditHours);
   let level = "one";
   if (totalCreditHours >= 141) {
     level = "graduated";

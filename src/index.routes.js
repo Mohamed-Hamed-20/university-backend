@@ -8,10 +8,13 @@ import semsterRouter from "./routes/semster.routes.js";
 import instructorRouter from "./routes/instructor.routes.js";
 import StudentGradesRouter from "./routes/StudentGrades.routes.js";
 import courseRouter from "./routes/course.routes.js";
-import trainingRouter from "./routes/training.routes.js";
 import AvailablecourseRouter from "./routes/AvailableCourses.routes.js";
 import RegisterRouter from "./routes/Register.routes.js";
+
+import trainingRouter from "./routes/training.routes.js";
 import TrainingResultRouter from "./routes/trainingResult.routes.js";
+import TrainingRegisterRouter from "./routes/TrainingRegister.routes.js";
+
 import { GlobalErrorHandling } from "./utils/errorHandling.js";
 import morgan from "morgan";
 import { hellowpage } from "./utils/templetHtml.js";
@@ -51,17 +54,18 @@ export const bootstrap = (app, express) => {
   app.use(limiter);
 
   // API
-  app.use("/Api/admin/setting", settingRouter);
   app.use("/Api/user", userRouter);
   app.use("/Api/admin", adminRouter);
   app.use("/Api/instructor", instructorRouter);
   app.use("/Api/courses", courseRouter);
-  app.use("/Api/semster", semsterRouter);
-  app.use("/Api/training", trainingRouter);
   app.use("/Api/student", AvailablecourseRouter);
   app.use("/Api/student/register", RegisterRouter);
   app.use("/Api/student/Grades", StudentGradesRouter);
+  app.use("/Api/semster", semsterRouter);
+  app.use("/Api/admin/setting", settingRouter);
+  app.use("/Api/training", trainingRouter);
   app.use("/Api/TrainingResult", TrainingResultRouter);
+  app.use("/Api/Register/Training", TrainingRegisterRouter);
 
   //Welcome Page
   app.get("/", async (req, res, next) => {
