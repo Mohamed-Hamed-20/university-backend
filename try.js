@@ -1,4 +1,7 @@
-import userModel from "./DB/models/user.model.js";
+import availableCoursesModel from "./DB/models/availableCourses.model.js";
+import CourseModel from "./DB/models/course.model.js";
+import { GradeModel } from "./DB/models/StudentGrades.model.js";
+
 import mongoose from "mongoose";
 
 // تعيين الخيار strict إلى false لتجنب التحذير
@@ -22,25 +25,65 @@ const connectDB = async () => {
 };
 connectDB();
 
-let result = await userModel.aggregate([
-  { $match: { Full_Name: "mohamed salah" } }, // تطابق الوثائق التي تحتوي على الحقل المعين بالقيمة المعينة
-  //   { $group: { _id: "$category", total: { $sum: "$quantity" } } }, // جمع الوثائق بناءً على الفئة وحساب المجموع
-  //   { $sort: { total: -1 } }, // فرز النتائج بناءً على المجموع بترتيب تنازلي
-  //   { $limit: 10 }, // عرض أول 10 نتائج فقط
-]);
+// Controller to get available courses for registration
+export const availableCourses = async (req, res, next) => {
+  // Step 1: Get the user ID
+  const userId = req.user._id;
 
- result = await userModel.aggregate([
-  {
-    $match: {
-      department: "cs",
-      createdAt: { $gte: new Date("2024-02-01"), $lte: new Date("2024-02-28") },
+  // Step 2: Get all passed course IDs for the user
+  const passedCourses = await GradeModel.distinct("courseId", {
+    studentId: userId,
+    TotalGrate: { $gte: 50 },
+  });
+
+  // Step 3: Get valid courses for registration
+  const validCourses = await CourseModel.aggregate([
+    // Match courses that the user has not passed yet and are open for registration
+    {
+      $match: {
+        _id: { $nin: passedCourses },
+        OpenForRegistration: true,
+        $or: [
+          { department: { $exists: false } }, // Course does not have a department
+          { department: req.user.department }, // Course department matches the user's department
+          { department: null, "req.user.department": null }, // No department for the course and the user
+          { department: { "req.user.department": null } },
+        ],
+      },
     },
-  },
-]);
+    // Lookup prerequisites and filter out courses that don't meet prerequisites
+    {
+      $lookup: {
+        from: "courses",
+        localField: "Prerequisites",
+        foreignField: "_id",
+        as: "prerequisites",
+      },
+    },
+    {
+      $match: {
+        $expr: {
+          $or: [
+            { $eq: [{ $size: "$prerequisites" }, 0] }, // No prerequisites for the course
+            { $setIsSubset: ["$prerequisites._id", passedCourses] }, // All prerequisites are passed by the user
+          ],
+        },
+      },
+    },
+  ]);
 
+  // Update or create available courses record
+  const availableCoursesRecord = await availableCoursesModel.findOneAndUpdate(
+    { studentId: userId },
+    { Available_Courses: validCourses.map((course) => course._id) },
+    { new: true, upsert: true }
+  );
 
- result = await userModel.aggregate([
-  { $match: { National_Id: "82344478901234" } },
-]);
+  if (!availableCoursesRecord) {
+    return next(
+      new Error("Failed to update available courses record", { cause: 500 })
+    );
+  }
 
-console.log(result);
+  return res.json({ user: req.user, validCourses });
+};

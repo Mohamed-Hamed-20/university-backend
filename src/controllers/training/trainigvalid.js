@@ -34,7 +34,6 @@ export const addtrain = {
         .messages(customMessages),
       desc: joi.string().min(10).max(400).required().messages(customMessages),
       OpenForRegister: joi.boolean().optional().messages(customMessages),
-      instructor_id: generalFields._id.optional().messages(customMessages),
       start_date: joi.date().iso().required().messages(customMessages),
       end_date: joi
         .date()
@@ -67,7 +66,6 @@ export const updatetrain = {
         .messages(customMessages),
       desc: joi.string().min(10).max(400).optional().messages(customMessages),
       OpenForRegister: joi.boolean().optional().messages(customMessages),
-      instructor_id: generalFields._id.optional().messages(customMessages),
       start_date: joi.date().optional().messages(customMessages),
       end_date: joi
         .date()

@@ -30,11 +30,6 @@ const trainingschema = new Schema(
       type: Number,
       required: false,
     },
-    instructor_id: {
-      type: Types.ObjectId,
-      ref: "Instructor",
-      required: false,
-    },
     OpenForRegister: {
       type: Boolean,
       default: false,

@@ -1,30 +1,5 @@
 import RegisterModel from "../../DB/models/Register.model.js";
-// import { StudentGradeModel } from "../../DB/models/StudentGrades.model.js";
 import CourseModel from "../../DB/models/course.model.js";
-
-// export const createStudentExams = async (userId) => {
-//   try {
-//     if (!userId) {
-//       throw new Error("User Id not sent");
-//     }
-
-//     const newUserGrades = {
-//       studentId: userId,
-//       TotalGpa: 2,
-//       totalCreditHours: 0,
-//       GradeInsemster: [],
-//     };
-//     // create student grates
-//     const result = await StudentGradeModel.create(newUserGrades);
-
-//     if (!result) {
-//       throw new Error("Failed to create student");
-//     }
-//     return result;
-//   } catch (error) {
-//     throw new Error(error);
-//   }
-// };
 
 export const getAllValidCourses = async ({
   passedCourses: passedCoursesIds,
@@ -88,3 +63,51 @@ export const getAllValidCourses = async ({
 
   return { validCoursesIds, validCourses };
 };
+
+// export const getAllValidCourses = async ({
+//   passedCourses: passedCoursesIds,
+//   userId,
+//   studepartment,
+// }) => {
+//   try {
+//     // Find registered courses for the user and extract registered course IDs
+//     const aggregationPipeline = [
+//       {
+//         $match: { studentId: userId },
+//       },
+//       {
+//         $project: {
+//           registeredCourseIds: { $ifNull: ["$coursesRegisterd", []] },
+//         },
+//       },
+//     ];
+
+//     const [{ registeredCourseIds = [] }] = await RegisterModel.aggregate(
+//       aggregationPipeline
+//     );
+
+//     // Find valid courses available for registration
+//     const validCourses = await CourseModel.find({
+//       _id: { $nin: [...passedCoursesIds, ...registeredCourseIds] }, // Exclude passed and registered courses
+//       OpenForRegistration: true,
+//       $or: [
+//         { department: { $exists: false } }, // Course does not have a department
+//         { department: studepartment }, // Course department matches the user's department
+//         { department: null }, // Course does not have a department
+//       ],
+//       $or: [
+//         { Prerequisites: { $exists: false } }, // Course has no prerequisites
+//         { Prerequisites: { $size: 0 } }, // Course has no prerequisites
+//         { Prerequisites: { $elemMatch: { $in: passedCoursesIds } } }, // User has passed all prerequisites
+//       ],
+//     });
+
+//     const validCoursesIds = validCourses.map((course) => course._id);
+
+//     return { validCoursesIds, validCourses };
+//   } catch (error) {
+//     // Handle error
+//     console.error(error);
+//     throw new Error("Failed to fetch valid courses");
+//   }
+// };
