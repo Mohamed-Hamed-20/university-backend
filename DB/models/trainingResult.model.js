@@ -12,19 +12,9 @@ const trainingResultSchema = new Schema({
     required: true,
   },
   grade: {
-    type: Number,
-    required: false,
-    min: 0,
-    max: 100,
-  },
-  Status: {
     type: String,
-    enum: ["pending", "uploaded", "refused", "accepted"],
-  },
-  semsterId: {
-    type: Types.ObjectId,
     required: true,
-    ref: "Semster",
+    enum: ["failed", "passed"],
   },
 });
 

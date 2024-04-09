@@ -51,6 +51,11 @@ export const addtrain = {
         .optional()
         .messages(customMessages),
       max_student: joi.number().optional().messages(customMessages),
+      AllowLevel: joi
+        .array()
+        .items(joi.string().valid("one", "two", "three", "four", "graduated"))
+        .optional()
+        .messages(customMessages),
     })
     .required(),
 };
@@ -83,6 +88,11 @@ export const updatetrain = {
         .optional()
         .messages(customMessages),
       max_student: joi.number().optional().messages(customMessages),
+      AllowLevel: joi
+        .array()
+        .items(joi.string().valid("one", "two", "three", "four", "graduated"))
+        .optional()
+        .messages(customMessages),
     })
     .required(),
   query: joi

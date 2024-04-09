@@ -34,6 +34,11 @@ const trainingschema = new Schema(
       type: Boolean,
       default: false,
     },
+    AllowLevel: {
+      type: Schema.Types.Mixed,
+      default: ["two", "three", "four", "graduated"],
+      enum: ["one", "two", "three", "four", "graduated"],
+    },
   },
   { timestamps: true }
 );

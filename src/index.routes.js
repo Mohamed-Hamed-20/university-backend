@@ -64,8 +64,8 @@ export const bootstrap = (app, express) => {
   app.use("/Api/semster", semsterRouter);
   app.use("/Api/admin/setting", settingRouter);
   app.use("/Api/training", trainingRouter);
-  app.use("/Api/TrainingResult", TrainingResultRouter);
   app.use("/Api/Register/Training", TrainingRegisterRouter);
+  app.use("/Api/Training/Result", TrainingResultRouter);
 
   //Welcome Page
   app.get("/", async (req, res, next) => {

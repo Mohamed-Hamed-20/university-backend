@@ -47,6 +47,10 @@ const userSchema = new Schema(
       default: "user",
       lowercase: true,
     },
+    level: {
+      type: String,
+      enum: ["one", "two", "three", "four", "graduated"],
+    },
     department: {
       type: String,
       enum: ["cs", "is", "sc", "ai"],

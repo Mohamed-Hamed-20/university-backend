@@ -1,242 +1,137 @@
-import SemsterModel from "../../../DB/models/semster.model.js";
-import settingModel from "../../../DB/models/setting.model.js";
 import trainingmodel from "../../../DB/models/training.model.js";
+import TrainingRegisterModel from "../../../DB/models/trainingRegister.model.js";
 import trainingResultModel from "../../../DB/models/trainingResult.model.js";
 import userModel from "../../../DB/models/user.model.js";
 import { roles } from "../../middleware/auth.js";
 import { ApiFeature } from "../../utils/apiFeature.js";
 import { asyncHandler } from "../../utils/errorHandling.js";
 
-export const createTrainingResult = asyncHandler(async (req, res, next) => {
-  const { trainingId } = req.body;
-  let { studentId, semsterId } = req.body;
+export const uploadTrainingResult = asyncHandler(async (req, res, next) => {
+  const { trainingId, studentId, grade } = req.body;
+  // check if he allow to upload grates to this training
+  if (req.user.role == roles.instructor) {
+    if (!req.user.Training.includes(trainingId)) {
+      return next(
+        new Error("you not allow to upload Grates to this training", {
+          cause: 403,
+        })
+      );
+    }
+  }
 
   // Check if the training exists
-  const training = await trainingmodel.findById(trainingId);
-  if (!training || training.OpenForRegister == false) {
+  const Register = await TrainingRegisterModel.findOne({
+    studentId: studentId,
+    trainingRegisterd: { $in: trainingId },
+  });
+  if (!Register || !Register.trainingRegisterd.includes(trainingId)) {
     return next(
-      new Error("Invalid Training Id not found or not allow to register", {
+      new Error("This user didn't Register this Training", {
         cause: 404,
       })
     );
   }
 
-  const setting = await settingModel.findOne();
-
-  // If the user is an instructor
-  if (req.user.role === roles.instructor) {
-    if (req.user._id.toString() !== training.instructor_id.toString()) {
-      return next(
-        new Error("You are not allowed to add students to this training", {
-          cause: 403,
-        })
-      );
-    }
-    if (!studentId) {
-      return next(new Error("StudentId is required", { cause: 400 }));
-    }
-    // Check if student id exists
-    const student = await userModel.findById(studentId);
-    if (!student) {
-      return next(new Error("Student not found", { cause: 404 }));
-    }
-    studentId = student._id;
-    semsterId = setting.MainSemsterId;
-  }
-
-  // If the user is a student
-  if (req.user.role === roles.stu) {
-    studentId = req.user._id;
-    semsterId = setting.MainSemsterId;
-  }
-
-  // If the user is an admin
-  if (req.user.role === roles.admin) {
-    if (!studentId) {
-      return next(new Error("StudentId is required", { cause: 400 }));
-    }
-    // Check if student id exists
-    const student = await userModel.findById(studentId);
-    if (!student) {
-      return next(new Error("Student not found", { cause: 404 }));
-    }
-    if (semsterId) {
-      const semster = await SemsterModel.findById(semsterId);
-      if (!semster) {
-        return next(new Error("Semester not found", { cause: 404 }));
-      }
-      semsterId = semster._id;
-    } else {
-      semsterId = setting.MainSemsterId;
-    }
-  }
-
-  // Find existing training results
-  const trainingResults = await trainingResultModel.find({
-    semsterId: semsterId,
-    studentId: studentId,
+  // filter trainingRegisterd and delete trainingId from Register
+  const newtrainingRegisterd = Register.trainingRegisterd.filter((ele) => {
+    return ele.toString() != trainingId.toString();
   });
+  Register.trainingRegisterd = newtrainingRegisterd;
 
-  // Check if the user is allowed to register more trainings
-  if (trainingResults.length >= setting.MaxAllowTrainingToRegister) {
-    return next(
-      new Error("This user can't register more trainings", { cause: 400 })
-    );
-  }
-
-  // Check to make sure the user has not registered for this course before
-  if (
-    trainingResults.some(
-      (ele) => ele.trainingId.toString() === trainingId.toString()
-    )
-  ) {
-    return next(
-      new Error("Student already registered for this course", { cause: 400 })
-    );
-  }
-
-  const newTrainingResult = {
-    studentId: studentId,
-    trainingId: trainingId,
-    Status: "pending",
-    semsterId: semsterId,
+  // create object for result
+  const TrainingResult = {
+    studentId,
+    trainingId,
+    grade,
   };
-
-  const result = await trainingResultModel.create(newTrainingResult);
+  const result = await trainingResultModel.create(TrainingResult);
   if (!result) {
-    return next(new Error("Server error. Try again later.", { cause: 500 }));
+    return next(new Error("server Error", { cause: 500 }));
   }
-  return res
-    .status(201)
-    .json({ message: "Done", registerTraining: result, training: training });
+  // update Register training document
+  await Register.save();
+  return res.status(201).json({ message: "Done", TrainingResult: result });
 });
 
 export const deleteTrainingResult = asyncHandler(async (req, res, next) => {
-  const { TrainingResultId } = req.query;
-  const trainingResult = await trainingResultModel
-    .findById(TrainingResultId)
-    .populate({
-      path: "trainingId",
-      select: "training_name instructor_id _id",
-    });
+  const { TrainingResultId, BackToRegister } = req.query;
 
-  if (!trainingResult) {
+  const TrainingResult = await trainingResultModel.findById(TrainingResultId);
+
+  if (!TrainingResult) {
     return next(new Error("Training result not found", { cause: 404 }));
   }
 
-  const setting = await settingModel.findOne();
-
-  // Check permissions based on user role
-  if (req.user.role === roles.stu) {
-    if (req.user._id.toString() !== trainingResult.studentId.toString()) {
+  // check if he allow to upload grates to this training
+  if (req.user.role == roles.instructor) {
+    if (!req.user.Training.includes(TrainingResult.trainingId.toString())) {
       return next(
-        new Error("You are not authorized to delete this training result", {
-          cause: 403,
-        })
-      );
-    }
-
-    if (["accepted", "uploaded"].includes(trainingResult.Status)) {
-      return next(
-        new Error(
-          "You are not allowed to delete this training result after it has been accepted or uploaded",
-          { cause: 403 }
-        )
-      );
-    }
-
-    if (
-      trainingResult.semsterId.toString() != setting.MainSemsterId.toString()
-    ) {
-      return next(
-        new Error("not allow to delete this training result", { cause: 403 })
-      );
-    }
-  }
-
-  if (req.user.role === roles.instructor) {
-    if (
-      req.user._id.toString() !==
-      trainingResult.trainingId.instructor_id.toString()
-    ) {
-      return next(
-        new Error(
-          "You are not authorized to delete this training result for this training",
-          { cause: 403 }
-        )
-      );
-    }
-
-    if (
-      trainingResult.semsterId.toString() != setting.MainSemsterId.toString()
-    ) {
-      return next(
-        new Error("not allow to delete this training result", {
+        new Error("you not allow to delete Grates to this training", {
           cause: 403,
         })
       );
     }
   }
 
-  // Delete the training result
-
-  const result = await trainingResult.deleteOne();
-
-  if (result.deletedCount === 0) {
+  //delete this TrainingResult
+  const result = await TrainingResult.deleteOne();
+  if (result.deletedCount == 0) {
     return next(
-      new Error("Training result not deleted successfully", { status: 400 })
+      new Error("server error Try later Not deleted successfully", {
+        cause: 500,
+      })
     );
   }
 
-  return res
-    .status(200)
-    .json({ message: "Training result deleted successfully", result });
+  let newregister;
+  if (BackToRegister === "yes") {
+    const register = await TrainingRegisterModel.findOne({
+      studentId: TrainingResult.studentId,
+    });
+    if (!register) {
+      return next(
+        new Error("register documant for user Not found", { cause: 404 })
+      );
+    }
+
+    register.trainingRegisterd.push(TrainingResult.trainingId);
+    newregister = await register.save();
+    if (!newregister) {
+      return next(new Error("Not updated successfully"));
+    }
+  }
+  // response
+  return res.status(200).json({
+    message: "Training result deleted successfully",
+    result: result,
+  });
 });
 
 export const updateTrainingResult = asyncHandler(async (req, res, next) => {
   // get data
   const { TrainingResultId } = req.query;
-  const { Status, trainingId, studentId, grade } = req.body;
+  const { trainingId, studentId, grade } = req.body;
 
   // Check if the training result exists in the database
-  const trainingResult = await trainingResultModel
-    .findById(TrainingResultId)
-    .populate({
-      path: "trainingId",
-      select: "training_name instructor_id _id",
-    });
+  const trainingResult = await trainingResultModel.findById(TrainingResultId);
 
   if (!trainingResult) {
     return next(new Error("Training result not found", { status: 404 }));
   }
 
-  // Check permissions based on user role (instructor)
-  if (req.user.role === roles.instructor) {
-    if (
-      req.user._id.toString() !==
-      trainingResult.trainingId.instructor_id.toString()
-    ) {
+  // check if he allow to upload grates to this training
+  if (req.user.role == roles.instructor) {
+    if (!req.user.Training.includes(trainingResult.trainingId)) {
       return next(
-        new Error(
-          "You are not authorized to update this training result for this training",
-          { status: 403 }
-        )
-      );
-    }
-
-    // Check if the semester matches the main semester
-    if (
-      trainingResult.semesterId.toString() !== setting.MainSemesterId.toString()
-    ) {
-      return next(
-        new Error("Not allowed to update this training result", { status: 403 })
+        new Error("you not allow to delete update to this training", {
+          cause: 403,
+        })
       );
     }
   }
 
   // Update grade and status if provided
   if (grade) trainingResult.grade = grade;
-  if (Status) trainingResult.Status = Status;
 
   // training Id edit
   if (
@@ -245,12 +140,17 @@ export const updateTrainingResult = asyncHandler(async (req, res, next) => {
   ) {
     const newTraining = await trainingmodel.findById(trainingId);
 
-    if (!newTraining) {
-      return next(new Error("Training not found", { status: 404 }));
+    if (!newTraining || newTraining.OpenForRegister == false) {
+      return next(
+        new Error("Training not found or not availabe to register", {
+          status: 404,
+        })
+      );
     }
+
     // check if he instructor and he allow to edit for this
     if (req.user.role == roles.instructor) {
-      if (req.user._id.toString() !== newTraining.instructor_id.toString()) {
+      if (!req.user.Training.includes(newTraining._id)) {
         return next(
           new Error("you not Allow to Edit student for this training", {
             cause: 403,
@@ -282,16 +182,40 @@ export const updateTrainingResult = asyncHandler(async (req, res, next) => {
 });
 
 export const getSingleTrainingResult = asyncHandler(async (req, res, next) => {
-  // Find training results for the logged-in user
+  const { TrainingResultId } = req.query;
+  const optionTraining = {
+    path: "trainingId",
+    select:
+      "start_date training_name end_date requirements desc max_student instructor_id OpenForRegister",
+  };
+  const optionStudent = {
+    select: "Full_Name National_Id Student_Code PhoneNumber gender department",
+    path: "studentId",
+  };
+
   const trainingResults = await trainingResultModel
-    .find({ studentId: req.user._id })
-    .populate({
-      path: "trainingId",
-      populate: {
-        path: "instructor_id",
-        select: "FullName email gender department",
-      },
-    });
+    .findById(TrainingResultId)
+    .populate(optionStudent)
+    .populate(optionTraining);
+
+  if (!trainingResults) {
+    return next(new Error("Invalid Training Result Id", { cause: 404 }));
+  }
+
+  // if he is instructor
+  if (req.user.role == roles.instructor) {
+    if (
+      !req.user.Training.includes(trainingResults.trainingId._id.toString())
+    ) {
+      return next(new Error("Not allow to view this result", { cause: 403 }));
+    }
+  }
+  // if he is student
+  if (req.user.role == roles.stu) {
+    if (req.user._id.toString() !== trainingResults.studentId._id.toString()) {
+      return next(new Error("Not allow to view this result", { cause: 403 }));
+    }
+  }
 
   // Return the training results
   return res.status(200).json({
@@ -301,37 +225,48 @@ export const getSingleTrainingResult = asyncHandler(async (req, res, next) => {
 });
 
 export const SearchTrainingResult = asyncHandler(async (req, res, next) => {
-  const { semsterId, studentId, trainingId } = req.body;
-  const allowFields = ["studentId", "trainingId", "Status", "semsterId"];
-  const searchFieldsText = ["Status"];
-  const searchFieldsIds = ["_id", "studentId", "trainingId", "semsterId"];
+  const { studentId, trainingId } = req.body;
+  const allowFields = ["studentId", "trainingId", "grade"];
+  const searchFieldsText = ["grade"];
+  const searchFieldsIds = ["_id", "studentId", "trainingId"];
 
-  const optionsInstructor = {
-    select: "FullName email phone gender department",
-    path: "instructor_id",
-  };
+  //Apply Filters
+  const filters = {};
+  if (trainingId) filters.trainingId = trainingId;
+  if (studentId) filters.studentId = studentId;
+
+  // check he allow to view this result
+  if (req.user.role == roles.instructor) {
+    if (!trainingId) {
+      return next(new Error("trainingId must Be provided", { cause: 400 }));
+    }
+
+    if (!req.user.Training.includes(trainingId.toString())) {
+      return next(
+        new Error("You not Allow to view this training Result", { cause: 403 })
+      );
+    }
+    filters.trainingId = trainingId;
+  }
+
+  // if he is user
+  if (req.user.role == roles.stu) {
+    filters.studentId = req.user._id;
+  }
+
   const optionStudent = {
     select: "Full_Name National_Id Student_Code PhoneNumber gender department",
     path: "studentId",
   };
-  const optionSemster = {
-    select: "term year name",
-    path: "semsterId",
-  };
+
   const optionTraining = {
     path: "trainingId",
     select:
       "start_date training_name end_date requirements desc max_student instructor_id OpenForRegister",
-    populate: optionsInstructor,
   };
 
-  let filters = {};
-  if (semsterId) filters.studentId = semsterId;
-  if (trainingId) filters.trainingId = trainingId;
-  if (studentId) filters.studentId = studentId;
-
   const apiFeatureInstance = new ApiFeature(
-    trainingResultModel.find(filters),
+    trainingResultModel.find(filters).lean(),
     req.query,
     allowFields
   )
@@ -340,7 +275,6 @@ export const SearchTrainingResult = asyncHandler(async (req, res, next) => {
     .select()
     .filter()
     .populate(optionTraining)
-    .populate(optionSemster)
     .populate(optionStudent)
     .search({ searchFieldsText, searchFieldsIds });
 

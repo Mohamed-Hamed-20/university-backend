@@ -80,6 +80,10 @@ const settingSchema = new Schema({
     type: Boolean,
     default: false,
   },
+  updateStudentLevel: {
+    type: Boolean,
+    default: true,
+  },
 });
 
 const settingModel = mongoose.model("setting", settingSchema);

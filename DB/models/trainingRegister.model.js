@@ -11,15 +11,9 @@ const trainingRegisterSchema = new Schema({
   trainingRegisterd: [
     {
       // Training he want to Register
-      trainingId: {
-        type: Types.ObjectId,
-        ref: "Training",
-      },
-      // status about training he wanted
-      Status: {
-        type: String,
-        enum: ["pending", "refused", "accepted"],
-      },
+      type: Types.ObjectId,
+      ref: "Training",
+      required: true,
     },
   ],
 });

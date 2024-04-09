@@ -11,22 +11,26 @@ router.post(
   isAuth([roles.admin]),
   tc.addtrain
 );
+
 router.get(
   "/alltraining",
   valid(vSchema.alltrain),
   isAuth([roles.admin, roles.stu, roles.instructor]),
   tc.alltraining
 );
+
 router.put(
   "/updatetraining",
   valid(vSchema.updatetrain),
   isAuth([roles.admin]),
   tc.updatetraining
 );
+
 router.delete(
   "/deletetraining",
   valid(vSchema.deletetrain),
   isAuth([roles.admin]),
   tc.deletetrain
 );
+
 export default router;

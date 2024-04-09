@@ -13,6 +13,7 @@ export const addtrain = asyncHandler(async (req, res, next) => {
     desc,
     max_student,
     OpenForRegister,
+    AllowLevel,
   } = req.body;
   const training = {};
 
@@ -30,7 +31,7 @@ export const addtrain = asyncHandler(async (req, res, next) => {
   if (requirements) training.requirements = requirements;
 
   if (max_student) training.max_student = max_student;
-
+  training.AllowLevel = AllowLevel || ["two", "three", "four", "graduated"];
   //Assign training Dates
   training.start_date = start_date;
   training.end_date = end_date;
@@ -48,45 +49,6 @@ export const addtrain = asyncHandler(async (req, res, next) => {
     .json({ message: "Training created successfully", training: result });
 });
 
-// search and get all training
-export const alltraining = asyncHandler(async (req, res, next) => {
-  const allowFields = [
-    "training_name",
-    "start_date",
-    "end_date",
-    "requirements",
-    "desc",
-    "max_student",
-    "OpenForRegister",
-  ];
-  const searchFieldsText = ["training_name", "desc"];
-  const searchFieldsIds = ["_id"];
-  let filters = {};
-  if (req.user.role == roles.stu) {
-    filters.OpenForRegister = true;
-  }
-
-if (req.user.role == roles.instructor) {
-  filters._id = { $in: req.user.Training };
-}
-  const apiFeatureInstance = new ApiFeature(
-    trainingmodel.find(filters),
-    req.query,
-    allowFields
-  )
-    .pagination()
-    .sort()
-    .select()
-    .filter()
-    .search({ searchFieldsText, searchFieldsIds });
-
-  const training = await apiFeatureInstance.MongoseQuery;
-
-  return res
-    .status(200)
-    .json({ message: "Done All training Information", training });
-});
-
 // update training
 export const updatetraining = asyncHandler(async (req, res, next) => {
   console.log(req.body);
@@ -100,6 +62,7 @@ export const updatetraining = asyncHandler(async (req, res, next) => {
     desc,
     max_student,
     OpenForRegister,
+    AllowLevel,
   } = req.body;
 
   // Check if either start date or end date is provided
@@ -130,6 +93,7 @@ export const updatetraining = asyncHandler(async (req, res, next) => {
   if (desc) training.desc = desc;
   if (max_student) training.max_student = max_student;
   if (OpenForRegister) training.OpenForRegister = OpenForRegister;
+  if (AllowLevel) training.AllowLevel = AllowLevel;
 
   await training.save();
   return res
@@ -147,4 +111,44 @@ export const deletetrain = asyncHandler(async (req, res, next) => {
   return res
     .status(200)
     .json({ message: "Training deleted Successfully", training });
+});
+
+// search and get all training
+export const alltraining = asyncHandler(async (req, res, next) => {
+  const allowFields = [
+    "training_name",
+    "start_date",
+    "end_date",
+    "requirements",
+    "desc",
+    "max_student",
+    "OpenForRegister",
+    "AllowLevel",
+  ];
+  const searchFieldsText = ["training_name", "desc", "AllowLevel"];
+  const searchFieldsIds = ["_id"];
+  let filters = {};
+  if (req.user.role == roles.stu) {
+    filters.OpenForRegister = true;
+  }
+
+  if (req.user.role == roles.instructor) {
+    filters._id = { $in: req.user.Training };
+  }
+  const apiFeatureInstance = new ApiFeature(
+    trainingmodel.find(filters),
+    req.query,
+    allowFields
+  )
+    .pagination()
+    .sort()
+    .select()
+    .filter()
+    .search({ searchFieldsText, searchFieldsIds });
+
+  const training = await apiFeatureInstance.MongoseQuery;
+
+  return res
+    .status(200)
+    .json({ message: "Done All training Information", training });
 });

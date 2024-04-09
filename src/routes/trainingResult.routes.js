@@ -6,16 +6,16 @@ import { isAuth, roles } from "../middleware/auth.js";
 const router = Router();
 
 router.post(
-  "/student/create",
+  "/upload",
   valid(vSchema.createTrainingResult),
-  isAuth([roles.stu, roles.admin, roles.instructor]),
-  trc.createTrainingResult
+  isAuth([roles.admin, roles.instructor]),
+  trc.uploadTrainingResult
 );
 
 router.delete(
-  "/student/delete",
+  "/delete",
   valid(vSchema.deleteTrainingResult),
-  isAuth([roles.stu, roles.admin, roles.instructor]),
+  isAuth([roles.admin, roles.instructor]),
   trc.deleteTrainingResult
 );
 //upload trainig Information
@@ -27,15 +27,15 @@ router.put(
 );
 
 router.get(
-  "/student/getSingleTrainingResult",
+  "/getSingleTrainingResult",
   valid(vSchema.getSingleTrainingResult),
-  isAuth([roles.stu]),
+  isAuth([roles.stu, roles.admin, roles.instructor]),
   trc.getSingleTrainingResult
 );
 router.get(
   "/SearchTrainingResult",
   valid(vSchema.SearchTrainingResult),
-  isAuth([roles.admin, roles.instructor]),
+  isAuth([roles.admin, roles.instructor, roles.stu]),
   trc.SearchTrainingResult
 );
 export default router;

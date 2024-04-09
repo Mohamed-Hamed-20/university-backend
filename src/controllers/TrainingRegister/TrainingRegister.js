@@ -4,6 +4,7 @@ import TrainingRegisterModel from "../../../DB/models/trainingRegister.model.js"
 import { roles } from "../../middleware/auth.js";
 import { ApiFeature } from "../../utils/apiFeature.js";
 import { arrayofstring } from "../../utils/arrayobjectIds.js";
+import { calclevel, calculateGPA } from "../../utils/calcGrates.js";
 import { asyncHandler } from "../../utils/errorHandling.js";
 
 export const addTraining = asyncHandler(async (req, res, next) => {
@@ -15,6 +16,21 @@ export const addTraining = asyncHandler(async (req, res, next) => {
   if (!training || training.OpenForRegister == false) {
     return next(
       new Error("Training not found or not Open For Register", { cause: 404 })
+    );
+  }
+
+  //=======================================EDIT I THINK=============================
+  // check if he allow to take this course
+  const { TotalGpa, totalCreditHours } = await calculateGPA({
+    studentId: req.user._id,
+  });
+  const { level } = await calclevel({ totalCreditHours });
+
+  if (!training.AllowLevel?.includes(level)) {
+    return next(
+      new Error("student level not Allow to Register this course", {
+        cause: 403,
+      })
     );
   }
 
@@ -39,7 +55,7 @@ export const addTraining = asyncHandler(async (req, res, next) => {
   if (!TrainingRegister) {
     const newTrainingRegister = {
       studentId: userId,
-      trainingRegisterd: [{ trainingId: training._id, Status: "pending" }],
+      trainingRegisterd: [training._id],
     };
 
     result = await TrainingRegisterModel.create(newTrainingRegister);
@@ -48,21 +64,15 @@ export const addTraining = asyncHandler(async (req, res, next) => {
   // if TrainingRegister
   if (TrainingRegister) {
     // Make sure it's not a duplicate training ID
-    if (
-      TrainingRegister.trainingRegisterd.some(
-        (ele) => ele.trainingId.toString() === trainingId.toString()
-      )
-    ) {
+    if (TrainingRegister.trainingRegisterd.includes(trainingId.toString())) {
       return next(new Error("Training is already registered", { cause: 400 }));
     }
 
-    TrainingRegister.trainingRegisterd.push({
-      trainingId: trainingId,
-      Status: "pending",
-    });
+    TrainingRegister.trainingRegisterd.push(trainingId);
 
     result = await TrainingRegister.save();
   }
+
   if (!result) {
     return next(new Error("server error", { cause: 404 }));
   }
@@ -93,9 +103,7 @@ export const deleteTraining = asyncHandler(async (req, res, next) => {
   // Check if the user has registered for this training
   if (
     !TrainingRegister ||
-    !TrainingRegister.trainingRegisterd.find((item) =>
-      item.trainingId.equals(trainingId)
-    )
+    !TrainingRegister.trainingRegisterd.includes(trainingId.toString())
   ) {
     return next(
       new Error("You have not registered for this training yet", {
@@ -106,7 +114,7 @@ export const deleteTraining = asyncHandler(async (req, res, next) => {
 
   // Filter out the specified training from the registered trainings
   const newTrainingRegister = TrainingRegister.trainingRegisterd.filter(
-    (ele) => ele.trainingId.toString() !== trainingId.toString()
+    (ele) => ele.toString() !== trainingId.toString()
   );
 
   // Update the user's training registrations
@@ -133,7 +141,7 @@ export const getTraining = asyncHandler(async (req, res, next) => {
         "Full_Name _id Date_of_Birth gender PhoneNumber Student_Code National_Id",
     })
     .populate({
-      path: "trainingRegisterd.trainingId",
+      path: "trainingRegisterd",
       select:
         "start_date training_name end_date requirements desc max_student instructor_id OpenForRegister",
     });
@@ -155,8 +163,15 @@ export const searchRegisterTraining = asyncHandler(async (req, res, next) => {
   const { trainingId, studentId } = req.query;
   const user = req.user;
 
+  let filters = {};
+  if (trainingId) filters.trainingRegisterd = trainingId;
+  if (studentId) filters.studentId = studentId;
+
   // check if the user is allowed to view this courses
   if (user.role === roles.instructor) {
+    if (!trainingId) {
+      return next(new Error("TrainingId must be provided", { cause: 400 }));
+    }
     const Training = await arrayofstring(user.Training);
     if (!Training.includes(trainingId?.toString() || null)) {
       return next(
@@ -166,10 +181,9 @@ export const searchRegisterTraining = asyncHandler(async (req, res, next) => {
       );
     }
   }
-
-  let filters = {};
-  if (trainingId) filters["trainingRegisterd.trainingId"] = trainingId;
-  if (studentId) filters.studentId = studentId;
+  if (user.role === roles.stu) {
+    filters.studentId = user._id;
+  }
 
   const allowFields = ["studentId", "trainingRegisterd"];
 
@@ -180,17 +194,13 @@ export const searchRegisterTraining = asyncHandler(async (req, res, next) => {
   };
 
   const optionTraining = {
-    path: "trainingRegisterd", // تعديل المسار هنا ليشمل مصفوفة trainingRegisterd بدلاً من الحقل trainingId
-    populate: {
-      path: "trainingId",
-      model: "Training", // إضافة هذا لتحديد المودل الصحيح للبحث عن trainingId
-      match: { _id: trainingId },
-      select:
-        "start_date training_name end_date requirements desc max_student instructor_id OpenForRegister",
-    },
+    path: "trainingRegisterd",
+    match: { _id: trainingId },
+    select:
+      "start_date training_name end_date requirements desc max_student instructor_id OpenForRegister",
   };
 
-  const searchFieldsIds = ["studentId"];
+  const searchFieldsIds = ["studentId", "trainingRegisterd"];
   const searchFieldsText = ["studentId.Full_Name"];
 
   const apiFeatureInstance = new ApiFeature(
@@ -207,21 +217,8 @@ export const searchRegisterTraining = asyncHandler(async (req, res, next) => {
 
   const results = await apiFeatureInstance.MongoseQuery;
 
-  const newResults = results.map((record) => {
-    // استخدام map للتحقق من كل سجل وتصفية trainingRegisterd داخله
-    const filteredTrainingRegisterd = record.trainingRegisterd.filter(
-      (item) => item.trainingId !== null
-    );
-
-    // إعادة بناء السجل باستخدام trainingRegisterd المصفاة
-    return {
-      ...record,
-      trainingRegisterd: filteredTrainingRegisterd,
-    };
-  });
-
   return res.status(200).json({
     message: "Done All Student Information",
-    TrainingRegisted: newResults,
+    TrainingRegisted: results,
   });
 });

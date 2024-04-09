@@ -25,7 +25,7 @@ router.get("/getTrainingInfo", isAuth([roles.stu]), TRC.getTraining);
 router.get(
   "/searchTraining",
   valid(vSchema.searchRegister),
-  isAuth([roles.admin, roles.instructor]),
+  isAuth([roles.stu, roles.admin, roles.instructor]),
   TRC.searchRegisterTraining
 );
 export default router;
