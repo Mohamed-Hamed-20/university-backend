@@ -1,17 +1,14 @@
-import { adminModel } from "../../../DB/models/admin.model.js";
 import CourseModel from "../../../DB/models/course.model.js";
-import { InstructorModel } from "../../../DB/models/instructor.model.js";
-import userModel from "../../../DB/models/user.model.js";
 import { asyncHandler } from "../../utils/errorHandling.js";
 import { arrayofIds } from "../../utils/arrayobjectIds.js";
 import { ApiFeature } from "../../utils/apiFeature.js";
+import { createImg, deleteImg, GetsingleImg } from "../../utils/aws.s3.js";
 
 export const addCourse = asyncHandler(async (req, res, next) => {
   const {
     course_name,
     Prerequisites,
     credit_hour,
-    instructorId,
     OpenForRegistration,
     desc,
     department,
@@ -73,7 +70,6 @@ export const updatecourse = asyncHandler(async (req, res, next) => {
     return next(new Error("Invalid course Id", { cause: 404 }));
   }
   if (course_name && course?.course_name != course_name) {
-    console.log("couse check name");
     const chkcourse = await CourseModel.findOne({ course_name });
     if (chkcourse && chkcourse._id.toString() != courseId) {
       return next(new Error("course Name Is Already Exist ", { cause: 400 }));
@@ -88,7 +84,6 @@ export const updatecourse = asyncHandler(async (req, res, next) => {
       JSON.stringify(prerequisiteIds.sort()) !=
       JSON.stringify(course?.Prerequisites?.sort())
     ) {
-      console.log("couse check Prerequisites");
       const foundPrerequisites = await CourseModel.find({
         _id: { $in: prerequisiteIds },
       });
@@ -133,12 +128,13 @@ export const searchcourse = asyncHandler(async (req, res, next) => {
     "department",
     "OpenForRegistration",
     "Prerequisites",
+    "ImgUrls",
   ];
   const searchFieldsText = ["course_name", "desc", "department"];
   const searchFieldsIds = ["_id"];
 
   const apiFeatureInstance = new ApiFeature(
-    CourseModel.find(),
+    CourseModel.find().lean(),
     req.query,
     allowFields
   )
@@ -148,16 +144,164 @@ export const searchcourse = asyncHandler(async (req, res, next) => {
     .select()
     .filter();
 
-  const course = await apiFeatureInstance.MongoseQuery;
+  const courses = await apiFeatureInstance.MongoseQuery;
+
+  // Create an array to hold all the promises for loading images
+  const allImagePromises = [];
+
+  // Loop through each course
+  for (const course of courses) {
+    if (course?.ImgUrls && course.ImgUrls.length > 0) {
+      // Create promises for each image in the course and add them to the array
+      const imagePromises = course?.ImgUrls?.map(async (imgUrl) => {
+        const { url } = await GetsingleImg({ ImgName: imgUrl });
+        return { imgName: imgUrl, url };
+      });
+      allImagePromises.push(Promise.all(imagePromises));
+    }
+  }
+
+  // Wait for all image promises to resolve
+  const allImages = await Promise.all(allImagePromises);
+  // Loop through each course and assign the images
+  for (const course of courses) {
+    // Check if ImgUrls exist and are not empty for this course
+    if (course.ImgUrls && course.ImgUrls.length > 0) {
+      // Check if images exist in allImages array for this course
+      const imagesForCourse = allImages.shift(); // Get images for the current course
+      if (
+        imagesForCourse &&
+        imagesForCourse.length > 0 &&
+        imagesForCourse.every((image) => course.ImgUrls.includes(image.imgName))
+      ) {
+        course.images = imagesForCourse;
+      }
+    }
+    delete course.ImgUrls;
+  }
 
   return res
     .status(200)
-    .json({ message: "Done All courses Information", course });
+    .json({ message: "Done All courses Information", courses });
 });
 
 export const count = asyncHandler(async (req, res, next) => {
-  console.log(req.query.num);
   const count = await CourseModel.find().countDocuments({});
-  console.log(count);
   return res.json({ count: count });
+});
+
+export const AddcourseImg = asyncHandler(async (req, res, next) => {
+  const { courseId } = req.body;
+
+  const course = await CourseModel.findById(courseId);
+  if (!course) {
+    return next(new Error("course not found", { cause: 404 }));
+  }
+
+  // Add Images
+  if (req.files.length > 0) {
+    const ImgUrls = [];
+    const uploadPromises = [];
+
+    for (const file of req.files) {
+      const folder = `${process.env.Folder_course}/${course.course_name}-${course._id}`;
+      const promise = createImg({ file, folder });
+      uploadPromises.push(promise);
+    }
+
+    const responses = await Promise.all(uploadPromises);
+
+    for (const { imgName, response } of responses) {
+      if (response.$metadata.httpStatusCode !== 200) {
+        return next(
+          new Error("Error in uploading Img", {
+            cause: response.$metadata.httpStatusCode,
+          })
+        );
+      }
+      ImgUrls.push(imgName);
+    }
+
+    // Concatenate ImgUrls to course.ImgUrls
+    course.ImgUrls = course.ImgUrls.concat(ImgUrls);
+  }
+  // Save the course
+  const result = await course.save();
+  return res
+    .status(200)
+    .json({ message: "Images Uploaded successfully", result });
+});
+
+export const deletecourseImg = asyncHandler(async (req, res, next) => {
+  const { courseId, ImgUrls } = req.body;
+  const course = await CourseModel.findById(courseId);
+  if (!course) {
+    return next(new Error("Course not found", { cause: 404 }));
+  }
+
+  // Check if all image URLs exist in the course's ImgUrls
+  const invalidUrls = ImgUrls.filter((item) => !course.ImgUrls.includes(item));
+
+  if (invalidUrls.length > 0) {
+    return next(
+      new Error(`Invalid image URL(s): ${invalidUrls.join(", ")}`, {
+        cause: 400,
+      })
+    );
+  }
+
+  // Delete images
+  const deletePromises = ImgUrls.map((url) => deleteImg({ imgName: url }));
+  const responses = await Promise.all(deletePromises);
+  // Check if all images were deleted successfully
+  for (const { response } of responses) {
+    if (![200, 201, 202, 204].includes(response.$metadata.httpStatusCode)) {
+      return next(
+        new Error("One or more images were not deleted successfully", {
+          cause: response.$metadata.httpStatusCode,
+        })
+      );
+    }
+  }
+
+  // Remove the image URLs from the course's ImgUrls
+  const newImgUrls = course.ImgUrls.filter((url) => !ImgUrls.includes(url));
+
+  // Update the course's ImgUrls and save
+  course.ImgUrls = newImgUrls;
+  const result = await course.save();
+  if (!result) {
+    return next(
+      new Error("error In update delete course Images", { cause: 500 })
+    );
+  }
+  return res
+    .status(200)
+    .json({ message: "Images deleted successfully", result, responses });
+});
+
+export const courseInfo = asyncHandler(async (req, res, next) => {
+  const { courseId } = req.query;
+  const course = await CourseModel.findById(courseId).lean();
+
+  if (!course) {
+    throw new Error("Course not found");
+  }
+
+  if (course.ImgUrls && course.ImgUrls.length > 0) {
+    const promiseArray = course.ImgUrls?.map(async (imgUrl) => {
+      const { url } = await GetsingleImg({ ImgName: imgUrl });
+      return { imgName: imgUrl, url };
+    });
+
+    const images = await Promise.all(promiseArray);
+
+    // Add the images to the course object
+    course.images = images;
+
+    // Remove ImgUrls from the course object
+    delete course.ImgUrls;
+  }
+  // Return the course object in the response
+  return res.status(200).json({ message: "Course information", course });
 });

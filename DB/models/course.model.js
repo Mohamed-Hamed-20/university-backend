@@ -35,6 +35,12 @@ const CourseSchema = new mongoose.Schema(
         ref: "course",
       },
     ],
+    ImgUrls: [
+      {
+        type: String,
+        required: false,
+      },
+    ],
   },
   { timestamps: true }
 );

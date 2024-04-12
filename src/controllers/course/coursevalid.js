@@ -68,3 +68,25 @@ export const searchcourse = {
     })
     .required(),
 };
+
+export const AddcourseImg = {
+  body: joi
+    .object({
+      courseId: generalFields._id.required().messages(customMessages),
+      // courseImage: joi.required(),
+    })
+    .required(),
+};
+
+export const deletecourseImg = {
+  body: joi
+    .object({
+      courseId: generalFields._id.required().messages(customMessages),
+      ImgUrls: joi
+        .array()
+        .items(joi.string().optional().messages(customMessages))
+        .required()
+        .messages(customMessages),
+    })
+    .required(),
+};

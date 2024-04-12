@@ -72,14 +72,14 @@ const InstructorSchema = new Schema(
       {
         type: Types.ObjectId,
         ref: "course",
-        unique: true,
+        default: false,
       },
     ],
     Training: [
       {
         type: Types.ObjectId,
         ref: "Training",
-        unique: true,
+        default: false,
       },
     ],
   },

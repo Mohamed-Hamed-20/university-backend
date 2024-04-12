@@ -68,7 +68,6 @@ export class ApiFeature {
         // console.log(JSON.stringify(searchQuery, null, 2));
         this.MongoseQuery.find(searchQuery);
       } else {
-        console.log(search);
         const searchQuery = {
           $or: searchFieldsText.map((field) => {
             return { [field]: { $regex: new RegExp(search.trim(), "i") } };
