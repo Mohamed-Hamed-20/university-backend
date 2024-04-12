@@ -276,6 +276,7 @@ export const searchuser = asyncHandler(async (req, res, next) => {
     "Date_of_Birth",
     "Student_Code",
     "National_Id",
+    "imgName",
   ];
 
   const searchFieldsText = [
@@ -288,7 +289,7 @@ export const searchuser = asyncHandler(async (req, res, next) => {
   const searchFieldsIds = ["_id"];
 
   const apiFeatureInstance = new ApiFeature(
-    userModel.find({}),
+    userModel.find({}).lean(),
     req.query,
     allowFields
   )
@@ -299,6 +300,15 @@ export const searchuser = asyncHandler(async (req, res, next) => {
     .search({ searchFieldsText, searchFieldsIds });
 
   const users = await apiFeatureInstance.MongoseQuery;
+
+
+  for (const user of users) {
+    if (user.imgName) {
+      const { url } = await GetsingleImg({ ImgName: user.imgName });
+      user.url = url;
+    }
+  }
+
   return res
     .status(200)
     .json({ message: "Done All Student Information", students: users });
@@ -328,7 +338,7 @@ export const AddStuImg = asyncHandler(async (req, res, next) => {
         folder,
         file: req.file,
       });
-
+      console.log({ name, resp });
       // Get response and imgnaem
       imgName = name;
       response = resp;
@@ -343,9 +353,8 @@ export const AddStuImg = asyncHandler(async (req, res, next) => {
   }
 
   let result;
-  if (!student.imgName || student?.imgName !== imgName) {
-    student.imgName == imgName;
-    // Save the course
+  if (!student?.imgName || student?.imgName !== imgName) {
+    student.imgName = imgName;
     result = await student.save();
   } else {
     result = student;

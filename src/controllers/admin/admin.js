@@ -240,12 +240,13 @@ export const searchAdmin = asyncHandler(async (req, res, next) => {
     "gender",
     "Date_of_Birth",
     "role",
+    "imgName",
   ];
   const searchFieldsText = ["FullName", "email", "phone"];
   const searchFieldsIds = ["_id"];
 
   const apiFeatureInstance = new ApiFeature(
-    adminModel.find(),
+    adminModel.find().lean(),
     req.query,
     allowFields
   )
@@ -255,8 +256,18 @@ export const searchAdmin = asyncHandler(async (req, res, next) => {
     .search({ searchFieldsText, searchFieldsIds })
     .filter();
 
-  const admin = await apiFeatureInstance.MongoseQuery;
-  return res.status(200).json({ message: "Done All Admin Information", admin });
+  const admins = await apiFeatureInstance.MongoseQuery;
+
+  for (const admin of admins) {
+    if (admin.imgName) {
+      const { url } = await GetsingleImg({ ImgName: admin.imgName });
+      admin.url = url;
+    }
+  }
+
+  return res
+    .status(200)
+    .json({ message: "Done All Admin Information", admins });
 });
 export const info = asyncHandler(async (req, res, next) => {
   const courses = await CourseModel.countDocuments();

@@ -46,14 +46,14 @@ router.post(
   "/Add/image",
   multerCloud(allowedExtensions.Image).single("adminImage"),
   valid(vSchema.AddAdminImg),
-  isAuth([roles.admin]),
+  isAuth([roles.super]),
   ac.AddAdminImg
 );
 
 router.patch(
   "/delete/image",
   valid(vSchema.deleteAdminImg),
-  isAuth([roles.admin]),
+  isAuth([roles.super]),
   ac.deleteAdminImg
 );
 // router.patch(

@@ -41,7 +41,7 @@ router.delete(
 router.get(
   "/searchuser",
   valid(vSchema.searchuser),
-  isAuth([roles.admin, roles.instructor]),
+  isAuth([roles.admin, roles.instructor, roles.super]),
   uc.searchuser
 );
 

@@ -331,6 +331,7 @@ export const searchInstructor = asyncHandler(async (req, res, next) => {
     "Materials",
     "Training",
     "department",
+    "imgName",
   ];
   const searchFieldsIds = ["_id"];
   const searchFieldsText = ["FullName", "email", "phone", "department"];
@@ -357,10 +358,17 @@ export const searchInstructor = asyncHandler(async (req, res, next) => {
     .populate(options)
     .populate(TrainingOptions);
 
-  const Instructor = await apiFeatureInstance.MongoseQuery;
+  const Instructors = await apiFeatureInstance.MongoseQuery;
+
+  for (const Instructor of Instructors) {
+    if (Instructor.imgName) {
+      const { url } = await GetsingleImg({ ImgName: Instructor.imgName });
+      Instructor.url = url;
+    }
+  }
   return res
     .status(200)
-    .json({ message: "Done All Instrctors Information", Instructor });
+    .json({ message: "Done All Instrctors Information", Instructors });
 });
 
 export const AddInstructorImg = asyncHandler(async (req, res, next) => {
