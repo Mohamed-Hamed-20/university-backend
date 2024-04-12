@@ -6,6 +6,12 @@ import trainingmodel from "../../../DB/models/training.model.js";
 import userModel from "../../../DB/models/user.model.js";
 import { generateToken, storeRefreshToken } from "../../utils/Token.js";
 import { ApiFeature } from "../../utils/apiFeature.js";
+import {
+  createImg,
+  deleteImg,
+  GetsingleImg,
+  updateImg,
+} from "../../utils/aws.s3.js";
 import { asyncHandler } from "../../utils/errorHandling.js";
 import { hashpassword, verifypass } from "../../utils/hashpassword.js";
 import { sendconfirmEmail } from "../../utils/sendEmail.js";
@@ -207,7 +213,11 @@ export const Getuser = asyncHandler(async (req, res, next) => {
       new Error("Invalid User Data please Try Again", { cause: 500 })
     );
   }
-
+  let urlImg;
+  if (user?.imgName) {
+    const { url } = await GetsingleImg({ ImgName: user.imgName });
+    urlImg = url;
+  }
   const result = {
     FullName: user.FullName,
     email: user.email,
@@ -216,6 +226,7 @@ export const Getuser = asyncHandler(async (req, res, next) => {
     gender: user.gender,
     department: user?.department,
     role: user.role,
+    urlImg,
   };
   return res.status(200).json({ message: "Done", user: result });
 });
@@ -259,5 +270,92 @@ export const info = asyncHandler(async (req, res, next) => {
     message: "done",
     info: { courses, students, admins, instructors, semsters, training },
   });
+});
+
+export const AddAdminImg = asyncHandler(async (req, res, next) => {
+  const { adminId } = req.body;
+  console.log(adminId);
+  const admin = await adminModel.findById(adminId);
+  if (!admin) {
+    return next(new Error("admin  not found", { cause: 404 }));
+  }
+
+  // Add Images
+  let imgName, response;
+  if (req.file) {
+    if (admin?.imgName) {
+      const { imgName: name, response: resp } = await updateImg({
+        imgName: admin.imgName,
+        file: req.file,
+      });
+      imgName = name;
+      response = resp;
+    } else {
+      const folder = `${process.env.Folder_Admin}/${admin.FullName}-${admin._id}`;
+      const { imgName: name, response: resp } = await createImg({
+        folder,
+        file: req.file,
+      });
+
+      // Get response and imgnaem
+      imgName = name;
+      response = resp;
+    }
+  } else {
+    return next(new Error("Need to provide Image first", { cause: 404 }));
+  }
+
+  // check its add successfully
+  if (![200, 201, 203, 204].includes(response.$metadata.httpStatusCode)) {
+    return next(new Error("Error In update Image", { cause: 500 }));
+  }
+
+  let result;
+  if (!admin.imgName || admin?.imgName !== imgName) {
+    admin.imgName = imgName;
+    // Save the course
+    result = await admin.save();
+  } else {
+    result = admin;
+  }
+
+  return res
+    .status(200)
+    .json({ message: "Images Uploaded successfully", result });
+});
+
+export const deleteAdminImg = asyncHandler(async (req, res, next) => {
+  const { adminId, imgName } = req.body;
+  const admin = await adminModel.findById(adminId);
+
+  if (!admin) {
+    return next(new Error("admin not found", { cause: 404 }));
+  }
+
+  if (admin?.imgName !== imgName) {
+    return next(new Error("Invalid imgName not found", { cause: 400 }));
+  }
+
+  // Delete image
+  const { response } = await deleteImg({ imgName: imgName });
+
+  if (![200, 201, 202, 203, 204].includes(response.$metadata.httpStatusCode)) {
+    return next(new Error("Failed to delete image", { cause: 500 }));
+  }
+
+  // Remove imgName field from the admin document
+  const result = await adminModel.findByIdAndUpdate(
+    adminId,
+    { $unset: { imgName: "" } },
+    { new: true }
+  );
+
+  if (!result) {
+    return next(new Error("Failed to update admin", { cause: 500 }));
+  }
+
+  return res
+    .status(200)
+    .json({ message: "Image deleted successfully", result, response });
 });
 export const logout = asyncHandler(async (req, res, next) => {});

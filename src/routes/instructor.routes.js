@@ -3,6 +3,7 @@ import * as Ic from "../controllers/instructor/instructor.js";
 import { valid } from "../middleware/validation.js";
 import * as vSchema from "../controllers/instructor/instructor.vaild.js";
 import { isAuth, roles } from "../middleware/auth.js";
+import { allowedExtensions, multerCloud } from "../utils/aws.s3.js";
 const router = Router();
 
 //login Instructor
@@ -44,6 +45,24 @@ router.get(
   valid(vSchema.searchInstructor),
   isAuth([roles.admin]),
   Ic.searchInstructor
+);
+
+
+// ==============================================================
+// uploads images or delte images
+router.post(
+  "/Add/image",
+  multerCloud(allowedExtensions.Image).single("instructorImage"),
+  valid(vSchema.AddInstructorImg),
+  isAuth([roles.admin]),
+  Ic.AddInstructorImg
+);
+
+router.patch(
+  "/delete/image",
+  valid(vSchema.deleteInstructorImg),
+  isAuth([roles.admin]),
+  Ic.deleteInstructorImg
 );
 
 export default router;

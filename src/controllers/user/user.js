@@ -102,6 +102,7 @@ export const Getuser = asyncHandler(async (req, res, next) => {
     TotalGpa,
     totalCreditHours,
     semsterInfo: semsterInfo.MainSemsterId,
+    imgName: user.imgName,
     url: urlImg,
   };
   return res.status(200).json({ message: "Done", result });
@@ -143,13 +144,6 @@ export const addStudent = asyncHandler(async (req, res, next) => {
     }
   }
 
-  //upload Image
-  const folder = `university/students/${Full_Name}-${Student_Code}`;
-  const { imgName, response } = await createImg({ folder, file: req.file });
-
-  if (response.$metadata.httpStatusCode !== 200) {
-    return next(new Error("Error in uploading Img", { cause: 500 }));
-  }
   // بناء كائن الطالب
   const student = {
     Full_Name,
@@ -159,7 +153,6 @@ export const addStudent = asyncHandler(async (req, res, next) => {
     PhoneNumber,
     gender,
     role: "user",
-    imgName: imgName,
   };
 
   if (department) {
@@ -227,15 +220,6 @@ export const updateStudent = asyncHandler(async (req, res, next) => {
       return next(new Error("Student code is already exist", { cause: 400 }));
     }
     user.Student_Code = Student_Code;
-  }
-
-  if (req.file) {
-    const { imgName, response } = await updateImg({ imgName: user.imgName });
-    if (response.$metadata.httpStatusCode !== 200) {
-      return next(
-        new Error("server Error Image Not update successfully", { cause: 500 })
-      );
-    }
   }
 
   if (PhoneNumber && user.PhoneNumber != PhoneNumber) {
@@ -318,6 +302,93 @@ export const searchuser = asyncHandler(async (req, res, next) => {
   return res
     .status(200)
     .json({ message: "Done All Student Information", students: users });
+});
+
+export const AddStuImg = asyncHandler(async (req, res, next) => {
+  const { studentId } = req.body;
+
+  const student = await userModel.findById(studentId);
+  if (!student) {
+    return next(new Error("student not found", { cause: 404 }));
+  }
+
+  // Add Images
+  let imgName, response;
+  if (req.file) {
+    if (student?.imgName) {
+      const { imgName: name, response: resp } = await updateImg({
+        imgName: student.imgName,
+        file: req.file,
+      });
+      imgName = name;
+      response = resp;
+    } else {
+      const folder = `${process.env.Folder_stu}/${student.Full_Name}-${student._id}`;
+      const { imgName: name, response: resp } = await createImg({
+        folder,
+        file: req.file,
+      });
+
+      // Get response and imgnaem
+      imgName = name;
+      response = resp;
+    }
+  } else {
+    return next(new Error("Need to provide Image first", { cause: 404 }));
+  }
+
+  // check its add successfully
+  if (![200, 201, 203, 204].includes(response.$metadata.httpStatusCode)) {
+    return next(new Error("Error In update Image", { cause: 500 }));
+  }
+
+  let result;
+  if (!student.imgName || student?.imgName !== imgName) {
+    student.imgName == imgName;
+    // Save the course
+    result = await student.save();
+  } else {
+    result = student;
+  }
+
+  return res
+    .status(200)
+    .json({ message: "Images Uploaded successfully", result });
+});
+
+export const deleteStuImg = asyncHandler(async (req, res, next) => {
+  const { studentId, imgName } = req.body;
+  const student = await userModel.findById(studentId);
+
+  if (!student) {
+    return next(new Error("Student not found", { cause: 404 }));
+  }
+
+  if (student?.imgName !== imgName) {
+    return next(new Error("Invalid imgName not found", { cause: 400 }));
+  }
+
+  // Delete image
+  const { response } = await deleteImg({ imgName: imgName });
+
+  if (![200, 201, 202, 203, 204].includes(response.$metadata.httpStatusCode)) {
+    return next(new Error("Failed to delete image", { cause: 500 }));
+  }
+
+  // Remove imgName field from the student document
+  const result = await userModel.findByIdAndUpdate(
+    studentId,
+    { $unset: { imgName: "" } },
+    { new: true }
+  );
+
+  if (!result) {
+    return next(new Error("Failed to update student", { cause: 500 }));
+  }
+
+  return res
+    .status(200)
+    .json({ message: "Image deleted successfully", result, response });
 });
 
 export const logout = asyncHandler(async (req, res, next) => {});

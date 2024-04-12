@@ -197,7 +197,9 @@ export const AddcourseImg = asyncHandler(async (req, res, next) => {
   if (!course) {
     return next(new Error("course not found", { cause: 404 }));
   }
-
+  if (course.ImgUrls.length > 7) {
+    return next(new Error("Not allow to Upload more Images", { cause: 404 }));
+  }
   // Add Images
   if (req.files.length > 0) {
     const ImgUrls = [];

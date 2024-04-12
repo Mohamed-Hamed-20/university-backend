@@ -3,6 +3,7 @@ import * as ac from "../controllers/admin/admin.js";
 import { valid } from "../middleware/validation.js";
 import * as vSchema from "../controllers/admin/admin.valid.js";
 import { isAuth, roles } from "../middleware/auth.js";
+import { allowedExtensions, multerCloud } from "../utils/aws.s3.js";
 const router = Router();
 
 //login admin SuperAdmins
@@ -38,6 +39,22 @@ router.get(
   valid(vSchema.searchAdmin),
   isAuth([roles.super]),
   ac.searchAdmin
+);
+
+//upload one or more image
+router.post(
+  "/Add/image",
+  multerCloud(allowedExtensions.Image).single("adminImage"),
+  valid(vSchema.AddAdminImg),
+  isAuth([roles.admin]),
+  ac.AddAdminImg
+);
+
+router.patch(
+  "/delete/image",
+  valid(vSchema.deleteAdminImg),
+  isAuth([roles.admin]),
+  ac.deleteAdminImg
 );
 // router.patch(
 //   "/updateRole",

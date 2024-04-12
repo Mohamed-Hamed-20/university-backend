@@ -64,17 +64,6 @@ const userSchema = new Schema(
       type: String,
       required: false,
     },
-    // img: {
-    //   public_id: {
-    //     type: String,
-    //     default: "depositphotos_29387653-stock-photo-facebook-profile_npymre",
-    //   },
-    //   secure_url: {
-    //     type: String,
-    //     default:
-    //       "https://res.cloudinary.com/dxjng5bfy/image/upload/v1692289127/Ecommerce/depositphotos_29387653-stock-photo-facebook-profile_npymre.jpg",
-    //   },
-    // },
   },
   { timestamps: true }
 );

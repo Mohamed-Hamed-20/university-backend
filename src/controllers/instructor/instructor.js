@@ -4,6 +4,12 @@ import trainingmodel from "../../../DB/models/training.model.js";
 import { generateToken, storeRefreshToken } from "../../utils/Token.js";
 import { ApiFeature } from "../../utils/apiFeature.js";
 import { arrayofIds } from "../../utils/arrayobjectIds.js";
+import {
+  createImg,
+  deleteImg,
+  GetsingleImg,
+  updateImg,
+} from "../../utils/aws.s3.js";
 import { asyncHandler } from "../../utils/errorHandling.js";
 import { hashpassword, verifypass } from "../../utils/hashpassword.js";
 
@@ -292,6 +298,12 @@ export const Getuser = asyncHandler(async (req, res, next) => {
       new Error("Invalid User Data please Try Again", { cause: 500 })
     );
   }
+
+  let urlImg;
+  if (user?.imgName) {
+    const { url } = await GetsingleImg({ ImgName: user.imgName });
+    urlImg = url;
+  }
   const result = {
     FullName: user.FullName,
     email: user.email,
@@ -302,6 +314,8 @@ export const Getuser = asyncHandler(async (req, res, next) => {
     role: user.role,
     Materials: user.Materials,
     Training: user.Training,
+    imgName: user?.imgName,
+    urlImg,
   };
   return res.status(200).json({ message: "Done", user: result });
 });
@@ -348,4 +362,94 @@ export const searchInstructor = asyncHandler(async (req, res, next) => {
     .status(200)
     .json({ message: "Done All Instrctors Information", Instructor });
 });
+
+export const AddInstructorImg = asyncHandler(async (req, res, next) => {
+  const { InstructorId } = req.body;
+  console.log(InstructorId);
+  const Instructor = await InstructorModel.findById(InstructorId);
+  if (!Instructor) {
+    return next(new Error("Instructor not found", { cause: 404 }));
+  }
+
+  // Check if file is provided
+  if (!req.file) {
+    return next(new Error("Need to provide Image first", { cause: 400 }));
+  }
+
+  // Add Images
+  let imgName, response;
+  if (Instructor?.imgName) {
+    const { imgName: name, response: resp } = await updateImg({
+      imgName: Instructor.imgName,
+      file: req.file,
+    });
+    imgName = name;
+    response = resp;
+  } else {
+    const folder = `${process.env.Folder_Instructor}/${Instructor.FullName}-${Instructor._id}`;
+    const { imgName: name, response: resp } = await createImg({
+      folder,
+      file: req.file,
+    });
+
+    // Get response and imgname
+    imgName = name;
+    response = resp;
+  }
+
+  // Check if image added successfully
+  if (response.$metadata.httpStatusCode !== 200) {
+    return next(new Error("Error in updating image", { cause: 500 }));
+  }
+
+  // Update imgName if not already set or different
+  if (!Instructor.imgName || Instructor.imgName !== imgName) {
+    Instructor.imgName = imgName;
+    // Save the instructor
+    await Instructor.save();
+  }
+
+  return res
+    .status(200)
+    .json({ message: "Images Uploaded successfully", result: Instructor });
+});
+
+export const deleteInstructorImg = asyncHandler(async (req, res, next) => {
+  const { InstructorId, imgName } = req.body;
+
+  // Find the Instructor
+  const Instructor = await InstructorModel.findById(InstructorId);
+  if (!Instructor) {
+    return next(new Error("Instructor not found", { cause: 404 }));
+  }
+
+  // Check if imgName matches the one in the Instructor document
+  if (Instructor?.imgName !== imgName) {
+    return next(new Error("Invalid imgName not found", { cause: 400 }));
+  }
+
+  // Delete the image
+  const { response } = await deleteImg({ imgName });
+  if (![200, 201, 202, 203, 204].includes(response.$metadata.httpStatusCode)) {
+    return next(new Error("Failed to delete image", { cause: 500 }));
+  }
+
+  // Remove imgName field from the Instructor document
+  const updateResult = await InstructorModel.findByIdAndUpdate(
+    InstructorId,
+    { $unset: { imgName: "" } },
+    { new: true }
+  );
+  if (!updateResult) {
+    return next(new Error("Failed to update Instructor", { cause: 500 }));
+  }
+
+  // Return success response
+  return res.status(200).json({
+    message: "Image deleted successfully",
+    result: updateResult,
+    response,
+  });
+});
+
 export const logout = asyncHandler(async (req, res, next) => {});

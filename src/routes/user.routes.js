@@ -12,7 +12,6 @@ router.post("/login", valid(vSchema.login), uc.login);
 
 router.post(
   "/addStudent",
-  multerCloud(allowedExtensions.Image).single("studentImage"),
   valid(vSchema.registeruser),
   isAuth([roles.admin]),
   uc.addStudent
@@ -27,7 +26,6 @@ router.get(
 
 router.put(
   "/updateStudent",
-  multerCloud(allowedExtensions.Image).single("studentImage"),
   valid(vSchema.updateStudent),
   isAuth([roles.admin]),
   uc.updateStudent
@@ -47,5 +45,20 @@ router.get(
   uc.searchuser
 );
 
+//upload one or more image
+router.post(
+  "/Add/image",
+  multerCloud(allowedExtensions.Image).single("studentImage"),
+  valid(vSchema.AddStuImg),
+  isAuth([roles.admin]),
+  uc.AddStuImg
+);
+
+router.patch(
+  "/delete/image",
+  valid(vSchema.deleteStuImg),
+  isAuth([roles.admin]),
+  uc.deleteStuImg
+);
 router.post("/uploadImg", multerCloud(allowedExtensions.Image).single("image"));
 export default router;

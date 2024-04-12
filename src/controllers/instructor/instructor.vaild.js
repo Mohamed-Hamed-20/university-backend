@@ -1,5 +1,5 @@
 import joi from "joi";
-import { generalFields } from "../../middleware/validation.js";
+import { customMessages, generalFields } from "../../middleware/validation.js";
 export const CreateInstructor = {
   body: joi
     .object({
@@ -62,6 +62,23 @@ export const searchInstructor = {
       page: joi.number().min(0).max(33),
       size: joi.number().min(0).max(23),
       search: joi.string().min(0).max(100),
+    })
+    .required(),
+};
+
+export const AddInstructorImg = {
+  body: joi
+    .object({
+      InstructorId: generalFields._id.required().messages(customMessages),
+    })
+    .required(),
+};
+
+export const deleteInstructorImg = {
+  body: joi
+    .object({
+      InstructorId: generalFields._id.required().messages(customMessages),
+      imgName: joi.string().min(15).required().messages(customMessages),
     })
     .required(),
 };

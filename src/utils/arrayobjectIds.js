@@ -11,10 +11,13 @@ export const convertToobjectId = (id) => {
 };
 
 export const arrayofstring = async (array) => {
-  const newarray = array.map((key) => {
-    return key.toString();
-  });
-  return newarray;
+  if (array && array.length > 0) {
+    const newarray = array.map((key) => {
+      return key.toString();
+    });
+    return newarray;
+  }
+  return [];
 };
 
 export const filterArray = (array, element) => {

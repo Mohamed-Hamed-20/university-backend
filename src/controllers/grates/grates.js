@@ -7,6 +7,7 @@ import CourseModel from "../../../DB/models/course.model.js";
 import semsterModel from "../../../DB/models/semster.model.js";
 import settingModel from "../../../DB/models/setting.model.js";
 import userModel from "../../../DB/models/user.model.js";
+import { roles } from "../../middleware/auth.js";
 import { ApiFeature } from "../../utils/apiFeature.js";
 import { arrayofstring } from "../../utils/arrayobjectIds.js";
 import {
@@ -33,9 +34,9 @@ export const uploadgrate = asyncHandler(async (req, res, next) => {
   }
 
   // Check if the user is an instructor for this course
-  if (req.user.role == "instructor") {
-    const Materials = await arrayofstring(req.user.Materials);
-    if (!Materials.includes(courseId.toString())) {
+  if (req.user.role == roles.instructor) {
+    const Materials = await arrayofstring(req.user?.Materials);
+    if (Materials.length == 0 || !Materials.includes(courseId.toString())) {
       return next(
         new Error("You are not allowed to upload grades for this course", {
           cause: 403,

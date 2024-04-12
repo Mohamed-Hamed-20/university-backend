@@ -10,7 +10,7 @@ const router = Router();
 router.post(
   "/addgrate",
   valid(vSchema.addgrate),
-  isAuth([roles.instructor]),
+  isAuth([roles.instructor , roles.admin]),
   gc.uploadgrate,
   sgc.addTosemster
 );

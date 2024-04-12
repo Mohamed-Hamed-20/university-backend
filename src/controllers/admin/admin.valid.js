@@ -1,5 +1,5 @@
 import joi from "joi";
-import { generalFields } from "../../middleware/validation.js";
+import { customMessages, generalFields } from "../../middleware/validation.js";
 export const CreateAdmin = {
   body: joi
     .object({
@@ -59,15 +59,20 @@ export const searchAdmin = {
     })
     .required(),
 };
-// export const updaterole = {
-//   query: joi
-//     .object({
-//       userId: generalFields._id.required(),
-//     })
-//     .required(),
-//   body: joi
-//     .object({
-//       role: joi.string().valid("instructor", "user", "admin").required(),
-//     })
-//     .required(),
-// };
+
+export const AddAdminImg = {
+  body: joi
+    .object({
+      adminId: generalFields._id.required().messages(customMessages),
+    })
+    .required(),
+};
+
+export const deleteAdminImg = {
+  body: joi
+    .object({
+      adminId: generalFields._id.required().messages(customMessages),
+      imgName: joi.string().min(15).required(),
+    })
+    .required(),
+};

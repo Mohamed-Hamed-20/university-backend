@@ -55,6 +55,10 @@ const adminSchema = new Schema(
       required: true,
       // default: "user",
     },
+    imgName: {
+      type: String,
+      required: false,
+    },
     isconfrimed: {
       type: Boolean,
       default: true,

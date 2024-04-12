@@ -97,7 +97,7 @@ export const deleteImg = async ({ imgName }) => {
   return { response };
 };
 
-export const updateImg = async ({ imgName }) => {
+export const updateImg = async ({ imgName, file }) => {
   const buffer = await sharp(file.buffer)
     .resize({ width: 800, height: 600, fit: "contain" })
     .png({ quality: 80 })

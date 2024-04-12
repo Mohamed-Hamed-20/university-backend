@@ -68,6 +68,11 @@ const InstructorSchema = new Schema(
       enum: ["cs", "is", "sc", "ai"],
       required: true,
     },
+    imgName: {
+      type: String,
+      required: false,
+      min: 15,
+    },
     Materials: [
       {
         type: Types.ObjectId,
