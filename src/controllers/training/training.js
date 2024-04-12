@@ -2,6 +2,7 @@ import trainingmodel from "../../../DB/models/training.model.js";
 import { asyncHandler } from "../../utils/errorHandling.js";
 import { ApiFeature } from "../../utils/apiFeature.js";
 import { roles } from "../../middleware/auth.js";
+import { createImg, deleteImg, GetsingleImg } from "../../utils/aws.s3.js";
 
 // create new training
 export const addtrain = asyncHandler(async (req, res, next) => {
@@ -124,6 +125,7 @@ export const alltraining = asyncHandler(async (req, res, next) => {
     "max_student",
     "OpenForRegister",
     "AllowLevel",
+    "ImgUrls",
   ];
   const searchFieldsText = ["training_name", "desc", "AllowLevel"];
   const searchFieldsIds = ["_id"];
@@ -136,7 +138,7 @@ export const alltraining = asyncHandler(async (req, res, next) => {
     filters._id = { $in: req.user.Training };
   }
   const apiFeatureInstance = new ApiFeature(
-    trainingmodel.find(filters),
+    trainingmodel.find(filters).lean(),
     req.query,
     allowFields
   )
@@ -146,9 +148,163 @@ export const alltraining = asyncHandler(async (req, res, next) => {
     .filter()
     .search({ searchFieldsText, searchFieldsIds });
 
-  const training = await apiFeatureInstance.MongoseQuery;
+  const trainings = await apiFeatureInstance.MongoseQuery;
 
+  // Create an array to hold all the promises for loading images
+  const allImagePromises = [];
+
+  // Loop through each training
+  for (const training of trainings) {
+    if (training?.ImgUrls && training.ImgUrls.length > 0) {
+      // Create promises for each image in the training and add them to the array
+      const imagePromises = training?.ImgUrls?.map(async (imgUrl) => {
+        const { url } = await GetsingleImg({ ImgName: imgUrl });
+        return { imgName: imgUrl, url };
+      });
+      allImagePromises.push(Promise.all(imagePromises));
+    }
+  }
+
+  // Wait for all image promises to resolve
+  const allImages = await Promise.all(allImagePromises);
+  // Loop through each training and assign the images
+  for (const training of trainings) {
+    // Check if ImgUrls exist and are not empty for this training
+    if (training.ImgUrls && training.ImgUrls.length > 0) {
+      // Check if images exist in allImages array for this training
+      const imagesFortraining = allImages.shift(); // Get images for the current training
+      if (
+        imagesFortraining &&
+        imagesFortraining.length > 0 &&
+        imagesFortraining.every((image) =>
+          training.ImgUrls.includes(image.imgName)
+        )
+      ) {
+        training.images = imagesFortraining;
+      }
+    }
+    delete training.ImgUrls;
+  }
   return res
     .status(200)
-    .json({ message: "Done All training Information", training });
+    .json({ message: "Done All training Information", trainings });
+});
+
+export const AddTrainingImg = asyncHandler(async (req, res, next) => {
+  const { trainingId } = req.body;
+
+  const training = await trainingmodel.findById(trainingId);
+  if (!training) {
+    return next(new Error("training not found", { cause: 404 }));
+  }
+  if (training.ImgUrls.length > 7) {
+    return next(new Error("Not allow to Upload more Images", { cause: 404 }));
+  }
+  // Add Images
+  if (req.files.length > 0) {
+    const ImgUrls = [];
+    const uploadPromises = [];
+
+    for (const file of req.files) {
+      const folder = `${process.env.Folder_Training}/${training.training_name}-${training._id}`;
+      const promise = createImg({ file, folder });
+      uploadPromises.push(promise);
+    }
+
+    const responses = await Promise.all(uploadPromises);
+
+    for (const { imgName, response } of responses) {
+      if (response.$metadata.httpStatusCode !== 200) {
+        return next(
+          new Error("Error in uploading Img", {
+            cause: response.$metadata.httpStatusCode,
+          })
+        );
+      }
+      ImgUrls.push(imgName);
+    }
+
+    // Concatenate ImgUrls to training.ImgUrls
+    training.ImgUrls = training.ImgUrls.concat(ImgUrls);
+  }
+  // Save the training
+  const result = await training.save();
+  return res
+    .status(200)
+    .json({ message: "Images Uploaded successfully", result });
+});
+
+export const deleteTrainingImg = asyncHandler(async (req, res, next) => {
+  const { trainingId, ImgUrls } = req.body;
+  const training = await trainingmodel.findById(trainingId);
+  if (!training) {
+    return next(new Error("training not found", { cause: 404 }));
+  }
+
+  // Check if all image URLs exist in the training's ImgUrls
+  const invalidUrls = ImgUrls.filter(
+    (item) => !training.ImgUrls.includes(item)
+  );
+
+  if (invalidUrls.length > 0) {
+    return next(
+      new Error(`Invalid image URL(s): ${invalidUrls.join(", ")}`, {
+        cause: 400,
+      })
+    );
+  }
+
+  // Delete images
+  const deletePromises = ImgUrls.map((url) => deleteImg({ imgName: url }));
+  const responses = await Promise.all(deletePromises);
+  // Check if all images were deleted successfully
+  for (const { response } of responses) {
+    if (![200, 201, 202, 204].includes(response.$metadata.httpStatusCode)) {
+      return next(
+        new Error("One or more images were not deleted successfully", {
+          cause: response.$metadata.httpStatusCode,
+        })
+      );
+    }
+  }
+
+  // Remove the image URLs from the training's ImgUrls
+  const newImgUrls = training.ImgUrls.filter((url) => !ImgUrls.includes(url));
+
+  // Update the training's ImgUrls and save
+  training.ImgUrls = newImgUrls;
+  const result = await training.save();
+  if (!result) {
+    return next(
+      new Error("error In update delete training Images", { cause: 500 })
+    );
+  }
+  return res
+    .status(200)
+    .json({ message: "Images deleted successfully", result, responses });
+});
+export const TrainingInfo = asyncHandler(async (req, res, next) => {
+  const { trainingId } = req.query;
+  const training = await trainingmodel.findById(trainingId).lean();
+
+  if (!training) {
+    throw new Error("training not found");
+  }
+
+  if (training.ImgUrls && training.ImgUrls.length > 0) {
+    const promiseArray = training.ImgUrls?.map(async (imgUrl) => {
+      const { url } = await GetsingleImg({ ImgName: imgUrl });
+      return { imgName: imgUrl, url };
+    });
+
+    const images = await Promise.all(promiseArray);
+
+    // Add the images to the training object
+    training.images = images;
+
+    // Remove ImgUrls from the training object
+    delete training.ImgUrls;
+  }
+  // Return the training object in the response
+  return res.status(200).json({ message: "training information", training });
 });

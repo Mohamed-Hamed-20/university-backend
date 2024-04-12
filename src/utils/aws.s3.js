@@ -83,7 +83,6 @@ export const GetsingleImg = async ({ ImgName }) => {
   };
   const command = new GetObjectCommand(getObjectParams);
   const url = await getSignedUrl(s3Client, command, { expiresIn: 3600 });
-  console.log(url, command);
   return { url };
 };
 

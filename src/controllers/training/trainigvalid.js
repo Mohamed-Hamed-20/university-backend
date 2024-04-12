@@ -121,3 +121,32 @@ export const alltrain = {
     })
     .required(),
 };
+
+export const AddTrainingImg = {
+  body: joi
+    .object({
+      trainingId: generalFields._id.required().messages(customMessages),
+    })
+    .required(),
+};
+
+export const deleteTrainingImg = {
+  body: joi
+    .object({
+      trainingId: generalFields._id.required().messages(customMessages),
+      ImgUrls: joi
+        .array()
+        .items(joi.string().optional().messages(customMessages))
+        .required()
+        .messages(customMessages),
+    })
+    .required(),
+};
+
+export const TrainInfo = {
+  query: joi
+    .object({
+      trainingId: generalFields._id.required().messages(customMessages),
+    })
+    .required(),
+};

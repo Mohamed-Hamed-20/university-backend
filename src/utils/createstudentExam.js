@@ -7,7 +7,7 @@ export const getAllValidCourses = async ({
   studepartment,
 }) => {
   // delete courses its already user register it
-  const Registered = await RegisterModel.findOne({ studentId: userId });
+  const Registered = await RegisterModel.findOne({ studentId: userId }).lean();
   let newpassedCoursesIds = passedCoursesIds;
   if (Registered) {
     const coursesRegisterd = Registered.coursesRegisterd;
@@ -19,7 +19,7 @@ export const getAllValidCourses = async ({
   const newCourses = await CourseModel.find({
     _id: { $nin: newpassedCoursesIds },
     OpenForRegistration: true,
-  });
+  }).lean();
 
   // filter only vaild courses
   const validCourses = newCourses.filter((course) => {

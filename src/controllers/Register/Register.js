@@ -4,6 +4,7 @@ import CourseModel from "../../../DB/models/course.model.js";
 import { ApiFeature } from "../../utils/apiFeature.js";
 import { arrayofstring } from "../../utils/arrayobjectIds.js";
 import { availableHoursForUser } from "../../utils/availableHours.js";
+import { GetsingleImg } from "../../utils/aws.s3.js";
 import { calculateGPA } from "../../utils/calcGrates.js";
 import { asyncHandler } from "../../utils/errorHandling.js";
 
@@ -138,12 +139,14 @@ export const deleteFromRegister = asyncHandler(async (req, res, next) => {
 export const getRegister = asyncHandler(async (req, res, next) => {
   const userId = req.user._id;
   let register;
+
   register = await RegisterModel.findOne({ studentId: userId })
     .populate({
       path: "coursesRegisterd",
-      select: "course_name credit_hour  desc _id",
+      select: "course_name credit_hour desc _id ImgUrls",
     })
-    .exec();
+    .lean();
+
   if (!register) {
     const createnewregister = {
       studentId: userId,
@@ -152,8 +155,27 @@ export const getRegister = asyncHandler(async (req, res, next) => {
     };
     register = await RegisterModel.create(createnewregister);
   }
+
+  // تحميل الصور لكل دورة مسجلة باستخدام Promise.all
+  const promises = [];
+  register.coursesRegisterd.forEach((course) => {
+    if (course.ImgUrls && course.ImgUrls.length > 0) {
+      course.images = [];
+      course.ImgUrls.forEach((imgName) => {
+        promises.push(
+          GetsingleImg({ ImgName: imgName }).then(({ url }) => {
+            course.images.push({ imgName, url });
+          })
+        );
+      });
+    }
+  });
+
+  await Promise.all(promises);
+
   return res.status(200).json({ message: "Done", register });
 });
+
 
 export const searchRegister = asyncHandler(async (req, res, next) => {
   const { courseId, studentId } = req.query;

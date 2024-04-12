@@ -4,6 +4,7 @@ import TrainingRegisterModel from "../../../DB/models/trainingRegister.model.js"
 import { roles } from "../../middleware/auth.js";
 import { ApiFeature } from "../../utils/apiFeature.js";
 import { arrayofstring } from "../../utils/arrayobjectIds.js";
+import { GetsingleImg } from "../../utils/aws.s3.js";
 import { calclevel, calculateGPA } from "../../utils/calcGrates.js";
 import { asyncHandler } from "../../utils/errorHandling.js";
 
@@ -143,8 +144,9 @@ export const getTraining = asyncHandler(async (req, res, next) => {
     .populate({
       path: "trainingRegisterd",
       select:
-        "start_date training_name end_date requirements desc max_student instructor_id OpenForRegister",
-    });
+        "start_date training_name end_date requirements desc max_student instructor_id OpenForRegister ImgUrls",
+    })
+    .lean();
 
   // if not have create empty one
   if (!TrainingRegister) {
@@ -152,6 +154,23 @@ export const getTraining = asyncHandler(async (req, res, next) => {
     const newTrainingRegister = await TrainingRegisterModel.create(newObj);
     TrainingRegister = newTrainingRegister;
   }
+
+  // تحميل الصور لكل دورة مسجلة باستخدام Promise.all
+  const promises = [];
+  TrainingRegister.trainingRegisterd.forEach((training) => {
+    if (training.ImgUrls && training.ImgUrls.length > 0) {
+      training.images = [];
+      training.ImgUrls.forEach((imgName) => {
+        promises.push(
+          GetsingleImg({ ImgName: imgName }).then(({ url }) => {
+            training.images.push({ imgName, url });
+          })
+        );
+      });
+    }
+  });
+
+  await Promise.all(promises);
 
   // response success
   return res.status(200).json({

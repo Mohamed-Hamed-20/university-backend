@@ -3,6 +3,7 @@ import * as tc from "../controllers/training/training.js";
 import { valid } from "../middleware/validation.js";
 import * as vSchema from "../controllers/training/trainigvalid.js";
 import { isAuth, roles } from "../middleware/auth.js";
+import { allowedExtensions, multerCloud } from "../utils/aws.s3.js";
 const router = Router();
 
 router.post(
@@ -33,4 +34,26 @@ router.delete(
   tc.deletetrain
 );
 
+//upload one or more image
+router.post(
+  "/Add/images",
+  multerCloud(allowedExtensions.Image).array("TrainingImage", 3),
+  valid(vSchema.AddTrainingImg),
+  isAuth([roles.admin]),
+  tc.AddTrainingImg
+);
+
+router.patch(
+  "/delete/images",
+  valid(vSchema.deleteTrainingImg),
+  isAuth([roles.admin]),
+  tc.deleteTrainingImg
+);
+
+router.get(
+  "/info",
+  valid(vSchema.TrainInfo),
+  isAuth([roles.admin, roles.instructor, roles.stu]),
+  tc.TrainingInfo
+);
 export default router;

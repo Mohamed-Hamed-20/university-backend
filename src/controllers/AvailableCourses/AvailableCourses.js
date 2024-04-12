@@ -1,5 +1,6 @@
 import { GradeModel } from "../../../DB/models/StudentGrades.model.js";
 import AvailableCoursesModel from "../../../DB/models/availableCourses.model.js";
+import { GetsingleImg } from "../../utils/aws.s3.js";
 import { getAllValidCourses } from "../../utils/createstudentExam.js";
 import { asyncHandler } from "../../utils/errorHandling.js";
 
@@ -47,5 +48,21 @@ export const availableCourses = asyncHandler(async (req, res, next) => {
     }
   }
 
-  return res.json({ user: req.user._id, validCourses });
+  const promises = [];
+  validCourses.forEach((course) => {
+    if (course.ImgUrls && course.ImgUrls.length > 0) {
+      course.images = [];
+      course.ImgUrls.forEach((imgName) => {
+        promises.push(
+          GetsingleImg({ ImgName: imgName }).then(({ url }) => {
+            course.images.push({ imgName, url });
+          })
+        );
+      });
+    }
+  });
+
+  await Promise.all(promises);
+
+  return res.status(200).json({ user: req.user._id, validCourses });
 });

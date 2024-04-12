@@ -39,6 +39,12 @@ const trainingschema = new Schema(
       default: ["two", "three", "four", "graduated"],
       enum: ["one", "two", "three", "four", "graduated"],
     },
+    ImgUrls: [
+      {
+        type: String,
+        required: false,
+      },
+    ],
   },
   { timestamps: true }
 );
