@@ -8,12 +8,21 @@ export const addcourse = {
         .string()
         .min(3)
         .max(60)
-        .required()
+        .trim()
         .lowercase()
+        .required()
         .messages(customMessages),
       credit_hour: joi.number().valid(2, 3).required().messages(customMessages),
-      desc: joi.string().min(20).max(300).optional().messages(customMessages),
+      desc: joi
+        .string()
+        .trim()
+        .min(20)
+        .max(300)
+        .optional()
+        .messages(customMessages),
+
       OpenForRegistration: joi.boolean().optional().messages(customMessages),
+
       Prerequisites: joi
         .array()
         .items(generalFields._id.optional())
@@ -28,13 +37,20 @@ export const updatecourse = {
     .object({
       course_name: joi
         .string()
+        .trim()
         .min(3)
         .max(60)
         .optional()
         .lowercase()
         .messages(customMessages),
       credit_hour: joi.number().valid(2, 3).optional().messages(customMessages),
-      desc: joi.string().min(20).max(300).optional().messages(customMessages),
+      desc: joi
+        .string()
+        .trim()
+        .min(20)
+        .max(300)
+        .optional()
+        .messages(customMessages),
       OpenForRegistration: joi.boolean().optional().messages(customMessages),
       Prerequisites: joi
         .array()
@@ -46,7 +62,7 @@ export const updatecourse = {
     .required(),
   query: joi
     .object({
-      courseId: generalFields._id.required().messages(customMessages),
+      courseId: generalFields._id.required(),
     })
     .required(),
 };
@@ -54,7 +70,7 @@ export const updatecourse = {
 export const deletecourse = {
   query: joi
     .object({
-      courseId: generalFields._id.required().messages(customMessages),
+      courseId: generalFields._id.required(),
     })
     .required(),
 };
@@ -62,11 +78,11 @@ export const deletecourse = {
 export const searchcourse = {
   query: joi
     .object({
-      sort: joi.string().messages(customMessages),
-      select: joi.string().min(3).max(100).messages(customMessages),
-      page: joi.number().min(0).max(33).messages(customMessages),
-      size: joi.number().min(0).max(23).messages(customMessages),
-      search: joi.string().min(0).max(100).messages(customMessages),
+      sort: generalFields.sort,
+      select: generalFields.select,
+      page: generalFields.page,
+      size: generalFields.size,
+      search: generalFields.search,
     })
     .required(),
 };
@@ -74,8 +90,7 @@ export const searchcourse = {
 export const AddcourseImg = {
   body: joi
     .object({
-      courseId: generalFields._id.required().messages(customMessages),
-      // courseImage: joi.required(),
+      courseId: generalFields._id.required(),
     })
     .required(),
 };
@@ -83,10 +98,10 @@ export const AddcourseImg = {
 export const deletecourseImg = {
   body: joi
     .object({
-      courseId: generalFields._id.required().messages(customMessages),
+      courseId: generalFields._id.required(),
       ImgUrls: joi
         .array()
-        .items(joi.string().optional().messages(customMessages))
+        .items(joi.string().trim().max(600).optional().messages(customMessages))
         .required()
         .messages(customMessages),
     })

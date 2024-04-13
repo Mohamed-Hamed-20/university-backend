@@ -12,7 +12,6 @@ export const valid = (schema) => {
           abortEarly: false,
         });
         if (validationResult.error) {
-          // إضافة كل رسالة خطأ ككائن منفصل
           validationResult.error.details.forEach((errorDetail) => {
             Validation_error.push({
               message: errorDetail.message.replace(/\"/g, ""),
@@ -21,6 +20,13 @@ export const valid = (schema) => {
               type: errorDetail.type,
             });
           });
+        }
+
+        // update with new data
+        for (let prb in validationResult.value) {
+          if (req[key].hasOwnProperty(prb)) {
+            req[key][prb] = validationResult.value[prb];
+          }
         }
       }
     });
@@ -38,8 +44,15 @@ export const valid = (schema) => {
 //============================= validatioObjectId =====================
 const validateObjectId = (value, helper) => {
   return Types.ObjectId.isValid(value)
-    ? true
+    ? value
     : helper.message("Invalid {#label} ");
+};
+
+export const toLowerCase = (value, helper) => {
+  if (typeof value !== "string") {
+    return helper.message("Invalid {#label}: not a string");
+  }
+  return value.toLowerCase();
 };
 
 export const customMessages = {
@@ -61,37 +74,53 @@ export const generalFields = {
   email: joi
     .string()
     .email({ tlds: { allow: ["com", "net", "org"] } })
-    .lowercase()
+    .trim()
     .messages(customMessages),
 
   password: joi
     .string()
     .regex(/^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,}$/)
+    .trim()
     .messages({
       "string.pattern.base": "Password regex fail",
     })
     .messages(customMessages),
 
-  _id: joi.string().custom(validateObjectId).messages(customMessages),
+  _id: joi.string().trim().custom(validateObjectId).messages(customMessages),
 
   PhoneNumber: joi
     .string()
     .pattern(/^[0-9]{11}$/)
+    .trim()
     .messages(customMessages),
 
   gender: joi
     .string()
     .valid("male", "female")
     .lowercase()
+    .trim()
     .messages(customMessages),
 
-    date: joi.date().iso().options({ convert: true }).messages(customMessages),
+  date: joi.date().iso().messages(customMessages),
 
   department: joi
     .string()
     .valid("cs", "is", "ai", "sc")
+    .trim()
     .lowercase()
     .messages(customMessages),
+
+  sort: joi.string().trim().optional().messages(customMessages),
+  select: joi
+    .string()
+    .trim()
+    .min(3)
+    .max(100)
+    .optional()
+    .messages(customMessages),
+  page: joi.number().min(0).max(33).optional().messages(customMessages),
+  size: joi.number().min(0).max(23).optional().messages(customMessages),
+  search: joi.string().trim().min(0).max(100).messages(customMessages),
 
   file: joi.object({
     size: joi.number(),

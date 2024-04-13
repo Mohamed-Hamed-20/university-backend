@@ -8,16 +8,19 @@ export const registeruser = {
         .string()
         .min(9)
         .max(66)
+        .trim()
         .lowercase()
         .required()
         .messages(customMessages),
       National_Id: joi
         .string()
+        .trim()
         .pattern(/^[0-9]{14}$/)
         .required()
         .messages(customMessages),
       Student_Code: joi
         .string()
+        .trim()
         .pattern(/^[0-9]{14}$/)
         .required()
         .messages(customMessages),
@@ -34,10 +37,17 @@ export const login = {
     .object({
       Student_Code: joi
         .string()
+        .trim()
         .pattern(/^[0-9]{14}$/)
         .required()
         .messages(customMessages),
-      password: joi.string().min(8).max(24).required().messages(customMessages),
+      password: joi
+        .string()
+        .trim()
+        .min(8)
+        .max(24)
+        .required()
+        .messages(customMessages),
     })
     .required(),
 };
@@ -47,6 +57,7 @@ export const updateStudent = {
     .object({
       Full_Name: joi
         .string()
+        .trim()
         .lowercase()
         .min(9)
         .max(66)
@@ -54,11 +65,13 @@ export const updateStudent = {
         .messages(customMessages),
       National_Id: joi
         .string()
+        .trim()
         .pattern(/^[0-9]{14}$/)
         .optional()
         .messages(customMessages),
       Student_Code: joi
         .string()
+        .trim()
         .pattern(/^[0-9]{14}$/)
         .optional()
         .messages(customMessages),
@@ -86,11 +99,11 @@ export const deleteStudent = {
 export const searchuser = {
   query: joi
     .object({
-      sort: joi.string().messages(customMessages),
-      select: joi.string().min(3).max(100).messages(customMessages),
-      page: joi.number().min(0).max(33).messages(customMessages),
-      size: joi.number().min(0).max(23).messages(customMessages),
-      search: joi.string().min(0).max(100).messages(customMessages),
+      sort: generalFields.sort,
+      select: generalFields.select,
+      page: generalFields.page,
+      size: generalFields.size,
+      search: generalFields.search,
     })
     .required(),
 };
@@ -107,7 +120,12 @@ export const deleteStuImg = {
   body: joi
     .object({
       studentId: generalFields._id.required().messages(customMessages),
-      imgName: joi.string().min(15).required().messages(customMessages),
+      imgName: joi
+        .string()
+        .min(15)
+        .max(100)
+        .required()
+        .messages(customMessages),
     })
     .required(),
 };

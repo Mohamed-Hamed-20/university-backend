@@ -71,7 +71,6 @@ export const login = asyncHandler(async (req, res, next) => {
 export const CreateAdmin = asyncHandler(async (req, res, next) => {
   const { FullName, email, password, phone, Date_of_Birth, gender } = req.body;
 
-  // استعلام واحد للتحقق من وجود الاسم أو البريد الإلكتروني أو رقم الهاتف
   const existingUser = await adminModel.findOne({
     $or: [{ FullName: FullName }, { email: email }, { phone: phone }],
   });
@@ -127,6 +126,7 @@ export const CreateAdmin = asyncHandler(async (req, res, next) => {
 
 export const updateAdmin = asyncHandler(async (req, res, next) => {
   const { FullName, phone, email, password, Date_of_Birth, gender } = req.body;
+  console.log(FullName);
   const { userId } = req.query;
 
   const user = await adminModel.findById(userId);

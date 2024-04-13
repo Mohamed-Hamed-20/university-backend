@@ -1,7 +1,6 @@
 import joi from "joi";
 import { customMessages, generalFields } from "../../middleware/validation.js";
 
-// دالة لإضافة أيام إلى التاريخ
 function addDays(date, days) {
   const result = new Date(date);
   result.setDate(result.getDate() + days);
@@ -13,12 +12,21 @@ export const addtrain = {
     .object({
       training_name: joi
         .string()
+        .trim()
+        .lowercase()
         .min(3)
         .max(40)
         .required()
-        .lowercase()
+
         .messages(customMessages),
-      desc: joi.string().min(10).max(400).required().messages(customMessages),
+      desc: joi
+        .string()
+        .trim()
+        .min(10)
+        .max(400)
+        .required()
+        .messages(customMessages),
+
       OpenForRegister: joi.boolean().optional().messages(customMessages),
       start_date: joi.date().iso().required().messages(customMessages),
       end_date: joi
@@ -33,6 +41,7 @@ export const addtrain = {
 
       requirements: joi
         .string()
+        .trim()
         .min(5)
         .max(300)
         .optional()
@@ -43,8 +52,9 @@ export const addtrain = {
         .items(
           joi
             .string()
-            .valid("one", "two", "three", "four", "graduated")
+            .trim()
             .lowercase()
+            .valid("one", "two", "three", "four", "graduated")
         )
         .optional()
         .messages(customMessages),
@@ -57,12 +67,20 @@ export const updatetrain = {
     .object({
       training_name: joi
         .string()
+        .trim()
+        .lowercase()
         .min(3)
         .max(40)
-        .lowercase()
         .optional()
         .messages(customMessages),
-      desc: joi.string().min(10).max(400).optional().messages(customMessages),
+      desc: joi
+        .string()
+        .trim()
+        .min(10)
+        .max(400)
+        .optional()
+        .messages(customMessages),
+
       OpenForRegister: joi.boolean().optional().messages(customMessages),
       start_date: joi.date().optional().messages(customMessages),
       end_date: joi
@@ -111,11 +129,11 @@ export const deletetrain = {
 export const alltrain = {
   query: joi
     .object({
-      sort: joi.string().messages(customMessages),
-      select: joi.string().min(3).max(100).messages(customMessages),
-      page: joi.number().min(0).max(33).messages(customMessages),
-      size: joi.number().min(0).max(20).messages(customMessages),
-      search: joi.string().min(0).max(100).messages(customMessages),
+      sort: generalFields.sort,
+      select: generalFields.select,
+      page: generalFields.page,
+      size: generalFields.size,
+      search: generalFields.search,
     })
     .required(),
 };
@@ -123,7 +141,7 @@ export const alltrain = {
 export const AddTrainingImg = {
   body: joi
     .object({
-      trainingId: generalFields._id.required().messages(customMessages),
+      trainingId: generalFields._id.required(),
     })
     .required(),
 };
@@ -134,7 +152,9 @@ export const deleteTrainingImg = {
       trainingId: generalFields._id.required().messages(customMessages),
       ImgUrls: joi
         .array()
-        .items(joi.string().optional().messages(customMessages))
+        .items(
+          joi.string().min(15).max(600).optional().messages(customMessages)
+        )
         .required()
         .messages(customMessages),
     })
@@ -144,7 +164,7 @@ export const deleteTrainingImg = {
 export const TrainInfo = {
   query: joi
     .object({
-      trainingId: generalFields._id.required().messages(customMessages),
+      trainingId: generalFields._id.required(),
     })
     .required(),
 };

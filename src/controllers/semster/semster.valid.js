@@ -4,23 +4,31 @@ import { customMessages, generalFields } from "../../middleware/validation.js";
 export const addsemster = {
   body: joi
     .object({
-      
       name: joi
         .string()
+        .trim()
         .min(4)
         .max(55)
         .lowercase()
         .required()
         .messages(customMessages),
-      
+
       term: joi
         .string()
-        .valid("one", "two", "summer")
+        .trim()
         .lowercase()
+        .valid("one", "two", "summer")
         .required()
         .messages(customMessages),
-      
-      year: joi.string().min(5).max(14).required().messages(customMessages),
+
+      year: joi
+        .string()
+        .trim()
+        .lowercase()
+        .min(5)
+        .max(14)
+        .required()
+        .messages(customMessages),
 
       Max_Hours: joi
         .number()
@@ -37,20 +45,29 @@ export const updatesemster = {
     .object({
       name: joi
         .string()
+        .trim()
+        .lowercase()
         .min(4)
         .max(55)
-        .lowercase()
         .optional()
         .messages(customMessages),
 
       term: joi
         .string()
-        .valid("one", "two", "summer")
+        .trim()
         .lowercase()
+        .valid("one", "two", "summer")
         .optional()
         .messages(customMessages),
 
-      year: joi.string().min(5).max(14).optional().messages(customMessages),
+      year: joi
+        .string()
+        .trim()
+        .lowercase()
+        .min(5)
+        .max(14)
+        .optional()
+        .messages(customMessages),
 
       Max_Hours: joi
         .number()

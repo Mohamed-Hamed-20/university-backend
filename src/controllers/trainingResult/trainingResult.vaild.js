@@ -44,8 +44,9 @@ export const updateTrainingResult = {
     studentId: generalFields._id.messages(customMessages).optional(),
     grade: joi
       .string()
-      .valid("failed", "passed")
+      .trim()
       .lowercase()
+      .valid("failed", "passed")
       .optional()
       .messages(customMessages),
   }),
@@ -62,10 +63,11 @@ export const SearchTrainingResult = {
   query: joi.object({
     studentId: generalFields._id.optional().messages(customMessages),
     trainingId: generalFields._id.optional().messages(customMessages),
-    sort: joi.string().messages(customMessages),
-    select: joi.string().min(3).max(100).messages(customMessages),
-    page: joi.number().min(0).max(33).messages(customMessages),
-    size: joi.number().min(0).max(20).messages(customMessages),
-    search: joi.string().min(0).max(100).messages(customMessages),
+
+    sort: generalFields.sort,
+    select: generalFields.select,
+    page: generalFields.page,
+    size: generalFields.size,
+    search: generalFields.search,
   }),
 };

@@ -41,20 +41,23 @@ export const deletecoursegrate = {
     .required(),
   body: joi
     .object({
-      backToRegister: joi.string().valid("yes", "no").lowercase().required(),
+      backToRegister: joi
+        .string()
+        .trim()
+        .lowercase()
+        .valid("yes", "no")
+        .required(),
     })
     .required(),
 };
 export const studentsGratesSearch = {
   query: joi
     .object({
-      sort: joi.string(),
-      select: joi.string().min(3).max(100),
-      searchId: generalFields._id,
-      page: joi.number().min(0).max(33),
-      size: joi.number().min(0).max(23),
-      search: joi.string().min(0).max(100),
-      searchById: generalFields._id,
+      sort: generalFields.sort,
+      select: generalFields.select,
+      page: generalFields.page,
+      size: generalFields.size,
+      search: generalFields.search,
       courseId: generalFields._id.required(),
     })
     .required(),

@@ -5,22 +5,23 @@ export const CreateInstructor = {
     .object({
       FullName: joi
         .string()
+        .trim()
         .min(9)
         .max(66)
         .lowercase()
         .required()
         .messages(customMessages),
-      email: generalFields.email.required().messages(customMessages),
+      email: generalFields.email.required(),
 
-      password: generalFields.password.required().messages(customMessages),
+      password: generalFields.password.required(),
 
-      Date_of_Birth: generalFields.date.optional().messages(customMessages),
+      Date_of_Birth: generalFields.date.optional(),
 
-      phone: generalFields.PhoneNumber.required().messages(customMessages),
+      phone: generalFields.PhoneNumber.required(),
 
-      gender: generalFields.gender.optional().messages(customMessages),
+      gender: generalFields.gender.optional(),
 
-      department: generalFields.department.required().messages(customMessages),
+      department: generalFields.department.required(),
 
       Materials: joi
         .array()
@@ -39,9 +40,9 @@ export const CreateInstructor = {
 export const login = {
   body: joi
     .object({
-      email: generalFields.email.required().messages(customMessages),
+      email: generalFields.email.required(),
 
-      password: generalFields.password.required().messages(customMessages),
+      password: generalFields.password.required(),
     })
     .required(),
 };
@@ -51,23 +52,24 @@ export const updateInstructor = {
     .object({
       FullName: joi
         .string()
+        .trim()
         .min(9)
         .max(66)
         .lowercase()
         .optional()
         .messages(customMessages),
 
-      email: generalFields.email.optional().messages(customMessages),
+      email: generalFields.email.optional(),
 
-      password: generalFields.password.optional().messages(customMessages),
+      password: generalFields.password.optional(),
 
-      Date_of_Birth: generalFields.date.optional().messages(customMessages),
+      Date_of_Birth: generalFields.date.optional(),
 
-      phone: generalFields.PhoneNumber.optional().messages(customMessages),
+      phone: generalFields.PhoneNumber.optional(),
 
-      gender: generalFields.gender.optional().messages(customMessages),
+      gender: generalFields.gender.optional(),
 
-      department: generalFields.department.optional().messages(customMessages),
+      department: generalFields.department.optional(),
 
       Materials: joi
         .array()
@@ -85,7 +87,7 @@ export const updateInstructor = {
   // paramas: joi.object().required(),
   query: joi
     .object({
-      userId: generalFields._id.required().messages(customMessages),
+      userId: generalFields._id.required(),
     })
     .required(),
 };
@@ -93,7 +95,7 @@ export const updateInstructor = {
 export const deleteInstructor = {
   query: joi
     .object({
-      userId: generalFields._id.required().messages(customMessages),
+      userId: generalFields._id.required(),
     })
     .required(),
 };
@@ -101,14 +103,11 @@ export const deleteInstructor = {
 export const searchInstructor = {
   query: joi
     .object({
-      sort: joi.string(),
-      select: joi.string().min(3).max(100).messages(customMessages),
-
-      page: joi.number().min(0).max(33).messages(customMessages),
-
-      size: joi.number().min(0).max(23).messages(customMessages),
-
-      search: joi.string().min(0).max(100).messages(customMessages),
+      sort: generalFields.sort,
+      select: generalFields.select,
+      page: generalFields.page,
+      size: generalFields.size,
+      search: generalFields.search,
     })
     .required(),
 };
@@ -116,7 +115,7 @@ export const searchInstructor = {
 export const AddInstructorImg = {
   body: joi
     .object({
-      InstructorId: generalFields._id.required().messages(customMessages),
+      InstructorId: generalFields._id.required(),
     })
     .required(),
 };
@@ -124,8 +123,13 @@ export const AddInstructorImg = {
 export const deleteInstructorImg = {
   body: joi
     .object({
-      InstructorId: generalFields._id.required().messages(customMessages),
-      imgName: joi.string().min(15).required().messages(customMessages),
+      InstructorId: generalFields._id.required(),
+      imgName: joi
+        .string()
+        .min(15)
+        .max(600)
+        .required()
+        .messages(customMessages),
     })
     .required(),
 };

@@ -4,7 +4,7 @@ import { customMessages, generalFields } from "../../middleware/validation.js";
 export const addToRegister = {
   query: joi
     .object({
-      courseId: generalFields._id.required().messages(customMessages),
+      courseId: generalFields._id.required(),
     })
     .required(),
 };
@@ -12,7 +12,7 @@ export const addToRegister = {
 export const deleteFromRegister = {
   query: joi
     .object({
-      courseId: generalFields._id.required().messages(customMessages),
+      courseId: generalFields._id.required(),
     })
     .required(),
 };
@@ -20,19 +20,14 @@ export const deleteFromRegister = {
 export const searchRegister = {
   query: joi
     .object({
-      sort: joi.string().messages(customMessages),
+      sort: generalFields.sort,
+      select: generalFields.select,
+      page: generalFields.page,
+      size: generalFields.size,
+      search: generalFields.search,
 
-      select: joi.string().min(3).max(100).messages(customMessages),
-
-      page: joi.number().min(0).max(33).messages(customMessages),
-
-      size: joi.number().min(0).max(23).messages(customMessages),
-
-      search: joi.string().min(0).max(100).messages(customMessages),
-
-      courseId: generalFields._id.required().messages(customMessages),
-
-      studentId: generalFields._id.messages(customMessages),
+      courseId: generalFields._id.required(),
+      studentId: generalFields._id,
     })
     .required(),
 };
