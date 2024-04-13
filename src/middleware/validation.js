@@ -22,6 +22,7 @@ export const valid = (schema) => {
           });
         }
 
+        // add new data to req.[key]
         if (!validationResult?.error) {
           if (req[key]) {
             req[key] = validationResult.value;
