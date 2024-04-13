@@ -4,6 +4,7 @@ const semsterSchema = new mongoose.Schema({
   name: {
     type: String,
     required: true,
+    lowercase: true,
   },
   year: {
     type: String,
@@ -11,16 +12,15 @@ const semsterSchema = new mongoose.Schema({
   },
   startDate: {
     type: Date,
-    // required: true,
   },
   endDate: {
     type: Date,
-    // required: true,
   },
   term: {
     type: String,
     enum: ["one", "two", "summer"],
     required: true,
+    lowercase: true,
   },
   Max_Hours: {
     type: Number,

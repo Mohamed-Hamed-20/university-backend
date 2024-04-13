@@ -20,14 +20,19 @@ export const deleteFromRegister = {
 export const searchRegister = {
   query: joi
     .object({
-      sort: joi.string(),
-      select: joi.string().min(3).max(100),
-      page: joi.number().min(0).max(33),
-      size: joi.number().min(0).max(23),
-      search: joi.string().min(0).max(100),
-      // searchById: generalFields._id,
-      courseId: generalFields._id.required(),
-      studentId: generalFields._id,
+      sort: joi.string().messages(customMessages),
+
+      select: joi.string().min(3).max(100).messages(customMessages),
+
+      page: joi.number().min(0).max(33).messages(customMessages),
+
+      size: joi.number().min(0).max(23).messages(customMessages),
+
+      search: joi.string().min(0).max(100).messages(customMessages),
+
+      courseId: generalFields._id.required().messages(customMessages),
+
+      studentId: generalFields._id.messages(customMessages),
     })
     .required(),
 };

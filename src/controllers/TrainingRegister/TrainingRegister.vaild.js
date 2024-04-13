@@ -23,14 +23,14 @@ export const deleteTraining = {
 export const searchRegister = {
   query: joi
     .object({
-      sort: joi.string(),
-      select: joi.string().min(3).max(100),
-      page: joi.number().min(0).max(33),
-      size: joi.number().min(0).max(23),
-      search: joi.string().min(0).max(100),
+      sort: joi.string().messages(customMessages),
+      select: joi.string().min(3).max(100).messages(customMessages),
+      page: joi.number().min(0).max(33).messages(customMessages),
+      size: joi.number().min(0).max(23).messages(customMessages),
+      search: joi.string().min(0).max(100).messages(customMessages),
       // searchById: generalFields._id,
-      trainingId: generalFields._id.optional(),
-      studentId: generalFields._id,
+      trainingId: generalFields._id.optional().messages(customMessages),
+      studentId: generalFields._id.messages(customMessages),
     })
     .required(),
 };

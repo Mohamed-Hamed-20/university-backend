@@ -33,13 +33,6 @@ export const updatecoursegrate = {
     .required(),
 };
 
-// semsterId,
-// studentId,
-// courseId,
-// FinalExam,
-// Oral,
-// Practical,
-// Midterm,
 export const deletecoursegrate = {
   query: joi
     .object({
@@ -48,7 +41,7 @@ export const deletecoursegrate = {
     .required(),
   body: joi
     .object({
-      backToRegister: joi.string().valid("yes", "no").required(),
+      backToRegister: joi.string().valid("yes", "no").lowercase().required(),
     })
     .required(),
 };

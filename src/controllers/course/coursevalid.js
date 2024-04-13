@@ -9,6 +9,7 @@ export const addcourse = {
         .min(3)
         .max(60)
         .required()
+        .lowercase()
         .messages(customMessages),
       credit_hour: joi.number().valid(2, 3).required().messages(customMessages),
       desc: joi.string().min(20).max(300).optional().messages(customMessages),
@@ -18,7 +19,7 @@ export const addcourse = {
         .items(generalFields._id.optional())
         .optional()
         .messages(customMessages),
-      department: joi.array().items(joi.string().valid("cs", "is", "ai", "sc")),
+      department: joi.array().items(generalFields.department),
     })
     .required(),
 };
@@ -30,6 +31,7 @@ export const updatecourse = {
         .min(3)
         .max(60)
         .optional()
+        .lowercase()
         .messages(customMessages),
       credit_hour: joi.number().valid(2, 3).optional().messages(customMessages),
       desc: joi.string().min(20).max(300).optional().messages(customMessages),
@@ -39,7 +41,7 @@ export const updatecourse = {
         .items(generalFields._id.optional())
         .optional()
         .messages(customMessages),
-      department: joi.array().items(joi.string().valid("cs", "is", "ai", "sc")),
+      department: joi.array().items(generalFields.department),
     })
     .required(),
   query: joi

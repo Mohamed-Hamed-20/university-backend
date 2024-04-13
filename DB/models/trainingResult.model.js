@@ -14,6 +14,7 @@ const trainingResultSchema = new Schema({
   grade: {
     type: String,
     required: true,
+    lowercase: true,
     enum: ["failed", "passed"],
   },
 });

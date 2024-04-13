@@ -90,11 +90,8 @@ const semsterGradeSchema = new mongoose.Schema({
   ],
 });
 
-
-
 export const GradeModel = mongoose.model("Grate", GrateSchema);
 export const SemesterGradeModel = mongoose.model(
   "semsterGrade",
   semsterGradeSchema
 );
-

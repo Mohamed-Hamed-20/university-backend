@@ -4,6 +4,7 @@ const trainingschema = new Schema(
     training_name: {
       type: String,
       required: true,
+      lowercase: true,
       min: 3,
       max: 40,
     },
@@ -36,6 +37,7 @@ const trainingschema = new Schema(
     },
     AllowLevel: {
       type: Schema.Types.Mixed,
+      lowercase: true,
       default: ["two", "three", "four", "graduated"],
       enum: ["one", "two", "three", "four", "graduated"],
     },

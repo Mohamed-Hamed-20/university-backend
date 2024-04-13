@@ -58,18 +58,44 @@ export const customMessages = {
 };
 //======================general Validation Fields========================
 export const generalFields = {
-  email: joi.string().email({ tlds: { allow: ["com", "net", "org"] } }),
+  email: joi
+    .string()
+    .email({ tlds: { allow: ["com", "net", "org"] } })
+    .lowercase()
+    .messages(customMessages),
+
   password: joi
     .string()
     .regex(/^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,}$/)
     .messages({
       "string.pattern.base": "Password regex fail",
-    }),
-  _id: joi.string().custom(validateObjectId),
-  PhoneNumber: joi.string().pattern(/^[0-9]{11}$/),
-  gender: joi.string().valid("male", "female"),
-  department: joi.string().valid("cs", "is", "ai", "sc"),
+    })
+    .messages(customMessages),
+
+  _id: joi.string().custom(validateObjectId).messages(customMessages),
+
+  PhoneNumber: joi
+    .string()
+    .pattern(/^[0-9]{11}$/)
+    .messages(customMessages),
+
+  gender: joi
+    .string()
+    .valid("male", "female")
+    .lowercase()
+    .messages(customMessages),
+
+    date: joi.date().iso().options({ convert: true }).messages(customMessages),
+
+  department: joi
+    .string()
+    .valid("cs", "is", "ai", "sc")
+    .lowercase()
+    .messages(customMessages),
+
   file: joi.object({
     size: joi.number(),
   }),
 };
+
+const schema = joi.object({});

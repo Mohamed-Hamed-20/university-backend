@@ -8,6 +8,7 @@ export const registeruser = {
         .string()
         .min(9)
         .max(66)
+        .lowercase()
         .required()
         .messages(customMessages),
       National_Id: joi
@@ -21,15 +22,11 @@ export const registeruser = {
         .required()
         .messages(customMessages),
       Date_of_Birth: joi.date().iso().required().messages(customMessages),
-      PhoneNumber:
-        generalFields.PhoneNumber.required().messages(customMessages),
-      department: generalFields.department.optional().messages(customMessages),
-      gender: generalFields.gender.optional().messages(customMessages),
+      PhoneNumber: generalFields.PhoneNumber.required(),
+      department: generalFields.department.optional(),
+      gender: generalFields.gender.optional(),
     })
     .required(),
-  // paramas: joi.object().required(),
-  // query: joi.object().required(),
-  // file: joi.object().required(),
 };
 
 export const login = {
@@ -50,6 +47,7 @@ export const updateStudent = {
     .object({
       Full_Name: joi
         .string()
+        .lowercase()
         .min(9)
         .max(66)
         .optional()
@@ -67,17 +65,15 @@ export const updateStudent = {
       Date_of_Birth: joi.date().iso().optional().messages(customMessages),
       PhoneNumber:
         generalFields.PhoneNumber.optional().messages(customMessages),
-      department: generalFields.department.optional().messages(customMessages),
-      gender: generalFields.gender.optional().messages(customMessages),
+      department: generalFields.department.optional(),
+      gender: generalFields.gender.optional(),
     })
     .required(),
-  // paramas: joi.object().required(),
   query: joi
     .object({
-      userId: generalFields._id.required().messages(customMessages),
+      userId: generalFields._id.required(),
     })
     .required(),
-  // file: joi.object().required(),
 };
 
 export const deleteStudent = {
@@ -90,11 +86,11 @@ export const deleteStudent = {
 export const searchuser = {
   query: joi
     .object({
-      sort: joi.string(),
-      select: joi.string().min(3).max(100),
-      page: joi.number().min(0).max(33),
-      size: joi.number().min(0).max(23),
-      search: joi.string().min(0).max(100),
+      sort: joi.string().messages(customMessages),
+      select: joi.string().min(3).max(100).messages(customMessages),
+      page: joi.number().min(0).max(33).messages(customMessages),
+      size: joi.number().min(0).max(23).messages(customMessages),
+      search: joi.string().min(0).max(100).messages(customMessages),
     })
     .required(),
 };

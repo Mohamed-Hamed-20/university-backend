@@ -10,6 +10,7 @@ export const createTrainingResult = {
       grade: joi
         .string()
         .valid("failed", "passed")
+        .lowercase()
         .required()
         .messages(customMessages),
     })
@@ -24,6 +25,7 @@ export const deleteTrainingResult = {
       BackToRegister: joi
         .string()
         .valid("yes", "no")
+        .lowercase()
         .required()
         .messages(customMessages),
     })
@@ -43,6 +45,7 @@ export const updateTrainingResult = {
     grade: joi
       .string()
       .valid("failed", "passed")
+      .lowercase()
       .optional()
       .messages(customMessages),
   }),

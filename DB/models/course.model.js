@@ -5,6 +5,7 @@ const CourseSchema = new mongoose.Schema(
     course_name: {
       type: String,
       required: true,
+      lowercase: true,
       min: 3,
       max: 60,
     },

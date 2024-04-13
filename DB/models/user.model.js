@@ -6,7 +6,7 @@ const userSchema = new Schema(
     Full_Name: {
       type: String,
       required: true,
-      lowecase: true,
+      lowercase: true,
       unique: true,
       min: 9,
       max: 66,
@@ -49,10 +49,12 @@ const userSchema = new Schema(
     },
     level: {
       type: String,
+      lowercase: true,
       enum: ["one", "two", "three", "four", "graduated"],
     },
     department: {
       type: String,
+      lowercase: true,
       enum: ["cs", "is", "sc", "ai"],
     },
     password: {

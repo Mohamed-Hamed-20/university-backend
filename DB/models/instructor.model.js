@@ -31,18 +31,6 @@ const InstructorSchema = new Schema(
       type: Date,
       required: true,
     },
-    // image: {
-    //   public_id: {
-    //     type: String,
-    //     default: "depositphotos_29387653-stock-photo-facebook-profile_npymre",
-    //   },
-    //   secure_url: {
-    //     type: String,
-    //     default:
-    //       "https://res.cloudinary.com/dxjng5bfy/image/upload/v1692289127/Ecommerce/depositphotos_29387653-stock-photo-facebook-profile_npymre.jpg",
-    //   },
-    // },
-
     gender: {
       type: String,
       lowercase: true,
@@ -67,6 +55,7 @@ const InstructorSchema = new Schema(
       type: String,
       enum: ["cs", "is", "sc", "ai"],
       required: true,
+      lowercase: true,
     },
     imgName: {
       type: String,

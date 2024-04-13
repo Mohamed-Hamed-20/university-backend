@@ -1,20 +1,5 @@
 import joi from "joi";
-import { generalFields } from "../../middleware/validation.js";
-
-const customMessages = {
-  "string.base": "{#label} must be a string",
-  "string.min": "{#label} must be at least {#limit} characters",
-  "string.max": "{#label} must be at most {#limit} characters",
-  "number.base": "{#label} must be a number",
-  "number.valid": "{#label} must be one of {#valids}",
-  "boolean.base": "{#label} must be a boolean True or false",
-  "array.base": "{#label} must be an array",
-  "array.items": "Invalid item in {#label}",
-  "_id.required": "{#label} is required",
-  "_id.optional": "{#label} is optional",
-  "any.only": "{#label} must be {#valids}",
-  "any.required": "{#label} is required",
-};
+import { customMessages, generalFields } from "../../middleware/validation.js";
 
 // دالة لإضافة أيام إلى التاريخ
 function addDays(date, days) {
@@ -31,6 +16,7 @@ export const addtrain = {
         .min(3)
         .max(40)
         .required()
+        .lowercase()
         .messages(customMessages),
       desc: joi.string().min(10).max(400).required().messages(customMessages),
       OpenForRegister: joi.boolean().optional().messages(customMessages),
@@ -44,6 +30,7 @@ export const addtrain = {
           "at least 5 days after start date"
         )
         .messages(customMessages),
+
       requirements: joi
         .string()
         .min(5)
@@ -53,7 +40,12 @@ export const addtrain = {
       max_student: joi.number().optional().messages(customMessages),
       AllowLevel: joi
         .array()
-        .items(joi.string().valid("one", "two", "three", "four", "graduated"))
+        .items(
+          joi
+            .string()
+            .valid("one", "two", "three", "four", "graduated")
+            .lowercase()
+        )
         .optional()
         .messages(customMessages),
     })
@@ -67,6 +59,7 @@ export const updatetrain = {
         .string()
         .min(3)
         .max(40)
+        .lowercase()
         .optional()
         .messages(customMessages),
       desc: joi.string().min(10).max(400).optional().messages(customMessages),
@@ -90,7 +83,12 @@ export const updatetrain = {
       max_student: joi.number().optional().messages(customMessages),
       AllowLevel: joi
         .array()
-        .items(joi.string().valid("one", "two", "three", "four", "graduated"))
+        .items(
+          joi
+            .string()
+            .valid("one", "two", "three", "four", "graduated")
+            .lowercase()
+        )
         .optional()
         .messages(customMessages),
     })
