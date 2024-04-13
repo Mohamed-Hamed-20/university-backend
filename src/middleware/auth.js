@@ -95,7 +95,7 @@ export const isAuth = (roles) => {
           });
           if (!reftoken) {
             return next(
-              new Error("Wrong token or user Not found", { cause: 400 })
+              new Error("Wrong token or user Not found", { cause: 404 })
             );
           }
 

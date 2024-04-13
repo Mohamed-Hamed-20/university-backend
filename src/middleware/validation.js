@@ -2,7 +2,7 @@ import joi from "joi";
 import { Types } from "mongoose";
 
 // import { validate } from "joi";
-const req_FE = ["body", "params", "query", "file", "files", "headers"];
+const req_FE = ["body", "params", "query", "headers"];
 export const valid = (schema) => {
   return (req, res, next) => {
     const Validation_error = [];
@@ -22,10 +22,9 @@ export const valid = (schema) => {
           });
         }
 
-        // update with new data
-        for (let prb in validationResult.value) {
-          if (req[key].hasOwnProperty(prb)) {
-            req[key][prb] = validationResult.value[prb];
+        if (!validationResult?.error) {
+          if (req[key]) {
+            req[key] = validationResult.value;
           }
         }
       }

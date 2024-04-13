@@ -24,8 +24,9 @@ router.get("/getRegister", isAuth([roles.admin, roles.stu]), acc.getRegister);
 
 router.get(
   "/searchRegister",
-  // valid(vSchema.searchRegister),
+  valid(vSchema.searchRegister),
   isAuth([roles.admin, roles.instructor]),
   acc.searchRegister
 );
+
 export default router;

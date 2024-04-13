@@ -301,7 +301,6 @@ export const searchuser = asyncHandler(async (req, res, next) => {
 
   const users = await apiFeatureInstance.MongoseQuery;
 
-
   for (const user of users) {
     if (user.imgName) {
       const { url } = await GetsingleImg({ ImgName: user.imgName });
@@ -316,7 +315,6 @@ export const searchuser = asyncHandler(async (req, res, next) => {
 
 export const AddStuImg = asyncHandler(async (req, res, next) => {
   const { studentId } = req.body;
-
   const student = await userModel.findById(studentId);
   if (!student) {
     return next(new Error("student not found", { cause: 404 }));

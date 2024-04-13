@@ -58,7 +58,10 @@ export const studentsGratesSearch = {
       page: generalFields.page,
       size: generalFields.size,
       search: generalFields.search,
-      courseId: generalFields._id.required(),
+
+      courseId: generalFields._id,
+      studentId: generalFields._id,
+      semsterId: generalFields._id,
     })
     .required(),
 };

@@ -10,7 +10,7 @@ const router = Router();
 router.post(
   "/addgrate",
   valid(vSchema.addgrate),
-  isAuth([roles.instructor , roles.admin]),
+  isAuth([roles.instructor, roles.admin]),
   gc.uploadgrate,
   sgc.addTosemster
 );
@@ -35,7 +35,7 @@ router.delete(
 router.get(
   "/studentsGratesSearch",
   valid(vSchema.studentsGratesSearch),
-  isAuth([roles.admin, roles.instructor]),
+  isAuth([roles.admin, roles.instructor, roles.super]),
   gc.studentsGratesSearch
 );
 

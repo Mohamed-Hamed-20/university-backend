@@ -6,7 +6,6 @@ import {
 import CourseModel from "../../../DB/models/course.model.js";
 import semsterModel from "../../../DB/models/semster.model.js";
 import settingModel from "../../../DB/models/setting.model.js";
-import userModel from "../../../DB/models/user.model.js";
 import { roles } from "../../middleware/auth.js";
 import { ApiFeature } from "../../utils/apiFeature.js";
 import { arrayofstring } from "../../utils/arrayobjectIds.js";
@@ -202,46 +201,84 @@ export const deletecoursegrate = asyncHandler(async (req, res, next) => {
 // درجات الطالب فى كورس معين
 export const studentsGratesSearch = asyncHandler(async (req, res, next) => {
   const { courseId, studentId } = req.query;
+  let { semsterId } = req.query;
   const user = req.user;
 
   // check if he is allowed to view this courses
-  if (user.role == "instructor") {
+  if (user.role == roles.instructor) {
+    if (!courseId) {
+      return next(new Error("courseId is required", { cause: 400 }));
+    }
+    if (semsterId) {
+      return next(new Error("semsterId Not allowed", { cause: 400 }));
+    }
+
+    // if not provided semster make main semster is
+    if (!semsterId) {
+      const setting = await settingModel
+        .findOne()
+        .select("MainSemsterId _id")
+        .lean();
+      console.log(setting);
+      if (setting && setting.MainSemsterId) {
+        semsterId = setting.MainSemsterId.toString();
+      } else {
+        return next(
+          new Error("Main semester is not available", { cause: 400 })
+        );
+      }
+    }
+
+    //=======================================
     const Materials = await arrayofstring(user.Materials);
     if (!Materials.includes(courseId.toString())) {
       return next(
-        new Error("You are not allowed to view who registered this course", {
-          status: 403,
+        new Error("You are not allowed to view grates to this courses ", {
+          cause: 403,
         })
       );
     }
   }
 
   let filters = {};
+  if (semsterId) filters.semsterId = semsterId;
   if (studentId) filters.studentId = studentId;
-  // if (courseId) filters.courseId = courseId;
-  const allowFields = ["studentId", "semsterId", "courseGrates"];
+  if (courseId) filters.courseId = courseId;
+
+  const allowFields = [
+    "studentId",
+    "semsterId",
+    "courseId",
+    "Points",
+    "Grade",
+    "FinalExam",
+    "Oral",
+    "Practical",
+    "Midterm",
+    "YearWorks",
+    "TotalGrate",
+  ];
 
   const optionStudent = {
     path: "studentId",
     select:
-      "Full_Name National_Id Student_Code department gender PhoneNumber Date_of_Birth",
+      "Full_Name National_Id Student_Code department gender PhoneNumber Date_of_Birth imgName",
   };
 
-  const optionscourseGrates = {
-    path: "courseGrates",
-    match: { courseId: courseId },
-    select:
-      "creditHours courseId creditHours Points Grade FinalExam  Oral Practical Midterm YearWorks TotalGrate",
+  const optionCourse = {
+    path: "courseId",
+    select: "course_name desc credit_hour department",
   };
 
   const semsteroptions = {
     path: "semsterId",
     select: "name year term  Max_Hours",
   };
-  const searchFieldsText = ["courseGrates._id", ""];
+
+  const searchFieldsText = ["Grade", "TotalGrate"];
   const searchFieldsIds = ["studentId", "semsterId"];
   const apiFeatureInstance = new ApiFeature(
-    SemesterGradeModel.find(filters).lean(),
+    GradeModel.find(filters).lean(),
     req.query,
     allowFields
   )
@@ -249,14 +286,11 @@ export const studentsGratesSearch = asyncHandler(async (req, res, next) => {
     .sort()
     .select()
     .populate(optionStudent)
-    .populate(optionscourseGrates)
+    .populate(optionCourse)
     .populate(semsteroptions)
-    .search({ searchFieldsIds, searchFieldsText });
+    .search({ searchFieldsText, searchFieldsIds });
 
-  let results = await apiFeatureInstance.MongoseQuery;
-
-  // Filter out students without courseGrates
-  results = results.filter((student) => student.courseGrates.length > 0);
+  const results = await apiFeatureInstance.MongoseQuery;
 
   return res
     .status(200)

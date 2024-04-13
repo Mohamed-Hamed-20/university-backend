@@ -26,7 +26,7 @@ export const searchRegister = {
       size: generalFields.size,
       search: generalFields.search,
 
-      courseId: generalFields._id.required(),
+      courseId: generalFields._id.optional(),
       studentId: generalFields._id,
     })
     .required(),
