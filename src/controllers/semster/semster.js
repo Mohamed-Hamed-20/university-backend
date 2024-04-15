@@ -1,5 +1,4 @@
 import semsterModel from "../../../DB/models/semster.model.js";
-import settingModel from "../../../DB/models/setting.model.js";
 import { ApiFeature } from "../../utils/apiFeature.js";
 import { asyncHandler } from "../../utils/errorHandling.js";
 

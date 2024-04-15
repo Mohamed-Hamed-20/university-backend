@@ -15,7 +15,6 @@ import {
 } from "../../utils/aws.s3.js";
 import { asyncHandler } from "../../utils/errorHandling.js";
 import { hashpassword, verifypass } from "../../utils/hashpassword.js";
-import { sendconfirmEmail } from "../../utils/sendEmail.js";
 
 export const login = asyncHandler(async (req, res, next) => {
   const { email, password } = req.body;
@@ -102,19 +101,16 @@ export const CreateAdmin = asyncHandler(async (req, res, next) => {
     Date_of_Birth: Date_of_Birth,
     gender: gender,
     isconfrimed: false,
-    role: "admin",
+    role: roles.admin,
   };
+
   const result = await adminModel.create(user);
   if (!result) {
     return next(new Error("Error Can create admin", { cause: 500 }));
   }
-  const link = `${req.protocol}://${req.headers.host}/Api/admin/confirmEmail`;
-  const confirmEmail = await sendconfirmEmail(result, link);
-  if (!confirmEmail) {
-    return next(new Error("Email not send successFully", { cause: 400 }));
-  }
+
   return res.status(201).json({
-    message: "Created Successfully Check your Inbox",
+    message: "Created Admin Successfully",
     user: {
       FullName: result.FullName,
       Email: result.email,
@@ -141,7 +137,6 @@ export const updateAdmin = asyncHandler(async (req, res, next) => {
       return next(new Error("Email is already in use", { cause: 400 }));
     }
     user.email = email;
-    user.isconfrimed = false;
   }
 
   if (password) {
@@ -223,8 +218,9 @@ export const deleteAdmin = asyncHandler(async (req, res, next) => {
 //   });
 // });
 
-//Get user
 
+
+//Get user
 export const Getuser = asyncHandler(async (req, res, next) => {
   console.log(req.user);
   const user = req.user;
@@ -362,8 +358,7 @@ export const AddAdminImg = asyncHandler(async (req, res, next) => {
 
 export const deleteAdminImg = asyncHandler(async (req, res, next) => {
   const { adminId } = req.body;
-  let {imgName} = req.body
-
+  let { imgName } = req.body;
 
   let admin;
   if (req.user.role == roles.super) {
@@ -374,8 +369,8 @@ export const deleteAdminImg = asyncHandler(async (req, res, next) => {
   }
 
   if (req.user.role == roles.admin) {
-    admin = req.user
-    imgName = req.user?.imgName || undefined
+    admin = req.user;
+    imgName = req.user?.imgName || undefined;
   }
 
   if (admin?.imgName !== imgName) {

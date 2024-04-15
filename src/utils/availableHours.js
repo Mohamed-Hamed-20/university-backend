@@ -1,12 +1,11 @@
 import SemesterModel from "../../DB/models/semster.model.js";
-import settingModel from "../../DB/models/setting.model.js";
 
 export const availableHoursForUser = async ({
   TotalGpa,
   RegisterInfo,
 } = {}) => {
   try {
-    const setting = await settingModel.findOne();
+    const setting = req.setting;
     if (!setting) {
       throw new Error("Need to provied semsterId first in setting");
     }

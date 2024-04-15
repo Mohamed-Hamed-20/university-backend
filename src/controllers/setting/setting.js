@@ -15,7 +15,7 @@ export const updateSetting = asyncHandler(async (req, res, next) => {
   }
 
   // Find the existing setting or create a new one if it doesn't exist
-  let setting = await settingModel.findOne();
+  let setting = req.setting;
 
   if (!setting) {
     if (!MainSemsterId) {

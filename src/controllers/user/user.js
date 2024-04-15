@@ -1,5 +1,3 @@
-import { response } from "express";
-import settingModel from "../../../DB/models/setting.model.js";
 import userModel from "../../../DB/models/user.model.js";
 import { generateToken, storeRefreshToken } from "../../utils/Token.js";
 import { ApiFeature } from "../../utils/apiFeature.js";
@@ -13,6 +11,7 @@ import { calclevel, calculateGPA } from "../../utils/calcGrates.js";
 import { asyncHandler } from "../../utils/errorHandling.js";
 import { verifypass } from "../../utils/hashpassword.js";
 import { roles } from "../../middleware/auth.js";
+import SemesterModel from "../../../DB/models/semster.model.js";
 
 export const login = asyncHandler(async (req, res, next) => {
   const { Student_Code, password } = req.body;
@@ -67,6 +66,7 @@ export const login = asyncHandler(async (req, res, next) => {
 
 export const Getuser = asyncHandler(async (req, res, next) => {
   const user = req.user;
+  const setting = req.setting;
   if (!user) {
     return next(
       new Error("Invalid User Data please Try Again", { cause: 500 })
@@ -76,13 +76,7 @@ export const Getuser = asyncHandler(async (req, res, next) => {
     studentId: user._id,
   });
   const { level } = await calclevel({ totalCreditHours });
-  const semsterInfo = await settingModel
-    .findOne()
-    .populate({
-      select: "name year term Max_Hours",
-      path: "MainSemsterId",
-    })
-    .select("MainSemsterId");
+  const semsterInfo = await SemesterModel.findById(setting.MainSemsterId);
 
   let urlImg;
   if (user?.imgName) {

@@ -136,7 +136,7 @@ export const deleteSemsterGrate = asyncHandler(async (req, res, next) => {
   });
 
   if (!semsterGrate) {
-    return next(new Error("semster course grate nt found"));
+    return next(new Error("semster course grate not found", { cause: 404 }));
   }
   //delete id from semsterGrate
   const newCourseGrates = await filterArray(

@@ -1,4 +1,3 @@
-import settingModel from "../../../DB/models/setting.model.js";
 import trainingmodel from "../../../DB/models/training.model.js";
 import TrainingRegisterModel from "../../../DB/models/trainingRegister.model.js";
 import { roles } from "../../middleware/auth.js";
@@ -39,7 +38,7 @@ export const addTraining = asyncHandler(async (req, res, next) => {
     studentId: userId,
   });
 
-  const setting = await settingModel.findOne();
+  const setting = req.setting;
 
   // check if have enough to Register Training
   if (

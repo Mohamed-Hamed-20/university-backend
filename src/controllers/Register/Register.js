@@ -1,7 +1,6 @@
 import RegisterModel from "../../../DB/models/Register.model.js";
 import availableCoursesModel from "../../../DB/models/availableCourses.model.js";
 import CourseModel from "../../../DB/models/course.model.js";
-import settingModel from "../../../DB/models/setting.model.js";
 import { roles } from "../../middleware/auth.js";
 import { ApiFeature } from "../../utils/apiFeature.js";
 import { arrayofstring } from "../../utils/arrayobjectIds.js";

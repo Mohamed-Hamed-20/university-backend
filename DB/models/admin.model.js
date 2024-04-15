@@ -49,6 +49,7 @@ const adminSchema = new Schema(
     isconfrimed: {
       type: Boolean,
       default: true,
+      required: false,
     },
     Activecode: {
       type: String,
