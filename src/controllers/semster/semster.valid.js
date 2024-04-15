@@ -91,10 +91,16 @@ export const deletesemster = {
     .required(),
 };
 
-export const FindSemster = {
+export const searchsemster = {
   query: joi
     .object({
-      semsterId: generalFields._id.required(),
+      sort: generalFields.sort,
+      select: generalFields.select,
+      page: generalFields.page,
+      size: generalFields.size,
+      search: generalFields.search,
+      semsterId: generalFields._id,
     })
     .required(),
 };
+

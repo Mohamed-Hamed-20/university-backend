@@ -120,4 +120,12 @@ export const deleteSetting = asyncHandler(async (req, res, next) => {});
 
 export const ViewSetting = asyncHandler(async (req, res, next) => {});
 
-export const Setting = asyncHandler(async (req, res, next) => {});
+export const settingAPIS = asyncHandler(async (req, res, next) => {
+  const setting = await settingModel.findOne();
+
+  if (setting.deniedRoutes.includes(req.path)) {
+    return next(new Error("Access To This Service Is Denied", { cause: 403 }));
+  }
+  req.setting = setting;
+  return next();
+});

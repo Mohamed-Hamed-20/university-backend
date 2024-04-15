@@ -251,6 +251,9 @@ export const SearchTrainingResult = asyncHandler(async (req, res, next) => {
 
   // if he is user
   if (req.user.role == roles.stu) {
+    if (studentId) {
+      return next(new Error("studentId not allowed", { cause: 400 }));
+    }
     filters.studentId = req.user._id;
   }
 

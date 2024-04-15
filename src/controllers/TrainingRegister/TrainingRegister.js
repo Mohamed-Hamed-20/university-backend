@@ -30,7 +30,7 @@ export const addTraining = asyncHandler(async (req, res, next) => {
   if (!training.AllowLevel?.includes(level)) {
     return next(
       new Error("student level not Allow to Register this course", {
-        cause: 403,
+        cause: 401,
       })
     );
   }
@@ -199,9 +199,6 @@ export const searchRegisterTraining = asyncHandler(async (req, res, next) => {
         })
       );
     }
-  }
-  if (user.role === roles.stu) {
-    filters.studentId = user._id;
   }
 
   const allowFields = ["studentId", "trainingRegisterd"];

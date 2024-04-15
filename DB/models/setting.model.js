@@ -3,60 +3,86 @@ import mongoose, { Schema, Types } from "mongoose";
 const settingSchema = new Schema({
   //Student Setting
   StudentLogin: {
-    type: Boolean,
-    default: false,
+    type: String,
+    default: ["yes", "no"],
+    lowercase: true,
+    required: false,
   },
   StudentRegister: {
-    type: Boolean,
-    default: false,
+    type: String,
+    default: ["yes", "no"],
+    lowercase: true,
+    required: false,
   },
   StudentViewGrates: {
-    type: Boolean,
-    default: false,
+    type: String,
+    default: ["yes", "no"],
+    lowercase: true,
+    required: false,
   },
   StudentViewAvailablecourses: {
-    type: Boolean,
-    default: false,
+    type: String,
+    default: ["yes", "no"],
+    lowercase: true,
+    required: false,
   },
 
   //Instructor Setting
   InstructorLogin: {
-    type: Boolean,
-    default: false,
+    type: String,
+    default: ["yes", "no"],
+    lowercase: true,
+    required: false,
   },
   InstructoruploadsGrates: {
-    type: Boolean,
-    default: false,
+    type: String,
+    default: ["yes", "no"],
+    lowercase: true,
+    required: false,
   },
 
   // Admin setting
   AdminLogin: {
-    type: Boolean,
-    default: false,
+    type: String,
+    default: ["yes", "no"],
+    lowercase: true,
+    required: false,
   },
   AdminEditStudent: {
-    type: Boolean,
-    default: false,
+    type: String,
+    default: ["yes", "no"],
+    lowercase: true,
+    required: false,
   },
   AdminEditInstructor: {
-    type: Boolean,
-    default: false,
+    type: String,
+    default: ["yes", "no"],
+    lowercase: true,
+    required: false,
   },
   AdminEditTraining: {
-    type: Boolean,
-    default: false,
+    type: String,
+    default: ["yes", "no"],
+    lowercase: true,
+    required: false,
   },
   AdminEditSemster: {
-    type: Boolean,
-    default: false,
+    type: String,
+    default: ["yes", "no"],
+    lowercase: true,
+    required: false,
   },
   AdminEditCourses: {
-    type: Boolean,
-    default: false,
+    type: String,
+    default: ["yes", "no"],
+    lowercase: true,
+    required: false,
   },
   AdminEditRegister: {
-    type: Boolean,
-    default: false,
+    type: String,
+    default: ["yes", "no"],
+    lowercase: true,
+    required: false,
   },
   deniedRoutes: [
     {

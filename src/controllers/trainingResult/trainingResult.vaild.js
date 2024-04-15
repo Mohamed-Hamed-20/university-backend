@@ -24,6 +24,7 @@ export const deleteTrainingResult = {
       TrainingResultId: generalFields._id.required().messages(customMessages),
       BackToRegister: joi
         .string()
+        .trim()
         .valid("yes", "no")
         .lowercase()
         .required()

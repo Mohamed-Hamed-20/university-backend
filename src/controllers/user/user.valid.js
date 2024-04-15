@@ -129,3 +129,16 @@ export const deleteStuImg = {
     })
     .required(),
 };
+
+export const StudeleteStuImg = {
+  body: joi
+    .object({
+      imgName: joi
+        .string()
+        .min(15)
+        .max(100)
+        .required()
+        .messages(customMessages),
+    })
+    .required(),
+};

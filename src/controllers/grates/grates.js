@@ -18,7 +18,7 @@ import { asyncHandler } from "../../utils/errorHandling.js";
 
 export const uploadgrate = asyncHandler(async (req, res, next) => {
   const { courseId, studentId, FinalExam, Oral, Practical, Midterm } = req.body;
-  const { semsterId } = req.body;
+  let { semsterId } = req.body;
 
   // check semster
   const chksemster = await semsterModel.findById(semsterId);
@@ -34,11 +34,12 @@ export const uploadgrate = asyncHandler(async (req, res, next) => {
 
   // Check if the user is an instructor for this course
   if (req.user.role == roles.instructor) {
+    semsterId = req.setting.MainSemsterId.toString();
     const Materials = await arrayofstring(req.user?.Materials);
     if (Materials.length == 0 || !Materials.includes(courseId.toString())) {
       return next(
         new Error("You are not allowed to upload grades for this course", {
-          cause: 403,
+          cause: 401,
         })
       );
     }
@@ -117,12 +118,15 @@ export const updategrate = asyncHandler(async (req, res, next) => {
   req.oldGrade = stuGrade;
 
   // check it valid semsterId
-  if (semsterId) {
-    const chksemster = await semsterModel.findById(semsterId);
-    if (!chksemster) {
-      return next(new Error("Invaild semsterId", { cause: 400 }));
+  if (req.user.role == roles.admin) {
+    if (semsterId && semsterId !== stuGrade.semsterId.toString()) {
+      const chksemster = await semsterModel.findById(semsterId);
+      if (!chksemster) {
+        return next(new Error("Invaild semsterId", { cause: 400 }));
+      }
+      req.newsemster = chksemster;
+      stuGrade.semsterId = semsterId;
     }
-    req.newsemster = chksemster;
   }
 
   //check it Vaild courseId
@@ -136,13 +140,13 @@ export const updategrate = asyncHandler(async (req, res, next) => {
   }
 
   // if he is Instructor
-  if (req.user.role == "instructor") {
+  if (req.user.role == roles.instructor) {
     // Check if the user is an instructor for this course
     const Materials = await arrayofstring(req.user.Materials);
     if (!Materials.includes(stuGrade.courseId.toString())) {
       return next(
         new Error("You are not allowed to update this grades", {
-          cause: 403,
+          cause: 401,
         })
       );
     }
@@ -152,7 +156,7 @@ export const updategrate = asyncHandler(async (req, res, next) => {
       if (!Materials.includes(courseId.toString())) {
         return next(
           new Error("You are not allowed to make result for this courseId", {
-            cause: 403,
+            cause: 401,
           })
         );
       }
@@ -179,7 +183,6 @@ export const updategrate = asyncHandler(async (req, res, next) => {
 
   stuGrade.Points = points;
   stuGrade.Grade = grade;
-  stuGrade.semsterId = semsterId;
 
   //update Grade
   const result = await stuGrade.save();
@@ -219,7 +222,6 @@ export const studentsGratesSearch = asyncHandler(async (req, res, next) => {
         .findOne()
         .select("MainSemsterId _id")
         .lean();
-      console.log(setting);
       if (setting && setting.MainSemsterId) {
         semsterId = setting.MainSemsterId.toString();
       } else {
@@ -234,7 +236,7 @@ export const studentsGratesSearch = asyncHandler(async (req, res, next) => {
     if (!Materials.includes(courseId.toString())) {
       return next(
         new Error("You are not allowed to view grates to this courses ", {
-          cause: 403,
+          cause: 401,
         })
       );
     }
@@ -300,19 +302,43 @@ export const studentsGratesSearch = asyncHandler(async (req, res, next) => {
 // جديد
 export const gradeSingleuser = asyncHandler(async (req, res, next) => {
   const { GradeId } = req.query;
-  const grade = GradeModel.findById(GradeId);
+  const optionStudent = {
+    path: "studentId",
+    select:
+      "Full_Name National_Id Student_Code department gender PhoneNumber Date_of_Birth imgName",
+  };
+
+  const optionCourse = {
+    path: "courseId",
+    select: "course_name desc credit_hour department",
+  };
+  const grade = await GradeModel.findById(GradeId)
+    .lean()
+    .populate(optionStudent)
+    .populate(optionCourse);
   if (!grade) {
     return next(new Error("grate for student not found", { cause: 404 }));
   }
 
-  req.grade = grade;
-  return next();
+  // make sure he allow to view this
+  if (req.user.role == roles.instructor) {
+    const Materials = await arrayofstring(user.Materials);
+    if (!Materials.includes(grade.courseId.toString())) {
+      return next(
+        new Error("You are not allowed to view grates to this courses ", {
+          cause: 403,
+        })
+      );
+    }
+  }
+  // response
+  return res.status(200).json({ message: "grate Information", grade });
 });
 
 export const stugrades = asyncHandler(async (req, res, next) => {
   let { studentId } = req.body;
 
-  if (req.user.role == "user") {
+  if (req.user.role == roles.stu) {
     studentId = req.user._id;
   }
 

@@ -4,6 +4,7 @@ import { InstructorModel } from "../../../DB/models/instructor.model.js";
 import semsterModel from "../../../DB/models/semster.model.js";
 import trainingmodel from "../../../DB/models/training.model.js";
 import userModel from "../../../DB/models/user.model.js";
+import { roles } from "../../middleware/auth.js";
 import { generateToken, storeRefreshToken } from "../../utils/Token.js";
 import { ApiFeature } from "../../utils/apiFeature.js";
 import {
@@ -180,12 +181,31 @@ export const updateAdmin = asyncHandler(async (req, res, next) => {
 export const deleteAdmin = asyncHandler(async (req, res, next) => {
   const { userId } = req.query;
   const user = await adminModel
-    .findByIdAndDelete({ _id: userId }, {}, { new: true })
-    .select("_id email FullName role gender");
+    .findById({ _id: userId }, {}, { new: true })
+    .select("_id FullName email phone Date_of_Birth gender role imgName");
   if (!user) {
     return next("user Id not found", { cause: 404 });
   }
-  res.json({ message: "user Delete successfully", user: user });
+
+  if (user?.imgName) {
+    // Delete image
+    const { response } = await deleteImg({ imgName: user.imgName });
+    if (![200, 201, 202, 204].includes(response.$metadata.httpStatusCode)) {
+      return next(new Error("Failed to delete image", { cause: 500 }));
+    }
+  }
+
+  const result = await user.deleteOne();
+  if (result.deletedCount == 0) {
+    return next(
+      new Error("server error Try later Not deleted successfully", {
+        cause: 500,
+      })
+    );
+  }
+  return res
+    .status(200)
+    .json({ message: "Admin Delete successfully", user: user, result });
 });
 
 // export const updaterole = asyncHandler(async (req, res, next) => {
@@ -269,7 +289,7 @@ export const searchAdmin = asyncHandler(async (req, res, next) => {
     .status(200)
     .json({ message: "Done All Admin Information", admins });
 });
-export const info = asyncHandler(async (req, res, next) => {
+export const dashboard = asyncHandler(async (req, res, next) => {
   const courses = await CourseModel.countDocuments();
   const students = await userModel.countDocuments();
   const admins = await adminModel.countDocuments();
@@ -285,10 +305,15 @@ export const info = asyncHandler(async (req, res, next) => {
 
 export const AddAdminImg = asyncHandler(async (req, res, next) => {
   const { adminId } = req.body;
-  console.log(adminId);
-  const admin = await adminModel.findById(adminId);
-  if (!admin) {
-    return next(new Error("admin  not found", { cause: 404 }));
+
+  let admin;
+  if (req.user.role == roles.super) {
+    admin = await adminModel.findById(adminId);
+    if (!admin) {
+      return next(new Error("admin  not found", { cause: 404 }));
+    }
+  } else if (req.user.role == roles.admin) {
+    admin = req.user;
   }
 
   // Add Images
@@ -336,15 +361,25 @@ export const AddAdminImg = asyncHandler(async (req, res, next) => {
 });
 
 export const deleteAdminImg = asyncHandler(async (req, res, next) => {
-  const { adminId, imgName } = req.body;
-  const admin = await adminModel.findById(adminId);
+  const { adminId } = req.body;
+  let {imgName} = req.body
 
-  if (!admin) {
-    return next(new Error("admin not found", { cause: 404 }));
+
+  let admin;
+  if (req.user.role == roles.super) {
+    admin = await adminModel.findById(adminId);
+    if (!admin) {
+      return next(new Error("admin not found", { cause: 404 }));
+    }
+  }
+
+  if (req.user.role == roles.admin) {
+    admin = req.user
+    imgName = req.user?.imgName || undefined
   }
 
   if (admin?.imgName !== imgName) {
-    return next(new Error("Invalid imgName not found", { cause: 400 }));
+    return next(new Error("Invalid imgName or not found", { cause: 400 }));
   }
 
   // Delete image

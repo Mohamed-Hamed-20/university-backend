@@ -1,5 +1,4 @@
-// import TotalGratesModel from "../../../DB/models/StudentGrades.model.js";
-import semsterModel from "../../../DB/models/semster.model.js";
+import { response } from "express";
 import settingModel from "../../../DB/models/setting.model.js";
 import userModel from "../../../DB/models/user.model.js";
 import { generateToken, storeRefreshToken } from "../../utils/Token.js";
@@ -13,6 +12,7 @@ import {
 import { calclevel, calculateGPA } from "../../utils/calcGrates.js";
 import { asyncHandler } from "../../utils/errorHandling.js";
 import { verifypass } from "../../utils/hashpassword.js";
+import { roles } from "../../middleware/auth.js";
 
 export const login = asyncHandler(async (req, res, next) => {
   const { Student_Code, password } = req.body;
@@ -252,18 +252,31 @@ export const updateStudent = asyncHandler(async (req, res, next) => {
 export const deleteStudent = asyncHandler(async (req, res, next) => {
   const { userId } = req.query;
   const user = await userModel
-    .findByIdAndDelete({ _id: userId }, {}, { new: true })
-    .select("_id Full_Name Student_Code gender");
+    .findById({ _id: userId }, {}, { new: true })
+    .select("_id Full_Name Student_Code gender imgName");
   if (!user) {
     return next("user Id not found", { cause: 404 });
   }
-  const { response } = await deleteImg({ imgName: user.imgName });
-  if (response.$metadata.httpStatusCode != 200) {
+
+  if (user?.imgName) {
+    // Delete image
+    const { response } = await deleteImg({ imgName: user.imgName });
+    if (![200, 201, 202, 204].includes(response.$metadata.httpStatusCode)) {
+      return next(new Error("Failed to delete image", { cause: 500 }));
+    }
+  }
+
+  const result = await user.deleteOne();
+  if (result.deletedCount == 0) {
     return next(
-      new Error("server Error In deleting user Iamge", { cause: 500 })
+      new Error("server error Try later Not deleted successfully", {
+        cause: 500,
+      })
     );
   }
-  res.json({ message: "user Delete successfully", user: user });
+  return res
+    .status(200)
+    .json({ message: "user Delete successfully", user: user, result });
 });
 
 export const searchuser = asyncHandler(async (req, res, next) => {
@@ -314,7 +327,16 @@ export const searchuser = asyncHandler(async (req, res, next) => {
 });
 
 export const AddStuImg = asyncHandler(async (req, res, next) => {
-  const { studentId } = req.body;
+  let { studentId } = req.body;
+
+  // if he was student
+  if (req.user.role == roles.stu) {
+    if (studentId) {
+      return next(new Error("studentId not Allow", { cause: 400 }));
+    }
+    studentId = req.user._id.toString();
+  }
+
   const student = await userModel.findById(studentId);
   if (!student) {
     return next(new Error("student not found", { cause: 404 }));
@@ -365,6 +387,7 @@ export const AddStuImg = asyncHandler(async (req, res, next) => {
 
 export const deleteStuImg = asyncHandler(async (req, res, next) => {
   const { studentId, imgName } = req.body;
+
   const student = await userModel.findById(studentId);
 
   if (!student) {

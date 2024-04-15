@@ -18,16 +18,27 @@ import TrainingRegisterRouter from "./routes/TrainingRegister.routes.js";
 import { GlobalErrorHandling } from "./utils/errorHandling.js";
 import morgan from "morgan";
 import { hellowpage } from "./utils/templetHtml.js";
+import { settingAPIS } from "./controllers/setting/setting.js";
+import { routes } from "./utils/routes.path.js";
 
 export const bootstrap = (app, express) => {
-  // const allowedOrigins = [
-  //   "http://localhost:3000",
-  //   "https://graduation-project-beryl-seven.vercel.app",
-  // ];
-  // {
-  //       origin: allowedOrigins,
-  //     }
-  app.use(cors());
+  const allowedOrigins = [
+    "http://localhost:3000",
+    "https://graduation-project-beryl-seven.vercel.app",
+    "https://graduation-project-beryl-seven.vercel.app/",
+  ];
+
+  const corsOptions = {
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+  };
+
+  app.use(cors(corsOptions));
 
   //Allow feaching Data
   app.use(express.json());
@@ -50,22 +61,23 @@ export const bootstrap = (app, express) => {
     legacyHeaders: false,
   });
 
+  app.use(settingAPIS);
   // Apply the rate limiting
   app.use(limiter);
 
   // API
-  app.use("/Api/user", userRouter);
-  app.use("/Api/admin", adminRouter);
-  app.use("/Api/instructor", instructorRouter);
-  app.use("/Api/courses", courseRouter);
-  app.use("/Api/student", AvailablecourseRouter);
-  app.use("/Api/student/register", RegisterRouter);
-  app.use("/Api/student/Grades", StudentGradesRouter);
-  app.use("/Api/semster", semsterRouter);
-  app.use("/Api/admin/setting", settingRouter);
-  app.use("/Api/training", trainingRouter);
-  app.use("/Api/Register/Training", TrainingRegisterRouter);
-  app.use("/Api/Training/Result", TrainingResultRouter);
+  app.use(`${routes.student._id}`, userRouter);
+  app.use(`${routes.Admin._id}`, adminRouter);
+  app.use(`${routes.instructor._id}`, instructorRouter);
+  app.use(`${routes.course._id}`, courseRouter);
+  app.use(`${routes.student._id}`, AvailablecourseRouter);
+  app.use(`${routes.courseRegister._id}`, RegisterRouter);
+  app.use(`${routes.studentGrades._id}`, StudentGradesRouter);
+  app.use(`${routes.semster._id}`, semsterRouter);
+  app.use(`${routes.setting._id}`, settingRouter);
+  app.use(`${routes.Training._id}`, trainingRouter);
+  app.use(`${routes.RegisterTraining._id}`, TrainingRegisterRouter);
+  app.use(`${routes.TrainingResult._id}`, TrainingResultRouter);
 
   //Welcome Page
   app.get("/", async (req, res, next) => {

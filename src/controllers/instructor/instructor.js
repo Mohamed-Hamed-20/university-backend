@@ -1,6 +1,7 @@
 import CourseModel from "../../../DB/models/course.model.js";
 import { InstructorModel } from "../../../DB/models/instructor.model.js";
 import trainingmodel from "../../../DB/models/training.model.js";
+import { roles } from "../../middleware/auth.js";
 import { generateToken, storeRefreshToken } from "../../utils/Token.js";
 import { ApiFeature } from "../../utils/apiFeature.js";
 import { arrayofIds } from "../../utils/arrayobjectIds.js";
@@ -268,15 +269,36 @@ export const updateInstructor = asyncHandler(async (req, res, next) => {
 
 export const deleteInstructor = asyncHandler(async (req, res, next) => {
   const { userId } = req.query;
-  const user = await InstructorModel.findByIdAndDelete(
+  const user = await InstructorModel.findById(
     { _id: userId },
     {},
     { new: true }
-  ).select("_id email FullName role gender");
+  ).select(
+    "_id FullName email phone Date_of_Birth gender role department imgName"
+  );
   if (!user) {
-    return next("user Id not found", { cause: 404 });
+    return next("Instrctor Id not found", { cause: 404 });
   }
-  res.json({ message: "Instructor Delete successfully", user: user });
+
+  if (user?.imgName) {
+    // Delete image
+    const { response } = await deleteImg({ imgName: user.imgName });
+    if (![200, 201, 202, 204].includes(response.$metadata.httpStatusCode)) {
+      return next(new Error("Failed to delete image", { cause: 500 }));
+    }
+  }
+
+  const result = await user.deleteOne();
+  if (result.deletedCount == 0) {
+    return next(
+      new Error("server error Try later Not deleted successfully", {
+        cause: 500,
+      })
+    );
+  }
+  return res
+    .status(200)
+    .json({ message: "Instrctor Delete successfully", user: user, result });
 });
 
 //Get user
@@ -373,10 +395,16 @@ export const searchInstructor = asyncHandler(async (req, res, next) => {
 
 export const AddInstructorImg = asyncHandler(async (req, res, next) => {
   const { InstructorId } = req.body;
-  console.log(InstructorId);
-  const Instructor = await InstructorModel.findById(InstructorId);
-  if (!Instructor) {
-    return next(new Error("Instructor not found", { cause: 404 }));
+
+  // check this person admin or Instructor
+  let Instructor;
+  if (req.user.role == roles.admin) {
+    Instructor = await InstructorModel.findById(InstructorId);
+    if (!Instructor) {
+      return next(new Error("Instructor not found", { cause: 404 }));
+    }
+  } else if (req.user.role == roles.instructor) {
+    Instructor = req.user;
   }
 
   // Check if file is provided
@@ -426,9 +454,14 @@ export const deleteInstructorImg = asyncHandler(async (req, res, next) => {
   const { InstructorId, imgName } = req.body;
 
   // Find the Instructor
-  const Instructor = await InstructorModel.findById(InstructorId);
-  if (!Instructor) {
-    return next(new Error("Instructor not found", { cause: 404 }));
+  let Instructor;
+  if (req.user.role == roles.admin) {
+    Instructor = await InstructorModel.findById(InstructorId);
+    if (!Instructor) {
+      return next(new Error("Instructor not found", { cause: 404 }));
+    }
+  } else if (req.user.role == roles.instructor) {
+    Instructor = req.user;
   }
 
   // Check if imgName matches the one in the Instructor document

@@ -65,7 +65,7 @@ export const deletesemster = asyncHandler(async (req, res, next) => {
 });
 
 export const MainSemsterInfo = asyncHandler(async (req, res, next) => {
-  const setting = await settingModel.findOne();
+  const setting = req.setting;
   const semster = await semsterModel.findById(setting.MainSemsterId);
   if (!semster) {
     return next(new Error("semster not found", { cause: 404 }));
@@ -73,44 +73,25 @@ export const MainSemsterInfo = asyncHandler(async (req, res, next) => {
   return res.status(200).json({ message: "semster Information", semster });
 });
 
-export const FindSemster = asyncHandler(async (req, res, next) => {
-  const { semsterId } = req.query;
-  const semster = await semsterModel.findById(semsterId);
 
-  if (!semster) {
-    return next(new Error("semsterId not found", { cause: 404 }));
-  }
-  // response
-  return res
-    .status(200)
-    .json({ message: "semster Information", semster: semster });
-});
-export const searchsemster11 = asyncHandler(async (req, res, next) => {
-  const { courseId } = req.query;
-  const course = await CourseModel.findByIdAndDelete(courseId);
-  if (!course) {
-    return next(new Error("Invalid courseId", { cause: 404 }));
-  }
-  //response
-  return res
-    .status(200)
-    .json({ message: "course delete Successfully", course });
-});
 
 export const searchsemster = asyncHandler(async (req, res, next) => {
+  const { semsterId } = req.body;
+  const filters = {};
+  if (semsterId) filters.semsterId = semsterId;
   const allowFields = ["name", "year", "_id", "startDate", "term", "Max_Hours"];
-  const searchFields = ["name", "year", "term"];
+  const searchFieldsText = ["name", "year", "term"];
+  const searchFieldsIds = ["_id"];
 
   const apiFeatureInstance = new ApiFeature(
-    semsterModel.find(),
+    semsterModel.find(filters).lean(),
     req.query,
     allowFields
   )
-    .search(searchFields)
     .pagination()
     .sort()
     .select()
-    .filter();
+    .search({ searchFieldsIds, searchFieldsText });
 
   const semsters = await apiFeatureInstance.MongoseQuery;
 

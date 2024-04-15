@@ -4,64 +4,77 @@ import { valid } from "../middleware/validation.js";
 import * as vSchema from "../controllers/admin/admin.valid.js";
 import { isAuth, roles } from "../middleware/auth.js";
 import { allowedExtensions, multerCloud } from "../utils/aws.s3.js";
+import { routes } from "../utils/routes.path.js";
 const router = Router();
+const {Admin} = routes
 
 //login admin SuperAdmins
-router.post("/login", valid(vSchema.login), ac.login);
-router.get("/getinfo", isAuth([roles.admin, roles.super]), ac.Getuser);
+router.post(`${Admin.login}`, valid(vSchema.login), ac.login);
 
+router.get(`${Admin.getinfoAdmin}`, isAuth([roles.admin]), ac.Getuser);
+router.get(`${Admin.getinfoSuper}`, isAuth([roles.super]), ac.Getuser);
 // ==================================================================
 
 //create admin
+
 router.post(
-  "/create",
-  valid(vSchema.CreateAdmin),
+  `${Admin.createAdmin}`,
+    valid(vSchema.CreateAdmin),
   isAuth([roles.super]),
   ac.CreateAdmin
 );
 
 router.put(
-  "/update",
+  `${Admin.updateAdmin}`,
   valid(vSchema.updateAdmin),
   isAuth([roles.super]),
   ac.updateAdmin
 );
 
 router.delete(
-  "/delete",
+  `${Admin.deleteAdmin}`,
   valid(vSchema.deleteAdmin),
   isAuth([roles.super]),
   ac.deleteAdmin
 );
 
 router.get(
-  "/search",
+  `${Admin.searchAdmin}`,
   valid(vSchema.searchAdmin),
   isAuth([roles.super]),
   ac.searchAdmin
 );
 
+//=================================================================================================
 //upload one or more image
 router.post(
-  "/Add/image",
+  `${Admin.AddImgBySuper}`,
   multerCloud(allowedExtensions.Image).single("adminImage"),
   valid(vSchema.AddAdminImg),
   isAuth([roles.super]),
   ac.AddAdminImg
 );
 
+
+//   EDIT_R     admin
+router.post(
+  `${Admin.AddImgByAdmin}`,
+  multerCloud(allowedExtensions.Image).single("adminImage"),
+  isAuth([roles.admin]),
+  ac.AddAdminImg
+);
+
+//   EDIT_R     admin
+router.patch(`${Admin.deleteImgByAdmin}`,isAuth([roles.admin]), ac.deleteAdminImg);
+
 router.patch(
-  "/delete/image",
+  `${Admin.AddImgByAdmin}`,
   valid(vSchema.deleteAdminImg),
   isAuth([roles.super]),
   ac.deleteAdminImg
 );
-// router.patch(
-//   "/updateRole",
-//   valid(vSchema.updaterole),
-//   isAuth([roles.super]),
-//   ac.updaterole
-// );
 
-router.get("/info", isAuth([roles.admin]), ac.info);
+
+
+router.get( `${Admin.dashboardAdmin}`,isAuth([roles.admin]), ac.dashboard);
 export default router;

@@ -29,7 +29,6 @@ export const searchRegister = {
       size: generalFields.size,
       search: generalFields.search,
 
-      // searchById: generalFields._id,
       trainingId: generalFields._id.optional().messages(customMessages),
       studentId: generalFields._id.messages(customMessages),
     })

@@ -83,6 +83,7 @@ export const searchcourse = {
       page: generalFields.page,
       size: generalFields.size,
       search: generalFields.search,
+      courseId: generalFields._id,
     })
     .required(),
 };
