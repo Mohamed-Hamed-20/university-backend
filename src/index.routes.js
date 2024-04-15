@@ -23,9 +23,7 @@ import { AllRoutes, routes } from "./utils/routes.path.js";
 
 export const bootstrap = (app, express) => {
   const allowedOrigins = [
-    "http://localhost:3000",
-    "https://graduation-project-beryl-seven.vercel.app",
-    "https://graduation-project-beryl-seven.vercel.app/",
+
   ];
 
   const corsOptions = {
