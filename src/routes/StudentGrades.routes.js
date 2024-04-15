@@ -30,7 +30,7 @@ router.post(
 router.put(
   `${studentGrades.updateGradeByAdmin}`,
   valid(vSchema.updatecoursegrate),
-  isAuth([roles.instructor, roles.admin]),
+  isAuth([roles.admin]),
   gc.updategrate,
   sgc.updateSemsterGrate
 );

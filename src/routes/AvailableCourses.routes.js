@@ -8,3 +8,6 @@ const { Availablecourses } = routes.student;
 router.post(`${Availablecourses}`, isAuth([roles.stu]), acc.availableCourses);
 
 export default router;
+
+
+

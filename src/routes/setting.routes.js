@@ -26,7 +26,12 @@ router.delete(
 
 router.get(
   `${setting.ViewSetting}`,
-  isAuth([roles.super, roles.admin]),
+  isAuth([roles.super]),
+  sc.ViewSetting
+);
+router.get(
+  `${setting.ViewSettingAdmin}`,
+  isAuth([roles.admin]),
   sc.ViewSetting
 );
 

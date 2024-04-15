@@ -3,129 +3,97 @@ import settingModel from "../../../DB/models/setting.model.js";
 import { asyncHandler } from "../../utils/errorHandling.js";
 
 export const updateSetting = asyncHandler(async (req, res, next) => {
-  const {
-    StudentLogin,
-    StudentRegister,
-    StudentViewGrates,
-    StudentViewAvailablecourses,
-    InstructorLogin,
-    InstructoruploadsGrates,
-    AdminLogin,
-    AdminEditStudent,
-    AdminEditInstructor,
-    AdminEditTraining,
-    AdminEditSemster,
-    AdminEditCourses,
-    AdminEditRegister,
-    MainSemsterId,
-  } = req.body;
+  const { ApiUrl, Allow, MainSemsterId, MaxAllowTrainingToRegister } = req.body;
 
-  const studentLoginRoutes = [
-    "/Api/user/login",
-    "/Api/user/getuser",
-    "/Api/student/register/addCourse",
-    "/Api/student/register/deleteCourse",
-    "/Api/student/register/getRegister",
-    "/Api/student/Availablecourses",
-  ];
-  const StudentRegisterRoutes = [
-    "/Api/student/register/addCourse",
-    "/Api/student/register/deleteCourse",
-    "/Api/student/register/getRegister",
-  ];
+  // Make sure both ApiUrl and Allow are either both sent or both not sent
+  if ((ApiUrl && !Allow) || (!ApiUrl && Allow)) {
+    return next(
+      new Error("Both ApiUrl and Allow must be sent or both not sent", {
+        cause: 400,
+      })
+    );
+  }
 
-  const StudentViewGratesRoutes = [""];
-
+  // Find the existing setting or create a new one if it doesn't exist
   let setting = await settingModel.findOne();
-  //if not setting Create One
+
   if (!setting) {
     if (!MainSemsterId) {
-      return next(new Error("you need to provied SemsterId"));
+      return next(new Error("You need to provide SemsterId", { cause: 400 }));
     }
+    // check this semster Vaild
     const semster = await SemesterModel.findById(MainSemsterId);
-    // if not semster found
     if (!semster) {
-      return next(new Error("Invaild SemsterId not found", { cause: 404 }));
+      return next(new Error("Invalid SemsterId not found", { cause: 404 }));
     }
 
-    const newsetting = {
+    //new doc
+    const newSetting = {
       MainSemsterId: semster._id,
+      deniedRoutes: [],
+      MaxAllowTrainingToRegister: MaxAllowTrainingToRegister || 0,
     };
-    setting = await settingModel.create(newsetting);
+
+    //create new doc
+    setting = await settingModel.create(newSetting);
     if (!setting) {
-      return next(new Error("server Error", { cause: 500 }));
+      return next(new Error("Server Error", { cause: 500 }));
     }
   }
 
-  if (typeof StudentLogin === "boolean") {
-    setting.StudentLogin = StudentLogin;
-    if (StudentLogin === false) {
+  // Update the setting based on the provided data
+  if (ApiUrl && Allow) {
+    if (Allow == "yes") {
+      const newDeniedRoutes = setting.deniedRoutes.filter((ApiPath) => {
+        return ApiPath !== ApiUrl;
+      });
+      setting.deniedRoutes = newDeniedRoutes;
+    } else if (Allow == "no") {
+      if (!setting.deniedRoutes.includes(ApiUrl)) {
+        setting.deniedRoutes.push(ApiUrl);
+      }
     }
   }
 
-  if (typeof StudentRegister === "boolean") {
-    setting.StudentRegister = StudentRegister;
+  // Check if MainSemsterId is provided and update it if it's different
+  if (
+    MainSemsterId &&
+    setting.MainSemsterId.toString() !== MainSemsterId.toString()
+  ) {
+    const semster = await SemesterModel.findById(MainSemsterId);
+    if (!semster) {
+      return next(new Error("Invalid SemsterId not found", { cause: 404 }));
+    }
   }
 
-  if (typeof StudentViewGrates === "boolean") {
-    setting.StudentViewGrates = StudentViewGrates;
-  }
+  // Update MaxAllowTrainingToRegister if provided
+  if (MaxAllowTrainingToRegister)
+    setting.MaxAllowTrainingToRegister = MaxAllowTrainingToRegister;
 
-  if (typeof StudentViewAvailablecourses === "boolean") {
-    setting.StudentViewAvailablecourses = StudentViewAvailablecourses;
-  }
-
-  if (typeof InstructorLogin === "boolean") {
-    setting.InstructorLogin = InstructorLogin;
-  }
-
-  if (typeof InstructoruploadsGrates === "boolean") {
-    setting.InstructoruploadsGrates = InstructoruploadsGrates;
-  }
-
-  if (typeof AdminLogin === "boolean") {
-    setting.AdminLogin = AdminLogin;
-  }
-
-  if (typeof AdminEditStudent === "boolean") {
-    setting.AdminEditStudent = AdminEditStudent;
-  }
-
-  if (typeof AdminEditInstructor === "boolean") {
-    setting.AdminEditInstructor = AdminEditInstructor;
-  }
-
-  if (typeof AdminEditTraining === "boolean") {
-    setting.AdminEditTraining = AdminEditTraining;
-  }
-
-  if (typeof AdminEditSemster === "boolean") {
-    setting.AdminEditSemster = AdminEditSemster;
-  }
-
-  if (typeof AdminEditCourses === "boolean") {
-    setting.AdminEditCourses = AdminEditCourses;
-  }
-
-  if (typeof AdminEditRegister === "boolean") {
-    setting.AdminEditRegister = AdminEditRegister;
-  }
+  // Save the updated setting
   const result = await setting.save();
   return res
     .status(200)
-    .json({ message: "setting updated successfully", setting: result });
+    .json({ message: "Setting updated successfully", setting: result });
 });
 
 export const deleteSetting = asyncHandler(async (req, res, next) => {});
 
-export const ViewSetting = asyncHandler(async (req, res, next) => {});
+// ViewSetting
+export const ViewSetting = asyncHandler(async (req, res, next) => {
+  const setting = req.setting;
 
+  return res.status(200).json({ message: "All setting Information", setting });
+});
+
+// settingAPIS
 export const settingAPIS = asyncHandler(async (req, res, next) => {
   const setting = await settingModel.findOne();
 
   if (setting.deniedRoutes.includes(req.path)) {
-    return next(new Error("Access To This Service Is Denied", { cause: 403 }));
+    return next(new Error("Access to this service is denied", { cause: 403 }));
   }
+
   req.setting = setting;
   return next();
 });
