@@ -107,6 +107,7 @@ export const uploadgrate = asyncHandler(async (req, res, next) => {
   req.course = course;
   req.register = register;
   req.Grade = grate;
+  req.semsterId = semsterId;
   return next();
 });
 
