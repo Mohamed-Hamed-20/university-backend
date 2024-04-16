@@ -19,10 +19,17 @@ export const uploadgrate = asyncHandler(async (req, res, next) => {
   const { courseId, studentId, FinalExam, Oral, Practical, Midterm } = req.body;
   let { semsterId } = req.body;
 
-  // check semster
-  const chksemster = await semsterModel.findById(semsterId);
-  if (!chksemster) {
-    return next(new Error("semster Not found", { cause: 404 }));
+  //if he was admin
+  if (req.user.role == roles.admin) {
+    if (semsterId && semsterId.toString() !== setting.MainSemsterId) {
+      const chksemster = await semsterModel.findById(semsterId);
+      if (!chksemster) {
+        return next(new Error("semster Not found", { cause: 404 }));
+      }
+      semsterId == chksemster._id.toString();
+    } else {
+      semsterId = setting.MainSemsterId;
+    }
   }
 
   // check course
