@@ -1,3 +1,4 @@
+import slugify from "slugify";
 import { adminModel } from "../../../DB/models/admin.model.js";
 import CourseModel from "../../../DB/models/course.model.js";
 import { InstructorModel } from "../../../DB/models/instructor.model.js";
@@ -218,8 +219,6 @@ export const deleteAdmin = asyncHandler(async (req, res, next) => {
 //   });
 // });
 
-
-
 //Get user
 export const Getuser = asyncHandler(async (req, res, next) => {
   console.log(req.user);
@@ -323,15 +322,18 @@ export const AddAdminImg = asyncHandler(async (req, res, next) => {
       imgName = name;
       response = resp;
     } else {
-      const folder = `${process.env.Folder_Admin}/${admin.FullName}-${admin._id}`;
-      const { imgName: name, response: resp } = await createImg({
+      console.log({ regestInfo: "harder" });
+      const newName = slugify(admin.FullName, { trim: true, replacement: "_" });
+      const folder = `${process.env.Folder_Admin}/${newName}-${admin._id}`;
+      const { responses, ImgNames } = await createImg({
         folder,
-        file: req.file,
+        files: [req.file],
       });
 
+      console.log({ responses, ImgNames });
       // Get response and imgnaem
-      imgName = name;
-      response = resp;
+      imgName = ImgNames[0];
+      response = responses[0];
     }
   } else {
     return next(new Error("Need to provide Image first", { cause: 404 }));

@@ -1,14 +1,17 @@
 import multer from "multer";
 import {
   DeleteObjectCommand,
+  DeleteObjectsCommand,
   GetObjectCommand,
+  ListObjectsV2Command,
   PutObjectCommand,
   S3Client,
 } from "@aws-sdk/client-s3";
 import dotenv from "dotenv";
-import crypto from "crypto";
 import sharp from "sharp";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { generateHexName } from "./crpto.js";
+import { response } from "express";
 
 dotenv.config({ path: "./config/config.env" });
 
@@ -51,29 +54,49 @@ export const multerCloud = (allowedExtensionsArr) => {
   return upload;
 };
 
-const generateHexName = async () => {
-  const randomBytes = crypto.randomBytes(32);
-  const hexString = randomBytes.toString("hex");
-  return { hexString };
-};
+export const createImg = async ({ folder, files }) => {
+  // List to store all the promises related to uploading files
+  const uploadPromises = [];
+  const allImgNames = [];
 
-export const createImg = async ({ folder, file }) => {
-  const { hexString } = await generateHexName();
-  const buffer = await sharp(file.buffer)
-    .resize({ width: 800, height: 600, fit: "contain" })
-    .png({ quality: 80 })
-    .toBuffer();
+  // Configuring promises for uploading each file
+  for (const file of files) {
+    try {
+      const { hexString } = await generateHexName();
 
-  const imgName = `${folder}/${hexString}`;
-  const params = {
-    Key: imgName,
-    Bucket: process.env.Bucket_name,
-    Body: buffer,
-    ContentType: file.mimetype,
-  };
-  const command = new PutObjectCommand(params);
-  const response = await s3Client.send(command);
-  return { response, imgName };
+      const buffer = await sharp(file.buffer)
+        .resize({ width: 800, height: 600, fit: "contain" })
+        .png({ quality: 80 })
+        .toBuffer();
+
+      const imgName = `${folder}/${hexString}`;
+      allImgNames.push(imgName);
+
+      // Setting up parameters for uploading the file
+      const params = {
+        Key: imgName,
+        Bucket: process.env.Bucket_name,
+        Body: buffer,
+        ContentType: file.mimetype,
+      };
+
+      // Adding the upload promise to the list
+      uploadPromises.push(s3Client.send(new PutObjectCommand(params)));
+    } catch (error) {
+      console.error("Error while uploading the file:", error);
+      // If an error occurs, immediately reject the promise
+      throw error;
+    }
+  }
+
+  // Wait for all upload operations to complete
+  const responses = await Promise.all(uploadPromises);
+  responses.forEach((response) => {
+    if (response.$metadata.httpStatusCode !== 200) {
+      throw new Error("server error In uploading Images");
+    }
+  });
+  return { responses, ImgNames: allImgNames };
 };
 
 export const GetsingleImg = async ({ ImgName }) => {
@@ -111,4 +134,36 @@ export const updateImg = async ({ imgName, file }) => {
   const command = new PutObjectCommand(params);
   const response = await s3Client.send(command);
   return { response, imgName };
+};
+
+export const listoFiles = async ({ folder }) => {
+  const command = new ListObjectsV2Command({
+    Bucket: process.env.Bucket_name,
+    Prefix: folder,
+  });
+  const data = await s3Client.send(command);
+
+  return { data };
+};
+export const deleteMuliFiles = async ({ objects }) => {
+  const Allkeys = objects.Contents.map((object) => {
+    return object.Key;
+  });
+  const command = new DeleteObjectsCommand({
+    Bucket: process.env.Bucket_name,
+    Delete: { Objects: Allkeys },
+  });
+  const response = await s3Client.send(command);
+  return { response };
+};
+
+export const deleteImages = async ({ folder }) => {
+  // Delete the folder itself
+  const params = new DeleteObjectCommand({
+    Bucket: process.env.Bucket_name,
+    Prefix: folder,
+  });
+
+  const response = await s3Client.send(params);
+  return { response };
 };

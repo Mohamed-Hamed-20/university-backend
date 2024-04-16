@@ -20,6 +20,8 @@ import morgan from "morgan";
 import { hellowpage } from "./utils/templetHtml.js";
 import { settingAPIS } from "./controllers/setting/setting.js";
 import { AllRoutes, routes } from "./utils/routes.path.js";
+import { GetObjectCommand, ListObjectsV2Command } from "@aws-sdk/client-s3";
+import { listoFiles, s3Client } from "./utils/aws.s3.js";
 
 export const bootstrap = (app, express) => {
   const allowedOrigins = [
@@ -63,9 +65,16 @@ export const bootstrap = (app, express) => {
     legacyHeaders: false,
   });
 
-  app.use(settingAPIS);
   // Apply the rate limiting
   app.use(limiter);
+  const done = async () => {
+    const { data } = await listoFiles({
+      folder: "university/students/reham sobhy hamdy-661885494e8124edff0f2429",
+    });
+    console.log(data);
+  };
+  // done();
+  app.use(settingAPIS);
   // API
   app.use(`${routes.student._id}`, userRouter);
   app.use(`${routes.Admin._id}`, adminRouter);

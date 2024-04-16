@@ -3,6 +3,7 @@ import { asyncHandler } from "../../utils/errorHandling.js";
 import { ApiFeature } from "../../utils/apiFeature.js";
 import { roles } from "../../middleware/auth.js";
 import { createImg, deleteImg, GetsingleImg } from "../../utils/aws.s3.js";
+import slugify from "slugify";
 
 // create new training
 export const addtrain = asyncHandler(async (req, res, next) => {
@@ -193,39 +194,31 @@ export const alltraining = asyncHandler(async (req, res, next) => {
 export const AddTrainingImg = asyncHandler(async (req, res, next) => {
   const { trainingId } = req.body;
 
+  if (req.files.length == 0) {
+    return next(new Error("Image Not provided", { cause: 400 }));
+  }
+
   const training = await trainingmodel.findById(trainingId);
+
   if (!training) {
     return next(new Error("training not found", { cause: 404 }));
   }
-  if (training.ImgUrls.length > 7) {
+
+  if (training.ImgUrls.length + req.files?.length >= 7) {
     return next(new Error("Not allow to Upload more Images", { cause: 404 }));
   }
+
   // Add Images
   if (req.files.length > 0) {
-    const ImgUrls = [];
-    const uploadPromises = [];
+    const newName = slugify(training.training_name, "_");
+    const folder = `${process.env.Folder_course}/${newName}-${training._id}`;
+    const { ImgNames, responses } = await createImg({
+      folder,
+      files: req.files,
+    });
 
-    for (const file of req.files) {
-      const folder = `${process.env.Folder_Training}/${training.training_name}-${training._id}`;
-      const promise = createImg({ file, folder });
-      uploadPromises.push(promise);
-    }
-
-    const responses = await Promise.all(uploadPromises);
-
-    for (const { imgName, response } of responses) {
-      if (response.$metadata.httpStatusCode !== 200) {
-        return next(
-          new Error("Error in uploading Img", {
-            cause: response.$metadata.httpStatusCode,
-          })
-        );
-      }
-      ImgUrls.push(imgName);
-    }
-
-    // Concatenate ImgUrls to training.ImgUrls
-    training.ImgUrls = training.ImgUrls.concat(ImgUrls);
+    // Concatenate ImgUrls to course.ImgUrls
+    training.ImgUrls = training.ImgUrls.concat(ImgNames);
   }
   // Save the training
   const result = await training.save();

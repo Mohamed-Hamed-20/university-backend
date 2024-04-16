@@ -4,7 +4,6 @@ import { bootstrap } from "./src/index.routes.js";
 const app = express();
 dotenv.config({ path: "./config/config.env" });
 
-
 //bootstrap
 bootstrap(app, express);
 

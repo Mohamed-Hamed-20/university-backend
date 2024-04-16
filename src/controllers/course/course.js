@@ -3,6 +3,7 @@ import { asyncHandler } from "../../utils/errorHandling.js";
 import { arrayofIds } from "../../utils/arrayobjectIds.js";
 import { ApiFeature } from "../../utils/apiFeature.js";
 import { createImg, deleteImg, GetsingleImg } from "../../utils/aws.s3.js";
+import slugify from "slugify";
 
 export const addCourse = asyncHandler(async (req, res, next) => {
   const {
@@ -185,47 +186,33 @@ export const searchcourse = asyncHandler(async (req, res, next) => {
     .json({ message: "Done All courses Information", courses });
 });
 
-export const count = asyncHandler(async (req, res, next) => {
-  const count = await CourseModel.find().countDocuments({});
-  return res.json({ count: count });
-});
-
 export const AddcourseImg = asyncHandler(async (req, res, next) => {
   const { courseId } = req.body;
+
+  if (req.files.length == 0) {
+    return next(new Error("Image Not provided", { cause: 400 }));
+  }
 
   const course = await CourseModel.findById(courseId);
   if (!course) {
     return next(new Error("course not found", { cause: 404 }));
   }
-  if (course.ImgUrls.length > 7) {
+
+  if (course.ImgUrls.length + req.files?.length >= 7) {
     return next(new Error("Not allow to Upload more Images", { cause: 404 }));
   }
   // Add Images
   if (req.files.length > 0) {
-    const ImgUrls = [];
-    const uploadPromises = [];
 
-    for (const file of req.files) {
-      const folder = `${process.env.Folder_course}/${course.course_name}-${course._id}`;
-      const promise = createImg({ file, folder });
-      uploadPromises.push(promise);
-    }
-
-    const responses = await Promise.all(uploadPromises);
-
-    for (const { imgName, response } of responses) {
-      if (response.$metadata.httpStatusCode !== 200) {
-        return next(
-          new Error("Error in uploading Img", {
-            cause: response.$metadata.httpStatusCode,
-          })
-        );
-      }
-      ImgUrls.push(imgName);
-    }
+    const newName = slugify(course.course_name, "_");
+    const folder = `${process.env.Folder_course}/${newName}-${course._id}`;
+    const { ImgNames, responses } = await createImg({
+      folder,
+      files: req.files,
+    });
 
     // Concatenate ImgUrls to course.ImgUrls
-    course.ImgUrls = course.ImgUrls.concat(ImgUrls);
+    course.ImgUrls = course.ImgUrls.concat(ImgNames);
   }
   // Save the course
   const result = await course.save();

@@ -12,6 +12,7 @@ import { asyncHandler } from "../../utils/errorHandling.js";
 import { verifypass } from "../../utils/hashpassword.js";
 import { roles } from "../../middleware/auth.js";
 import SemesterModel from "../../../DB/models/semster.model.js";
+import slugify from "slugify";
 
 export const login = asyncHandler(async (req, res, next) => {
   const { Student_Code, password } = req.body;
@@ -274,6 +275,7 @@ export const deleteStudent = asyncHandler(async (req, res, next) => {
 });
 
 export const searchuser = asyncHandler(async (req, res, next) => {
+  console.log(req.query);
   const allowFields = [
     "Full_Name",
     "_id",
@@ -347,15 +349,16 @@ export const AddStuImg = asyncHandler(async (req, res, next) => {
       imgName = name;
       response = resp;
     } else {
-      const folder = `${process.env.Folder_stu}/${student.Full_Name}-${student._id}`;
-      const { imgName: name, response: resp } = await createImg({
+      const newName = slugify(student.Full_Name, "_");
+      const folder = `${process.env.Folder_stu}/${newName}-${student._id}`;
+      const { ImgNames, responses } = await createImg({
         folder,
-        file: req.file,
+        file: [req.file],
       });
       console.log({ name, resp });
       // Get response and imgnaem
-      imgName = name;
-      response = resp;
+      imgName = ImgNames[0];
+      response = responses[0];
     }
   } else {
     return next(new Error("Need to provide Image first", { cause: 404 }));

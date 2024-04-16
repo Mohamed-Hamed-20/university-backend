@@ -18,11 +18,20 @@ import { asyncHandler } from "../../utils/errorHandling.js";
 export const uploadgrate = asyncHandler(async (req, res, next) => {
   const { courseId, studentId, FinalExam, Oral, Practical, Midterm } = req.body;
   let { semsterId } = req.body;
-
+  const setting = req.setting;
   // check semster
-  const chksemster = await semsterModel.findById(semsterId);
-  if (!chksemster) {
-    return next(new Error("semster Not found", { cause: 404 }));
+
+  //if he was admin
+  if (req.user.role == roles.admin) {
+    if (semsterId && semsterId.toString() !== setting.MainSemsterId) {
+      const chksemster = await semsterModel.findById(semsterId);
+      if (!chksemster) {
+        return next(new Error("semster Not found", { cause: 404 }));
+      }
+      semsterId == chksemster._id.toString();
+    } else {
+      semsterId = setting.MainSemsterId;
+    }
   }
 
   // check course
@@ -43,7 +52,7 @@ export const uploadgrate = asyncHandler(async (req, res, next) => {
       );
     }
   }
-
+  console.log(semsterId);
   // Find the registration document for this user
   const register = await RegisterModel.findOne({ studentId: studentId });
 
@@ -91,7 +100,7 @@ export const uploadgrate = asyncHandler(async (req, res, next) => {
     YearWorks,
     TotalGrate,
     creditHours: course.credit_hour,
-    semsterId,
+    semsterId: semsterId,
   };
   const grate = await GradeModel.create(GradeInSingleCourse);
   if (!grate) {
@@ -100,6 +109,7 @@ export const uploadgrate = asyncHandler(async (req, res, next) => {
   req.course = course;
   req.register = register;
   req.Grade = grate;
+  req.semsterId = semsterId;
   return next();
 });
 

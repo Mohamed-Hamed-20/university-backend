@@ -1,3 +1,4 @@
+import slugify from "slugify";
 import CourseModel from "../../../DB/models/course.model.js";
 import { InstructorModel } from "../../../DB/models/instructor.model.js";
 import trainingmodel from "../../../DB/models/training.model.js";
@@ -422,15 +423,16 @@ export const AddInstructorImg = asyncHandler(async (req, res, next) => {
     imgName = name;
     response = resp;
   } else {
-    const folder = `${process.env.Folder_Instructor}/${Instructor.FullName}-${Instructor._id}`;
-    const { imgName: name, response: resp } = await createImg({
+    const newName = slugify(Instructor.FullName, "_");
+    const folder = `${process.env.Folder_Instructor}/${newName}-${Instructor._id}`;
+    const { responses, ImgNames } = await createImg({
       folder,
-      file: req.file,
+      file: [req.file],
     });
-
+    console.log(responses);
     // Get response and imgname
-    imgName = name;
-    response = resp;
+    imgName = ImgNames[0];
+    response = responses[0];
   }
 
   // Check if image added successfully
