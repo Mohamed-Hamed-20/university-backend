@@ -67,13 +67,12 @@ export const bootstrap = (app, express) => {
 
   // Apply the rate limiting
   app.use(limiter);
+
   const done = async () => {
-    const { data } = await listoFiles({
-      folder: "university/students/reham sobhy hamdy-661885494e8124edff0f2429",
-    });
-    console.log(data);
+    // const { objects } = await listoFiles({ folder: "university/admins/" });
+    // console.log({ objects });
   };
-  // done();
+  done();
   app.use(settingAPIS);
   // API
   app.use(`${routes.student._id}`, userRouter);

@@ -11,13 +11,12 @@ import dotenv from "dotenv";
 import sharp from "sharp";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { generateHexName } from "./crpto.js";
-import { response } from "express";
 
 dotenv.config({ path: "./config/config.env" });
 
 // تكوين AWS S3 client
 export const s3Client = new S3Client({
-  region: process.env.Bucket_Region, // اختر المنطقة التي ترغب في استخدامها
+  region: process.env.Bucket_Region,
   credentials: {
     accessKeyId: process.env.AWS_Access_key,
     secretAccessKey: process.env.AWS_key_secret,
@@ -25,9 +24,9 @@ export const s3Client = new S3Client({
 });
 
 export const allowedExtensions = {
-  Image: ["image/png", "image/jpeg", "image/gif", "image/jfif"],
+  Image: ["image/png", "image/jpeg", "image/gif", "image/jfif", "image/webp"],
   Files: ["application/pdf"],
-  Videos: ["video/mp4"],
+  Videos: ["video/mp4", "video/webm", "video/mpeg"],
 };
 
 export const multerCloud = (allowedExtensionsArr) => {
@@ -58,7 +57,7 @@ export const createImg = async ({ folder, files }) => {
   // List to store all the promises related to uploading files
   const uploadPromises = [];
   const allImgNames = [];
-
+  console.log(files);
   // Configuring promises for uploading each file
   for (const file of files) {
     try {
@@ -141,29 +140,54 @@ export const listoFiles = async ({ folder }) => {
     Bucket: process.env.Bucket_name,
     Prefix: folder,
   });
-  const data = await s3Client.send(command);
-
-  return { data };
+  const objects = await s3Client.send(command);
+  console.log(objects);
+  return { objects };
 };
+
 export const deleteMuliFiles = async ({ objects }) => {
-  const Allkeys = objects.Contents.map((object) => {
-    return object.Key;
-  });
-  const command = new DeleteObjectsCommand({
-    Bucket: process.env.Bucket_name,
-    Delete: { Objects: Allkeys },
-  });
-  const response = await s3Client.send(command);
-  return { response };
+  console.log(objects.Contents);
+
+  if (objects?.Contents && objects?.Contents?.length > 0) {
+    // تنسيق المصفوفة بشكل صحيح
+    const Allkeys = objects.Contents.map((object) => {
+      return { Key: object.Key?.toString() };
+    });
+
+    const command = new DeleteObjectsCommand({
+      Bucket: process.env.Bucket_name,
+      Delete: { Objects: Allkeys },
+    });
+
+    const response = await s3Client.send(command);
+
+    // التحقق من نجاح العملية باستخدام رمز الاستجابة
+    if (![200, 204].includes(response.$metadata.httpStatusCode)) {
+      throw new Error(
+        `Failed to delete images. Status code: ${response.$metadata.httpStatusCode}`
+      );
+    }
+    return { response };
+  }
+  // إرجاع الاستجابة في حالة النجاح
+  return { response: "Images not provided" };
 };
 
-export const deleteImages = async ({ folder }) => {
+export const deleteFolder = async ({ folder, objects }) => {
   // Delete the folder itself
+  if (!objects || objects?.Contents?.length === 0) {
+    return { response: {} };
+  }
+
+  
   const params = new DeleteObjectCommand({
     Bucket: process.env.Bucket_name,
     Prefix: folder,
   });
 
   const response = await s3Client.send(params);
+  if (![200, 201, 202, 204].includes(response.$metadata.httpStatusCode)) {
+    throw new Error("Failed to delete image");
+  }
   return { response };
 };

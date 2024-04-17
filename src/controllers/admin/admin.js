@@ -10,8 +10,11 @@ import { generateToken, storeRefreshToken } from "../../utils/Token.js";
 import { ApiFeature } from "../../utils/apiFeature.js";
 import {
   createImg,
+  deleteFolder,
   deleteImg,
+  deleteMuliFiles,
   GetsingleImg,
+  listoFiles,
   updateImg,
 } from "../../utils/aws.s3.js";
 import { asyncHandler } from "../../utils/errorHandling.js";
@@ -184,11 +187,17 @@ export const deleteAdmin = asyncHandler(async (req, res, next) => {
   }
 
   if (user?.imgName) {
-    // Delete image
-    const { response } = await deleteImg({ imgName: user.imgName });
-    if (![200, 201, 202, 204].includes(response.$metadata.httpStatusCode)) {
-      return next(new Error("Failed to delete image", { cause: 500 }));
-    }
+    // Delete images
+    const newName = slugify(user.FullName, {
+      trim: true,
+      replacement: "_",
+    });
+
+    const folder = `${process.env.Folder_Admin}/${newName}-${user._id}/`;
+    const { objects } = await listoFiles({ folder });
+    const done = await deleteMuliFiles({ objects });
+    const { response } = await deleteFolder({ folder });
+    console.log({ objects, respo: done.response, response });
   }
 
   const result = await user.deleteOne();
@@ -221,7 +230,6 @@ export const deleteAdmin = asyncHandler(async (req, res, next) => {
 
 //Get user
 export const Getuser = asyncHandler(async (req, res, next) => {
-  console.log(req.user);
   const user = req.user;
   if (!user) {
     return next(
@@ -284,6 +292,7 @@ export const searchAdmin = asyncHandler(async (req, res, next) => {
     .status(200)
     .json({ message: "Done All Admin Information", admins });
 });
+
 export const dashboard = asyncHandler(async (req, res, next) => {
   const courses = await CourseModel.countDocuments();
   const students = await userModel.countDocuments();
@@ -322,7 +331,6 @@ export const AddAdminImg = asyncHandler(async (req, res, next) => {
       imgName = name;
       response = resp;
     } else {
-      console.log({ regestInfo: "harder" });
       const newName = slugify(admin.FullName, { trim: true, replacement: "_" });
       const folder = `${process.env.Folder_Admin}/${newName}-${admin._id}`;
       const { responses, ImgNames } = await createImg({

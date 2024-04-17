@@ -47,6 +47,7 @@ export const addToRegister = asyncHandler(async (req, res, next) => {
     TotalGpa: TotalGpa,
     totalCreditHours: totalCreditHours,
     RegisterInfo: userRegisterInfo,
+    setting: req.setting,
   });
 
   const newHours = availableHours - parseInt(course.credit_hour);

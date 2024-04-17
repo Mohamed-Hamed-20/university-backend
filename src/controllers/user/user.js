@@ -3,8 +3,11 @@ import { generateToken, storeRefreshToken } from "../../utils/Token.js";
 import { ApiFeature } from "../../utils/apiFeature.js";
 import {
   createImg,
+  deleteFolder,
   deleteImg,
+  deleteMuliFiles,
   GetsingleImg,
+  listoFiles,
   updateImg,
 } from "../../utils/aws.s3.js";
 import { calclevel, calculateGPA } from "../../utils/calcGrates.js";
@@ -13,6 +16,13 @@ import { verifypass } from "../../utils/hashpassword.js";
 import { roles } from "../../middleware/auth.js";
 import SemesterModel from "../../../DB/models/semster.model.js";
 import slugify from "slugify";
+import RegisterModel from "../../../DB/models/Register.model.js";
+import {
+  GradeModel,
+  SemesterGradeModel,
+} from "../../../DB/models/StudentGrades.model.js";
+import TrainingRegisterModel from "../../../DB/models/trainingRegister.model.js";
+import trainingResultModel from "../../../DB/models/trainingResult.model.js";
 
 export const login = asyncHandler(async (req, res, next) => {
   const { Student_Code, password } = req.body;
@@ -244,34 +254,38 @@ export const updateStudent = asyncHandler(async (req, res, next) => {
     result: result,
   });
 });
+
 export const deleteStudent = asyncHandler(async (req, res, next) => {
   const { userId } = req.query;
-  const user = await userModel
-    .findById({ _id: userId }, {}, { new: true })
-    .select("_id Full_Name Student_Code gender imgName");
+  const user = await userModel.findById(userId);
+
   if (!user) {
-    return next("user Id not found", { cause: 404 });
+    return next(new Error("User not found"), { cause: 404 });
   }
 
-  if (user?.imgName) {
-    // Delete image
-    const { response } = await deleteImg({ imgName: user.imgName });
-    if (![200, 201, 202, 204].includes(response.$metadata.httpStatusCode)) {
-      return next(new Error("Failed to delete image", { cause: 500 }));
-    }
-  }
+  const newName = slugify(user.Full_Name, {
+    replacement: "_",
+  });
+  const folder = `${process.env.Folder_stu}/${newName}-${user._id}/`;
+  const { objects } = await listoFiles({ folder });
 
-  const result = await user.deleteOne();
-  if (result.deletedCount == 0) {
-    return next(
-      new Error("server error Try later Not deleted successfully", {
-        cause: 500,
-      })
-    );
-  }
+  // all operation to delete
+  const deleteOperations = [
+    deleteMuliFiles({ objects }), // delete IMages
+    user.deleteOne(), // delete student
+    RegisterModel.findOneAndDelete({ studentId: userId }), // delete register model
+    GradeModel.deleteMany({ studentId: userId }),
+    SemesterGradeModel.deleteMany({ studentId: userId }), 
+    TrainingRegisterModel.deleteOne({ studentId: userId }),
+    trainingResultModel.deleteMany({ studentId: userId }),
+  ];
+
+  const deleteInfo = await Promise.all(deleteOperations);
+
+  // response
   return res
     .status(200)
-    .json({ message: "user Delete successfully", user: user, result });
+    .json({ message: "User deleted successfully", deleteInfo });
 });
 
 export const searchuser = asyncHandler(async (req, res, next) => {
@@ -324,6 +338,10 @@ export const searchuser = asyncHandler(async (req, res, next) => {
 
 export const AddStuImg = asyncHandler(async (req, res, next) => {
   let { studentId } = req.body;
+  console.log([req.file]);
+  if (!req?.file) {
+    return next(new Error("File should be provided", { cause: 400 }));
+  }
 
   // if he was student
   if (req.user.role == roles.stu) {
@@ -349,13 +367,17 @@ export const AddStuImg = asyncHandler(async (req, res, next) => {
       imgName = name;
       response = resp;
     } else {
-      const newName = slugify(student.Full_Name, "_");
-      const folder = `${process.env.Folder_stu}/${newName}-${student._id}`;
-      const { ImgNames, responses } = await createImg({
-        folder,
-        file: [req.file],
+      const newName = slugify(student.Full_Name, {
+        trim: true,
+        replacement: "_",
       });
-      console.log({ name, resp });
+
+      const folder = `${process.env.Folder_stu}/${newName}-${student._id}`;
+      const { responses, ImgNames } = await createImg({
+        folder,
+        files: [req.file],
+      });
+
       // Get response and imgnaem
       imgName = ImgNames[0];
       response = responses[0];
@@ -383,8 +405,11 @@ export const AddStuImg = asyncHandler(async (req, res, next) => {
 });
 
 export const deleteStuImg = asyncHandler(async (req, res, next) => {
-  const { studentId, imgName } = req.body;
-
+  const { imgName } = req.body;
+  let { studentId } = req.body;
+  if (req.user.role == roles.stu) {
+    studentId = req.user._id;
+  }
   const student = await userModel.findById(studentId);
 
   if (!student) {

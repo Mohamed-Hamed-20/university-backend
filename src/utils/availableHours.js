@@ -3,9 +3,9 @@ import SemesterModel from "../../DB/models/semster.model.js";
 export const availableHoursForUser = async ({
   TotalGpa,
   RegisterInfo,
+  setting,
 } = {}) => {
   try {
-    const setting = req.setting;
     if (!setting) {
       throw new Error("Need to provied semsterId first in setting");
     }

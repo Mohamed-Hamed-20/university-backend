@@ -123,7 +123,8 @@ export const deleteStuImg = {
       imgName: joi
         .string()
         .min(15)
-        .max(100)
+        .trim()
+        .max(300)
         .required()
         .messages(customMessages),
     })
@@ -135,8 +136,9 @@ export const StudeleteStuImg = {
     .object({
       imgName: joi
         .string()
+        .trim()
         .min(15)
-        .max(100)
+        .max(300)
         .required()
         .messages(customMessages),
     })
