@@ -69,7 +69,7 @@ router.patch(`${Admin.deleteImgByAdmin}`,isAuth([roles.admin]), ac.deleteAdminIm
 
 // by super
 router.patch(
-  `${Admin.AddImgBySuper}`,
+  `${Admin.deleteImgBysuper}`,
   valid(vSchema.deleteAdminImg),
   isAuth([roles.super]),
   ac.deleteAdminImg

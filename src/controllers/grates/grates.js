@@ -18,8 +18,6 @@ import { asyncHandler } from "../../utils/errorHandling.js";
 export const uploadgrate = asyncHandler(async (req, res, next) => {
   const { courseId, studentId, FinalExam, Oral, Practical, Midterm } = req.body;
   let { semsterId } = req.body;
-  const setting = req.setting;
-  // check semster
 
   //if he was admin
   if (req.user.role == roles.admin) {
