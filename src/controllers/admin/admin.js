@@ -127,7 +127,6 @@ export const CreateAdmin = asyncHandler(async (req, res, next) => {
 
 export const updateAdmin = asyncHandler(async (req, res, next) => {
   const { FullName, phone, email, password, Date_of_Birth, gender } = req.body;
-  console.log(FullName);
   const { userId } = req.query;
 
   const user = await adminModel.findById(userId);
@@ -185,7 +184,7 @@ export const deleteAdmin = asyncHandler(async (req, res, next) => {
   if (!user) {
     return next("user Id not found", { cause: 404 });
   }
-
+  const deleteOperations = [];
   if (user?.imgName) {
     // Delete images
     const newName = slugify(user.FullName, {
@@ -195,12 +194,12 @@ export const deleteAdmin = asyncHandler(async (req, res, next) => {
 
     const folder = `${process.env.Folder_Admin}/${newName}-${user._id}/`;
     const { objects } = await listoFiles({ folder });
-    const done = await deleteMuliFiles({ objects });
-    const { response } = await deleteFolder({ folder });
-    console.log({ objects, respo: done.response, response });
-  }
 
-  const result = await user.deleteOne();
+    deleteOperations.push(deleteMuliFiles({ objects }));
+  }
+  //delete user
+  deleteOperations.push(user.deleteOne());
+
   if (result.deletedCount == 0) {
     return next(
       new Error("server error Try later Not deleted successfully", {
@@ -338,7 +337,6 @@ export const AddAdminImg = asyncHandler(async (req, res, next) => {
         files: [req.file],
       });
 
-      console.log({ responses, ImgNames });
       // Get response and imgnaem
       imgName = ImgNames[0];
       response = responses[0];

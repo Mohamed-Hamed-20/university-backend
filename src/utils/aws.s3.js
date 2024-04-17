@@ -38,7 +38,6 @@ export const multerCloud = (allowedExtensionsArr) => {
 
   //================================== File Filter =============================
   const fileFilter = function (req, file, cb) {
-    console.log(file.mimetype);
     if (allowedExtensionsArr.includes(file.mimetype)) {
       return cb(null, true);
     }
@@ -57,7 +56,6 @@ export const createImg = async ({ folder, files }) => {
   // List to store all the promises related to uploading files
   const uploadPromises = [];
   const allImgNames = [];
-  console.log(files);
   // Configuring promises for uploading each file
   for (const file of files) {
     try {
@@ -141,12 +139,10 @@ export const listoFiles = async ({ folder }) => {
     Prefix: folder,
   });
   const objects = await s3Client.send(command);
-  console.log(objects);
   return { objects };
 };
 
 export const deleteMuliFiles = async ({ objects }) => {
-  console.log(objects.Contents);
 
   if (objects?.Contents && objects?.Contents?.length > 0) {
     // تنسيق المصفوفة بشكل صحيح
@@ -179,7 +175,7 @@ export const deleteFolder = async ({ folder, objects }) => {
     return { response: {} };
   }
 
-  
+
   const params = new DeleteObjectCommand({
     Bucket: process.env.Bucket_name,
     Prefix: folder,

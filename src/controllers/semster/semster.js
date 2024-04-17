@@ -100,8 +100,6 @@ export const searchsemster = asyncHandler(async (req, res, next) => {
 });
 
 export const count = asyncHandler(async (req, res, next) => {
-  console.log(req.query.num);
   const count = await CourseModel.find().countDocuments({});
-  console.log(count);
   return res.json({ count: count });
 });

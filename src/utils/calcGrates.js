@@ -79,7 +79,6 @@ export const calculateGradeAndPoints = (totalGrate) => {
   } else {
     grade = "F";
   }
-  console.log(points, grade);
   return { points, grade };
 };
 // Function to calculate cumulative GPA considering the old GPA

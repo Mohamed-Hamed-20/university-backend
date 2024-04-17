@@ -53,8 +53,7 @@ export const addtrain = asyncHandler(async (req, res, next) => {
 
 // update training
 export const updatetraining = asyncHandler(async (req, res, next) => {
-  console.log(req.body);
-  console.log(req.query);
+
   const { training_id } = req.query;
   const {
     training_name,

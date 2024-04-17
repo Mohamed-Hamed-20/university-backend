@@ -429,7 +429,6 @@ export const AddInstructorImg = asyncHandler(async (req, res, next) => {
       folder,
       file: [req.file],
     });
-    console.log(responses);
     // Get response and imgname
     imgName = ImgNames[0];
     response = responses[0];

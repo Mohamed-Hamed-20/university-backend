@@ -73,7 +73,7 @@ export class ApiFeature {
             return { [field]: { $regex: new RegExp(search.trim(), "i") } };
           }),
         };
-        // console.log(JSON.stringify(searchQuery, null, 2));
+
         this.MongoseQuery.find(searchQuery);
       }
     }

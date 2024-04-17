@@ -23,6 +23,7 @@ import {
 } from "../../../DB/models/StudentGrades.model.js";
 import TrainingRegisterModel from "../../../DB/models/trainingRegister.model.js";
 import trainingResultModel from "../../../DB/models/trainingResult.model.js";
+import TokenModel from "../../../DB/models/token.model.js";
 
 export const login = asyncHandler(async (req, res, next) => {
   const { Student_Code, password } = req.body;
@@ -266,19 +267,23 @@ export const deleteStudent = asyncHandler(async (req, res, next) => {
   const newName = slugify(user.Full_Name, {
     replacement: "_",
   });
-  const folder = `${process.env.Folder_stu}/${newName}-${user._id}/`;
-  const { objects } = await listoFiles({ folder });
+
+  const deleteOperations = [];
+  if (user?.imgName) {
+    const folder = `${process.env.Folder_stu}/${newName}-${user._id}/`;
+    const { objects } = await listoFiles({ folder });
+    deleteOperations.push(deleteMuliFiles({ objects })); // delete IMages
+  }
 
   // all operation to delete
-  const deleteOperations = [
-    deleteMuliFiles({ objects }), // delete IMages
+  deleteOperations.concat([
     user.deleteOne(), // delete student
     RegisterModel.findOneAndDelete({ studentId: userId }), // delete register model
     GradeModel.deleteMany({ studentId: userId }),
-    SemesterGradeModel.deleteMany({ studentId: userId }), 
+    SemesterGradeModel.deleteMany({ studentId: userId }),
     TrainingRegisterModel.deleteOne({ studentId: userId }),
     trainingResultModel.deleteMany({ studentId: userId }),
-  ];
+  ]);
 
   const deleteInfo = await Promise.all(deleteOperations);
 
@@ -289,7 +294,6 @@ export const deleteStudent = asyncHandler(async (req, res, next) => {
 });
 
 export const searchuser = asyncHandler(async (req, res, next) => {
-  console.log(req.query);
   const allowFields = [
     "Full_Name",
     "_id",
@@ -338,7 +342,6 @@ export const searchuser = asyncHandler(async (req, res, next) => {
 
 export const AddStuImg = asyncHandler(async (req, res, next) => {
   let { studentId } = req.body;
-  console.log([req.file]);
   if (!req?.file) {
     return next(new Error("File should be provided", { cause: 400 }));
   }
@@ -443,4 +446,9 @@ export const deleteStuImg = asyncHandler(async (req, res, next) => {
     .json({ message: "Image deleted successfully", result, response });
 });
 
-export const logout = asyncHandler(async (req, res, next) => {});
+export const logout = asyncHandler(async (req, res, next) => {
+  const user = req.user;
+  const token = await TokenModel.findOneAndUpdate({
+    userId: user._id,
+  });
+});

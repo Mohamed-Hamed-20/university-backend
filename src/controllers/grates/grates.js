@@ -50,7 +50,6 @@ export const uploadgrate = asyncHandler(async (req, res, next) => {
       );
     }
   }
-  console.log(semsterId);
   // Find the registration document for this user
   const register = await RegisterModel.findOne({ studentId: studentId });
 
