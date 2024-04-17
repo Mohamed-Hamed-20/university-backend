@@ -6,7 +6,7 @@ import { calculateCumulativeGPA, updateGPA } from "../../utils/calcGrates.js";
 import { asyncHandler } from "../../utils/errorHandling.js";
 
 export const addTosemster = asyncHandler(async (req, res, next) => {
-  const { studentId, courseId, semsterId } = req.body;
+  const { studentId, courseId } = req.body;
   const register = req.register;
   const grade = req.Grade;
   const semsterId = req.semsterId;
