@@ -1,5 +1,7 @@
 import connectDB from "../DB/connect.js";
 import cors from "cors";
+import hpp from "hpp";
+import mongosanitize from "express-mongo-sanitize";
 import { rateLimit } from "express-rate-limit";
 import userRouter from "./routes/user.routes.js";
 import adminRouter from "./routes/admin.routes.js";
@@ -45,8 +47,15 @@ export const bootstrap = (app, express) => {
   app.use(cors(corsOptions));
 
   //Allow feaching Data
-  app.use(express.json());
+  app.use(express.json({limit:'30kb'}));
   app.use(express.urlencoded({ extended: true }));
+
+  //to apply data sanitizing
+  app.use(mongosanitize());
+
+  //middleware to protect against HTTP Parameter Pollution attacks
+  app.use(hpp());
+
 
   // DB connection
   connectDB();

@@ -5,11 +5,12 @@ import * as vSchema from "../controllers/user/user.valid.js";
 import { isAuth, roles } from "../middleware/auth.js";
 import { allowedExtensions, multerCloud } from "../utils/aws.s3.js";
 import { routes } from "../utils/routes.path.js";
+import { limiter } from "../utils/apply.security.js";
 const router = Router();
 const {student} = routes
 //user routes
 
-router.post(`${student.login}`, valid(vSchema.login), uc.login);
+router.post(`${student.login}`,limiter({limit:2,Mintute:15}), valid(vSchema.login), uc.login);
 
 router.post(
   `${student.createStudent}`,

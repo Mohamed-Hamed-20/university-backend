@@ -1,12 +1,15 @@
 import rateLimit from "express-rate-limit";
 
-export const limiter = async ({ windowMs, limit }) => {
-  const limiter = rateLimit({
-    windowMs: windowMs,
-    limit: limit,
-    standardHeaders: "draft-7",
-    legacyHeaders: false,
+//Middleware Rate limiter
+export const limiter = ({ Mintute, limit }) => {
+  const limiterMiddleware = rateLimit({
+    windowMs: Mintute * 60 * 1000 || 15 * 60000,
+    max: limit || 70,
+    message: {
+      message: "To many Request for this service You block",
+      TimeBlocked:"${Mintute} Mintute",
+    },
   });
 
-  return limiter;
-};
+  return limiterMiddleware;
+}
