@@ -427,7 +427,7 @@ export const AddInstructorImg = asyncHandler(async (req, res, next) => {
     const folder = `${process.env.Folder_Instructor}/${newName}-${Instructor._id}`;
     const { responses, ImgNames } = await createImg({
       folder,
-      file: [req.file],
+      files: [req.file],
     });
     // Get response and imgname
     imgName = ImgNames[0];
