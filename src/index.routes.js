@@ -1,8 +1,9 @@
 import connectDB from "../DB/connect.js";
+// securty imports
 import cors from "cors";
 import hpp from "hpp";
 import mongosanitize from "express-mongo-sanitize";
-import { rateLimit } from "express-rate-limit";
+
 import userRouter from "./routes/user.routes.js";
 import adminRouter from "./routes/admin.routes.js";
 import settingRouter from "./routes/setting.routes.js";
@@ -12,7 +13,6 @@ import StudentGradesRouter from "./routes/StudentGrades.routes.js";
 import courseRouter from "./routes/course.routes.js";
 import AvailablecourseRouter from "./routes/AvailableCourses.routes.js";
 import RegisterRouter from "./routes/Register.routes.js";
-
 import trainingRouter from "./routes/training.routes.js";
 import TrainingResultRouter from "./routes/trainingResult.routes.js";
 import TrainingRegisterRouter from "./routes/TrainingRegister.routes.js";
@@ -21,17 +21,15 @@ import { GlobalErrorHandling } from "./utils/errorHandling.js";
 import morgan from "morgan";
 import { hellowpage } from "./utils/templetHtml.js";
 import { settingAPIS } from "./controllers/setting/setting.js";
-import { AllRoutes, routes } from "./utils/routes.path.js";
-import { GetObjectCommand, ListObjectsV2Command } from "@aws-sdk/client-s3";
-import { listoFiles, s3Client } from "./utils/aws.s3.js";
+import { routes } from "./utils/routes.path.js";
 
 export const bootstrap = (app, express) => {
   const allowedOrigins = [
-    "https://graduation-project-beryl-seven.vercel.app/",
-    "https://graduation-project-beryl-seven.vercel.app",
-    "http://localhost:3000/",
-    "http://localhost:3000",
-    "https://localhost:3000",
+    // "https://graduation-project-beryl-seven.vercel.app/",
+    // "https://graduation-project-beryl-seven.vercel.app",
+    // "http://localhost:3000/",
+    // "http://localhost:3000",
+    // "https://localhost:3000",
   ];
 
   const corsOptions = {
@@ -47,15 +45,14 @@ export const bootstrap = (app, express) => {
   app.use(cors(corsOptions));
 
   //Allow feaching Data
-  app.use(express.json({limit:'30kb'}));
+  app.use(express.json({ limit: "30kb" }));
   app.use(express.urlencoded({ extended: true }));
 
-  //to apply data sanitizing 
+  //to apply data sanitizing
   app.use(mongosanitize());
 
   //middleware to protect against HTTP Parameter Pollution attacks
   app.use(hpp());
-
 
   // DB connection
   connectDB();
@@ -65,17 +62,6 @@ export const bootstrap = (app, express) => {
   } else {
     app.use(morgan("combined"));
   }
-
-  // =====================================chk rate limiter==================================================
-  const limiter = rateLimit({
-    windowMs: 15 * 60 * 1000,
-    limit: 100,
-    standardHeaders: "draft-7",
-    legacyHeaders: false,
-  });
-
-  // Apply the rate limiting
-  app.use(limiter);
 
   app.use(settingAPIS);
   // API
