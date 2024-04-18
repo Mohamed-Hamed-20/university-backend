@@ -50,7 +50,7 @@ export const bootstrap = (app, express) => {
   app.use(express.json({limit:'30kb'}));
   app.use(express.urlencoded({ extended: true }));
 
-  //to apply data sanitizing
+  //to apply data sanitizing 
   app.use(mongosanitize());
 
   //middleware to protect against HTTP Parameter Pollution attacks
