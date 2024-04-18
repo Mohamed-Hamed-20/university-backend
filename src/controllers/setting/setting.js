@@ -3,7 +3,7 @@ import settingModel from "../../../DB/models/setting.model.js";
 import { asyncHandler } from "../../utils/errorHandling.js";
 import {routes} from '../../utils/routes.path.js'
 
-const studentroutedescription = [
+const routedescription = [
   //student routes
   {
     name: "Student Login",
@@ -80,9 +80,7 @@ const studentroutedescription = [
     url: `${routes.TrainingResult._id}${routes.TrainingResult.SearchTrainingResultByStudent}`,
     desc: "Searches for training results based on criteria specified by a student.",
   },
-];
-const adminroutedescription=[
-// Routes for Admins
+  // Routes for Admins
   {
     name: "Admin Login",
     url: `${routes.Admin._id}${routes.Admin.login}`,
@@ -303,9 +301,7 @@ const adminroutedescription=[
     url: `${routes.RegisterTraining._id}${routes.RegisterTraining.searchTrainingsRegisterdByAdmin}`,
     desc: "Searches for registered trainings based on criteria specified by an admin.",
   },
-]
-const instructorroutedescriptions=[
-// Routes for Instructors
+  // Routes for Instructors
   {
     name: "Instructor Login",
     url: `${routes.instructor._id}${routes.instructor.login}`,
@@ -411,7 +407,9 @@ const instructorroutedescriptions=[
     url: `${routes.TrainingResult._id}${routes.TrainingResult.SearchTrainingResultByInstructor}`,
     desc: "Searches for training results based on criteria specified by an instructor.",
   },
-]
+];
+
+
 export const updateSetting = asyncHandler(async (req, res, next) => {
   const { ApiUrl, Allow, MainSemsterId, MaxAllowTrainingToRegister } = req.body;
 
@@ -492,8 +490,7 @@ export const deleteSetting = asyncHandler(async (req, res, next) => {});
 // ViewSetting
 export const ViewSetting = asyncHandler(async (req, res, next) => {
   const setting = req.setting;
-  return res.status(200).json({ message: "All setting Information",studentroutedescription,
-  adminroutedescription,instructorroutedescriptions });
+  return res.status(200).json({ message: "All setting Information",routedescription });
 });
 
 // settingAPIS
