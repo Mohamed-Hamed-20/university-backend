@@ -4,12 +4,14 @@ import { valid } from "../middleware/validation.js";
 import * as sgc from "../controllers/semsterGrate/semsterGrate.js";
 import * as vSchema from "../controllers/grates/grates.valid.js";
 import { isAuth, roles } from "../middleware/auth.js";
+import { limiter } from "../utils/apply.security.js";
 import { routes } from "../utils/routes.path.js";
 const router = Router();
 const { studentGrades } = routes;
 // رفع الدرجة الانستركتور   ======>   EDIT_R
 router.post(
   `${studentGrades.AddGradeByInstructor}`,
+  limiter({limit:70,Mintute:60}),
   valid(vSchema.addgrateInstructor),
   isAuth([roles.instructor]),
   gc.uploadgrate,
@@ -19,6 +21,7 @@ router.post(
 // رفع الدرجة الادمن       ======>   EDIT_R
 router.post(
   `${studentGrades.AddGradeByAdmin}`,
+  limiter({limit:50,Mintute:60}),
   valid(vSchema.addgrate),
   isAuth([roles.admin]),
   gc.uploadgrate,
@@ -29,6 +32,7 @@ router.post(
 // تحديث الدرجة الادمن          ======>   EDIT_R
 router.put(
   `${studentGrades.updateGradeByAdmin}`,
+  limiter({limit:40,Mintute:60}),
   valid(vSchema.updatecoursegrate),
   isAuth([roles.admin]),
   gc.updategrate,
@@ -38,6 +42,7 @@ router.put(
 // تحديث الدرجة الادكتور          ======>   EDIT_R
 router.put(
   `${studentGrades.updateGradeByInstructor}`,
+  limiter({limit:100,Mintute:60}),
   valid(vSchema.updatecoursegrateInstructor),
   isAuth([roles.instructor]),
   gc.updategrate,
@@ -48,6 +53,7 @@ router.put(
 // حذف الدرجة الادمن                  ======>   EDIT_R
 router.delete(
   `${studentGrades.deleteGradeByAdmin}`,
+  limiter({limit:100,Mintute:60}),
   valid(vSchema.deletecoursegrate),
   isAuth([roles.admin]),
   gc.deletecoursegrate,
@@ -57,6 +63,7 @@ router.delete(
 // حذف الدرجة الدكتور            ======>   EDIT_R
 router.delete(
   `${studentGrades.deleteGradeByInstructor}`,
+  limiter({limit:60,Mintute:60}),
   valid(vSchema.deletecoursegrate),
   isAuth([roles.instructor]),
   gc.deletecoursegrate,
@@ -68,6 +75,7 @@ router.delete(
 // Admin  students Grates Search ======>   EDIT_R
 router.get(
   `${studentGrades.studentsGradesSearchByAdmin}`,
+  limiter({limit:150,Mintute:60}),
   valid(vSchema.studentsGratesSearch),
   isAuth([roles.admin]),
   gc.studentsGratesSearch
@@ -76,6 +84,7 @@ router.get(
 // instructor  students Grates Search ======>   EDIT_R
 router.get(
   `${studentGrades.studentsGradesSearchByInstructor}`,
+  limiter({limit:150,Mintute:60}),
   valid(vSchema.studentsGratesSearchInstructor),
   isAuth([roles.instructor]),
   gc.studentsGratesSearch
@@ -85,6 +94,7 @@ router.get(
 // Admin  grade Single user ======>   EDIT_R
 router.get(
   `${studentGrades.GetSingleGradeAboutUserByAdmin}`,
+  limiter({limit:50,Mintute:60}),
   valid(vSchema.gradeSingleuser),
   isAuth([roles.admin]),
   gc.gradeSingleuser
@@ -93,6 +103,7 @@ router.get(
 // instructor  grade Single user ======>   EDIT_R
 router.get(
   `${studentGrades.GetSingleGradeAboutUserByInstructor}`,
+  limiter({limit:30,Mintute:60}),
   valid(vSchema.gradeSingleuser),
   isAuth([roles.instructor]),
   gc.gradeSingleuser
@@ -102,6 +113,7 @@ router.get(
 // صحيفة الطالب التفصيلية  to student  ======>   EDIT_R
 router.get(
   `${studentGrades.NewspaperBystudent}`,
+  limiter({limit:30,Mintute:60}),
   isAuth([roles.stu]),
   gc.stugrades
 );
@@ -109,6 +121,7 @@ router.get(
 // صحيفة الطالب التفصيلية  to Admin  ======>   EDIT_R
 router.get(
   `${studentGrades.NewspaperByAdmin}`,
+  limiter({limit:80,Mintute:60}),
   valid(vSchema.stugrades),
   isAuth([roles.admin]),
   gc.stugrades
@@ -118,6 +131,7 @@ router.get(
 //  student Main semster Grate
 router.get(
   `${studentGrades.GetMainsemsterGrade}`,
+  limiter({limit:100,Mintute:60}),
   isAuth([roles.stu]),
   gc.MainsemsterGrate
 );
