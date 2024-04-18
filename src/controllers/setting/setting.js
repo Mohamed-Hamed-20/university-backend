@@ -1,7 +1,7 @@
 import SemesterModel from "../../../DB/models/semster.model.js";
 import settingModel from "../../../DB/models/setting.model.js";
 import { asyncHandler } from "../../utils/errorHandling.js";
-import {routes} from '../../utils/routes.path.js'
+import { routes } from "../../utils/routes.path.js";
 
 const routedescription = [
   //student routes
@@ -341,7 +341,7 @@ const routedescription = [
     name: "Get Main Semester Information by Instructor",
     url: `${routes.semster._id}${routes.semster.MainSemsterInfoByInstructor}`,
     desc: "Retrieves information about the main semester for an instructor.",
-  }, 
+  },
   {
     name: "Get Single Training Information by Instructor",
     url: `${routes.Training._id}${routes.Training.singleTraininginfoByinstructor}`,
@@ -408,7 +408,6 @@ const routedescription = [
     desc: "Searches for training results based on criteria specified by an instructor.",
   },
 ];
-
 
 export const updateSetting = asyncHandler(async (req, res, next) => {
   const { ApiUrl, Allow, MainSemsterId, MaxAllowTrainingToRegister } = req.body;
@@ -490,7 +489,9 @@ export const deleteSetting = asyncHandler(async (req, res, next) => {});
 // ViewSetting
 export const ViewSetting = asyncHandler(async (req, res, next) => {
   const setting = req.setting;
-  return res.status(200).json({ message: "All setting Information",routedescription });
+  return res
+    .status(200)
+    .json({ message: "All setting Information", routedescription, setting });
 });
 
 // settingAPIS
