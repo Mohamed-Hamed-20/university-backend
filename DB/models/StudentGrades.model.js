@@ -81,6 +81,18 @@ const semsterGradeSchema = new mongoose.Schema({
     ref: "Semster",
     required: true,
   },
+  HoursInSemster: {
+    type: Number,
+    required: false, //Edit this later  [خليها true]
+    min: 0,
+    max: 30,
+  },
+  GpaInSemster: {
+    type: Number,
+    required: false, //Edit this later  [خليها true]
+    min: 0,
+    max: 4,
+  },
   courseGrates: [
     {
       type: Types.ObjectId,

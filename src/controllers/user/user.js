@@ -79,22 +79,31 @@ export const login = asyncHandler(async (req, res, next) => {
 export const Getuser = asyncHandler(async (req, res, next) => {
   const user = req.user;
   const setting = req.setting;
+
   if (!user) {
     return next(
-      new Error("Invalid User Data please Try Again", { cause: 500 })
+      new Error("Invalid User Data, please try again", { statusCode: 500 })
     );
   }
-  const { TotalGpa, totalCreditHours } = await calculateGPA({
-    studentId: user._id,
-  });
-  const { level } = await calclevel({ totalCreditHours });
-  const semsterInfo = await SemesterModel.findById(setting.MainSemsterId);
 
-  let urlImg;
+  const levelPromise = calclevel({
+    totalCreditHours: user.totalCreditHours || 0,
+  });
+  const semsterInfoPromise = SemesterModel.findById(setting.MainSemsterId)
+    .lean()
+    .select("name year term Max_Hours");
+
+  let urlImgPromise;
   if (user?.imgName) {
-    const { url } = await GetsingleImg({ ImgName: user.imgName });
-    urlImg = url;
+    urlImgPromise = GetsingleImg({ ImgName: user.imgName });
   }
+
+  const [levelResult, semsterInfoResult, urlImgResult] = await Promise.all([
+    levelPromise,
+    semsterInfoPromise,
+    urlImgPromise,
+  ]);
+
   const result = {
     Full_Name: user.Full_Name,
     _id: user._id,
@@ -104,15 +113,17 @@ export const Getuser = asyncHandler(async (req, res, next) => {
     PhoneNumber: user.PhoneNumber,
     gender: user.gender,
     department: user.department,
-    level: level,
-    TotalGpa,
-    totalCreditHours,
-    semsterInfo: semsterInfo.MainSemsterId,
+    level: levelResult.level,
+    TotalGpa: user?.TotalGpa || 2,
+    totalCreditHours: user?.totalCreditHours || 0,
+    semsterInfo: semsterInfoResult.MainSemsterId,
     imgName: user.imgName,
-    url: urlImg,
+    url: urlImgResult,
   };
+
   return res.status(200).json({ message: "Done", result });
 });
+
 
 export const addStudent = asyncHandler(async (req, res, next) => {
   const {

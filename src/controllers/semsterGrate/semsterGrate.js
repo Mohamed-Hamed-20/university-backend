@@ -1,6 +1,7 @@
 import RegisterModel from "../../../DB/models/Register.model.js";
 import { SemesterGradeModel } from "../../../DB/models/StudentGrades.model.js";
 import CourseModel from "../../../DB/models/course.model.js";
+import userModel from "../../../DB/models/user.model.js";
 import { filterArray } from "../../utils/arrayobjectIds.js";
 import { calculateCumulativeGPA, updateGPA } from "../../utils/calcGrates.js";
 import { asyncHandler } from "../../utils/errorHandling.js";
@@ -10,124 +11,168 @@ export const addTosemster = asyncHandler(async (req, res, next) => {
   const register = req.register;
   const grade = req.Grade;
   const semsterId = req.semsterId;
+  const course = req.course;
+  const student = req.student;
+
   // find SemsterGrade Document
-  const semster = await SemesterGradeModel.findOne({
+  const semsterGrades = await SemesterGradeModel.findOne({
     studentId,
     semsterId,
-  }).populate({
-    path: "semsterId",
-    select: "year term startDate endDate",
   });
 
+  console.log(semsterGrades);
+  //calc GPA for semster
+  const { cumulativeGPA, totalCreditHours } = calculateCumulativeGPA({
+    points: grade.Points,
+    creditHours: course.credit_hour,
+    oldGPA: semsterGrades?.GpaInSemster || 0,
+    oldCreditHours: semsterGrades?.HoursInSemster || 0,
+  });
+  console.log({ cumulativeGPA, totalCreditHours });
   let result;
-  if (!semster) {
-    const semsterGrate = {
+  if (!semsterGrades) {
+    const newsemsterGrate = {
       studentId,
       semsterId,
+      GpaInSemster: cumulativeGPA,
+      HoursInSemster: totalCreditHours,
       courseGrates: [req.Grade._id],
     };
-    result = await SemesterGradeModel.create(semsterGrate);
-    await result.populate({
-      path: "semsterId",
-      select: "year term startDate endDate",
+    result = await SemesterGradeModel.create(newsemsterGrate);
+    console.log(result);
+  }
+
+  // if he already have update semster Grades
+  if (semsterGrades) {
+    semsterGrades.courseGrates.push(req.Grade._id);
+    semsterGrades.GpaInSemster = cumulativeGPA;
+    semsterGrades.HoursInSemster = totalCreditHours;
+    result = await semsterGrades.save();
+    console.log(result);
+  }
+
+  //student Update Gpa and hours passed
+  console.log({
+    Points: grade.Points,
+    creditHours: course.credit_hour,
+    oldGPA: student?.TotalGpa,
+    oldCreditHours: student.totalCreditHours,
+  });
+  const { cumulativeGPA: TotalGpa, totalCreditHours: TotalHours } =
+    calculateCumulativeGPA({
+      points: grade.Points,
+      creditHours: course.credit_hour,
+      oldGPA: student?.TotalGpa || 0,
+      oldCreditHours: student?.totalCreditHours || 0,
     });
-  }
 
-  if (semster) {
-    console.log(req.Grade._id);
-    semster.courseGrates.push(req.Grade._id);
-    result = await semster.save();
-  }
-  // req.semsterGrate = result;
+  console.log({ TotalGpa, TotalHours });
 
-  // filter coursesRegisterd and store new result
+  // update Gpa for student
+  student.TotalGpa = TotalGpa;
+  student.totalCreditHours = TotalHours;
+  console.log(student);
+  //update and  filter coursesRegisterd and store new result
   const coursesRegisterd = filterArray(register.coursesRegisterd, courseId);
-
+  console.log(register);
   register.coursesRegisterd = coursesRegisterd;
-  await register.save();
+
+  const updatePromises = [student.save()];
+  const [newstudent] = await Promise.all(updatePromises);
+  // console.log({ newRegister, newstudent });
+  if (!newstudent) {
+    return next(new Error("SERVER ERROR :(", { cause: 500 }));
+  }
 
   return res.status(200).json({
     message: "Result uploaded successfully",
     grade: grade,
-    semsterGrate: result.semsterId,
+    semsterGrades: result,
+    student,
   });
 });
 
 export const updateSemsterGrate = asyncHandler(async (req, res, next) => {
-  const { semsterId } = req.body;
-  const { _id } = req.grade;
-
+  const oldGrade = req.oldGrade;
+  const grade = req.grade;
+  console.log({ oldGrade, grade });
   // Find the SemesterGrade document based on studentId and _id
-  const semster = await SemesterGradeModel.findOne({
+  const semsterGrade = await SemesterGradeModel.findOne({
     studentId: req.grade.studentId,
-    courseGrates: _id,
-  }).populate({
-    path: "semsterId",
-    select: "name year term",
+    courseGrates: grade._id,
   });
 
   // Check if semster exists
-  if (!semster) {
+  if (!semsterGrade) {
     return next(
       new Error("Student doesn't have courseGrateId already", { cause: 400 })
     );
   }
+  const updatePromises = [];
+  // =====================================Update Gpa in semster ============================================
+  //delete Gpa to new one
+  const { newGPA, newCreditHours } = updateGPA({
+    courseGPA: oldGrade.Points,
+    courseCreditHours: oldGrade.courseId.credit_hour,
+    currentGPA: semsterGrade.GpaInSemster,
+    totalCreditHours: semsterGrade.HoursInSemster,
+  });
 
-  let result;
-  // Check if semsterId is provided and is different from the current semsterId
-  if (semsterId && semsterId.toString() !== semster.semsterId._id.toString()) {
-    // Delete courseGrate from the old semster
-    const newCourseGrates = filterArray(semster.courseGrates, _id);
-    semster.courseGrates = newCourseGrates;
+  // add mew result to gpa
+  const { cumulativeGPA, totalCreditHours } = calculateCumulativeGPA({
+    points: grade.Points,
+    creditHours: oldGrade.courseId.credit_hour,
+    oldGPA: newGPA,
+    oldCreditHours: newCreditHours,
+  });
 
-    // Create or update new semeterGrate for the new semster
-    let newSemsterGrate = await SemesterGradeModel.findOne({
-      studentId: req.grade.studentId,
-      semsterId,
+  semsterGrade.GpaInSemster = cumulativeGPA;
+  semsterGrade.HoursInSemster = totalCreditHours;
+  // push to update
+  updatePromises.push(semsterGrade.save());
+
+  // ===========================================Update student total gpa====================================
+  const student = oldGrade.studentId;
+
+  //delete Gpa to new one حذف القديم
+  const { newGPA: newTotalGpa, newCreditHours: newTotalHours } = updateGPA({
+    courseGPA: oldGrade.Points,
+    courseCreditHours: oldGrade.courseId.credit_hour,
+    currentGPA: student.TotalGpa,
+    totalCreditHours: student.totalCreditHours,
+  });
+
+  // add mew result to gpa
+  const { cumulativeGPA: TotalGpa, totalCreditHours: TotalHours } =
+    calculateCumulativeGPA({
+      points: grade.Points,
+      creditHours: oldGrade.courseId.credit_hour,
+      oldGPA: newTotalGpa,
+      oldCreditHours: newTotalHours,
     });
 
-    if (!newSemsterGrate) {
-      newSemsterGrate = await SemesterGradeModel.create({
-        studentId: req.grade.studentId,
-        semsterId,
-        courseGrates: [_id],
-      });
-    } else {
-      newSemsterGrate.courseGrates.push(_id);
-    }
+  updatePromises.push(
+    userModel.findByIdAndUpdate(
+      { _id: student._id },
+      { TotalGpa: TotalGpa, totalCreditHours: TotalHours },
+      { new: true }
+    )
+  );
 
-    // Save and populate the result
-    result = await newSemsterGrate.save();
-    await result.populate({
-      path: "semsterId",
-      select: "name year term",
-    });
-  }
-
-  // Check if courseGrates array is empty and delete the semster if true
-  let updatedsemster;
-  if (semster.courseGrates.length === 0) {
-    await semster.deleteOne();
-  } else {
-    // Update semster with the current version
-    semster.semsterId = semsterId;
-    updatedsemster = await semster.save();
-    await updatedsemster.populate({
-      path: "semsterId",
-      select: "name year term",
-    });
-  }
-
+  const [semsterResult, stuNewInfo] = await Promise.all(updatePromises);
   // Response
   return res.status(200).json({
     message: "Grate updated successfully",
-    semsterId: result?.semsterId || updatedsemster.semsterId,
+    semsterResult,
+    stuNewInfo,
     grate: req.grade,
   });
 });
 
 export const deleteSemsterGrate = asyncHandler(async (req, res, next) => {
   const grade = req.grade;
+  const student = req.grade.studentId;
+  const course = req.grade.courseId;
   const { backToRegister } = req.body;
 
   const semsterGrate = await SemesterGradeModel.findOne({
@@ -138,11 +183,8 @@ export const deleteSemsterGrate = asyncHandler(async (req, res, next) => {
   if (!semsterGrate) {
     return next(new Error("semster course grate not found", { cause: 404 }));
   }
-  //delete id from semsterGrate
-  const newCourseGrates = await filterArray(
-    semsterGrate.courseGrates,
-    grade._id
-  );
+
+  const updatePromises = [];
   // if he want this grade to back in register
   if (backToRegister == "yes") {
     // find register model add this result
@@ -153,28 +195,77 @@ export const deleteSemsterGrate = asyncHandler(async (req, res, next) => {
       return next(new Error("register document not found for this user"));
     }
     register.coursesRegisterd.push(grade.courseId);
-    const added = await register.save();
-    if (!added)
-      return next(
-        new Error("eServer error not added successfully", { cause: 500 })
-      );
+    updatePromises.push(register.save());
+  } else {
+    updatePromises.push({});
   }
 
+  //================================= update Gpa and total hours==================================
+
+  const { newGPA, newCreditHours } = updateGPA({
+    courseGPA: grade.Points,
+    courseCreditHours: course.credit_hour,
+    currentGPA: semsterGrate.GpaInSemster || 0,
+    totalCreditHours: semsterGrate.HoursInSemster || course.credit_hour,
+  });
+
+  //update
+  semsterGrate.GpaInSemster = newGPA;
+  semsterGrate.HoursInSemster = newCreditHours;
+
+  //delete id from semsterGrate
+  const newCourseGrates = await filterArray(
+    semsterGrate.courseGrates,
+    grade._id
+  );
+  //update
+  semsterGrate.courseGrates = newCourseGrates;
+
+  // ==================================================update student Info=====================================
+  const { newGPA: TotalGpa, newCreditHours: TotalHours } = updateGPA({
+    courseGPA: grade.Points,
+    courseCreditHours: course.credit_hour,
+    currentGPA: student.TotalGpa || 0,
+    totalCreditHours: student.totalCreditHours || course.credit_hour,
+  });
+
+  student.TotalGpa = TotalGpa;
+  student.totalCreditHours = TotalHours;
+
+  updatePromises.push(
+    userModel
+      .findByIdAndUpdate(
+        { _id: student._id },
+        {
+          TotalGpa: TotalGpa,
+          totalCreditHours: TotalHours,
+        },
+        { new: true }
+      )
+      .lean()
+      .select("_id TotalGpa totalCreditHours Full_Name")
+  );
+
   // delete grate
-  const deletedGrade = await grade.deleteOne();
+  updatePromises.push(grade.deleteOne());
 
   let result;
   if (newCourseGrates.length <= 0) {
-    result = await semsterGrate.deleteOne();
+    updatePromises.push(semsterGrate.deleteOne());
   } else {
     semsterGrate.courseGrates = newCourseGrates;
-    result = await semsterGrate.save();
+    updatePromises.push(semsterGrate.save());
   }
+  const [newRegister, newStudent, deletedGrade, UpdatedsemsterGrade] =
+    await Promise.all(updatePromises);
 
   return res.status(200).json({
-    message: "courseGrate delete successfully",
+    message: "Grate delete successfully",
     grade: deletedGrade,
     semsterInfo: result,
+    newRegister,
+    newStudent,
+    UpdatedsemsterGrade,
   });
 });
 

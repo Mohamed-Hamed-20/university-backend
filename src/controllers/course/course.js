@@ -203,7 +203,6 @@ export const AddcourseImg = asyncHandler(async (req, res, next) => {
   }
   // Add Images
   if (req.files.length > 0) {
-
     const newName = slugify(course.course_name, "_");
     const folder = `${process.env.Folder_course}/${newName}-${course._id}`;
     const { ImgNames, responses } = await createImg({

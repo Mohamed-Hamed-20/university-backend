@@ -81,6 +81,7 @@ export const calculateGradeAndPoints = (totalGrate) => {
   }
   return { points, grade };
 };
+
 // Function to calculate cumulative GPA considering the old GPA
 export const calculateCumulativeGPA = ({
   points,
@@ -128,17 +129,28 @@ export const updateGPA = ({
   courseCreditHours,
   totalCreditHours,
 }) => {
+  console.log({
+    currentGPA,
+    courseGPA,
+    courseCreditHours,
+    totalCreditHours,
+  });
+
   const totalPoints =
     currentGPA * totalCreditHours - courseGPA * courseCreditHours;
 
-  const updatedGPA = totalPoints / (totalCreditHours - courseCreditHours);
-
-  // تقريب القيمة
-  const roundedGPA = Math.round(updatedGPA * 1000) / 1000;
-
   const updatedCreditHours = totalCreditHours - courseCreditHours;
 
-  return { newGPA: roundedGPA, newCreditHours: updatedCreditHours };
+  if (updatedCreditHours !== 0) {
+    const updatedGPA = totalPoints / updatedCreditHours;
+
+    // تقريب القيمة
+    const roundedGPA = Math.round(updatedGPA * 1000) / 1000;
+
+    return { newGPA: roundedGPA, newCreditHours: updatedCreditHours };
+  } else {
+    return { newGPA: 0, newCreditHours: 0 };
+  }
 };
 
 export const calculateTotalGPA = async ({ semesters }) => {

@@ -5,9 +5,10 @@ import { roles } from "../../middleware/auth.js";
 import { ApiFeature } from "../../utils/apiFeature.js";
 import { arrayofstring } from "../../utils/arrayobjectIds.js";
 import { availableHoursForUser } from "../../utils/availableHours.js";
-import { GetsingleImg } from "../../utils/aws.s3.js";
+import { GetMultipleImages, GetsingleImg } from "../../utils/aws.s3.js";
 import { calculateGPA } from "../../utils/calcGrates.js";
 import { asyncHandler } from "../../utils/errorHandling.js";
+import { sanitizeStudent } from "../../utils/sanitize.data.js";
 
 export const addToRegister = asyncHandler(async (req, res, next) => {
   const userId = req.user._id;
@@ -38,9 +39,8 @@ export const addToRegister = asyncHandler(async (req, res, next) => {
   const userRegisterInfo = await RegisterModel.findOne({ studentId: userId });
 
   // calculate GPA
-  const { TotalGpa, totalCreditHours } = await calculateGPA({
-    studentId: userId,
-  });
+  const TotalGpa = req?.user?.TotalGpa || 2;
+  const totalCreditHours = req?.user?.totalCreditHours || 0;
 
   // Get available hours for the user
   const availableHours = await availableHoursForUser({
@@ -146,8 +146,7 @@ export const getRegister = asyncHandler(async (req, res, next) => {
     userId = studentId;
   }
 
-  let register;
-  register = await RegisterModel.findOne({ studentId: userId })
+  let register = await RegisterModel.findOne({ studentId: userId })
     .populate({
       path: "coursesRegisterd",
       select: "course_name credit_hour desc _id ImgUrls",
@@ -163,24 +162,22 @@ export const getRegister = asyncHandler(async (req, res, next) => {
     register = await RegisterModel.create(createnewregister);
   }
 
-  // تحميل الصور لكل دورة مسجلة باستخدام Promise.all
-  const promises = [];
-  register.coursesRegisterd.forEach((course) => {
-    if (course.ImgUrls && course.ImgUrls.length > 0) {
-      course.images = [];
-      course.ImgUrls.forEach((imgName) => {
-        promises.push(
-          GetsingleImg({ ImgName: imgName }).then(({ url }) => {
-            course.images.push({ imgName, url });
-          })
-        );
-      });
-    }
-  });
+  // تحميل الصور بسرعة
+  if (register.coursesRegisterd.length > 0) {
+    await Promise.all(
+      register.coursesRegisterd.map(async (course) => {
+        if (course?.ImgUrls?.length > 0) {
+          course.images = await GetMultipleImages(course.ImgUrls);
+          delete course.ImgUrls;
+        }
+      })
+    );
+  }
 
-  await Promise.all(promises);
-
-  return res.status(200).json({ message: "Done", register });
+  // إرسال البيانات المعدلة
+  return res
+    .status(200)
+    .json({ message: "Done", student: sanitizeStudent(req.user), register });
 });
 
 export const searchRegister = asyncHandler(async (req, res, next) => {

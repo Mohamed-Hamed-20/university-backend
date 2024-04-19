@@ -21,8 +21,8 @@ export const arrayofstring = async (array) => {
 };
 
 export const filterArray = (array, element) => {
-  const newarray = array.filter((ele) => {
-    return ele.toString() !== element.toString();
+  const newarray = array?.filter((ele) => {
+    return ele?.toString() !== element.toString();
   });
   return newarray;
 };

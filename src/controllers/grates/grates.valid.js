@@ -1,43 +1,51 @@
 import joi from "joi";
 import { generalFields } from "../../middleware/validation.js";
 
+// grades Greneral fields use it
+const GradesFields = {
+  FinalExam: joi.number().min(0).max(50),
+  Oral: joi.number().min(0).max(10),
+  Practical: joi.number().min(0).max(20),
+  Midterm: joi.number().min(0).max(20),
+};
+
+// add grade by admin
 export const addgrate = {
   body: joi
     .object({
       courseId: generalFields._id.required(),
       semsterId: generalFields._id.required(),
       studentId: generalFields._id.required(),
-      FinalExam: joi.number().min(0).max(50).required(),
-      Oral: joi.number().min(0).max(10).required(),
-      Practical: joi.number().min(0).max(20).required(),
-      Midterm: joi.number().min(0).max(20).required(),
+      FinalExam: GradesFields.FinalExam.required(),
+      Oral: GradesFields.Oral.required(),
+      Practical: GradesFields.Practical.required(),
+      Midterm: GradesFields.Midterm.required(),
     })
     .required(),
 };
 
+// add grade by Instructor
 export const addgrateInstructor = {
   body: joi
     .object({
       courseId: generalFields._id.required(),
       studentId: generalFields._id.required(),
-      FinalExam: joi.number().min(0).max(50).required(),
-      Oral: joi.number().min(0).max(10).required(),
-      Practical: joi.number().min(0).max(20).required(),
-      Midterm: joi.number().min(0).max(20).required(),
+      FinalExam: GradesFields.FinalExam.required(),
+      Oral: GradesFields.Oral.required(),
+      Practical: GradesFields.Practical.required(),
+      Midterm: GradesFields.Midterm.required(),
     })
     .required(),
 };
 
+// Update grade by Admin
 export const updatecoursegrate = {
   body: joi
     .object({
-      courseId: generalFields._id.optional(),
-      semsterId: generalFields._id.optional(),
-      studentId: generalFields._id.optional(),
-      FinalExam: joi.number().min(0).max(50).optional(),
-      Oral: joi.number().min(0).max(10).optional(),
-      Practical: joi.number().min(0).max(20).optional(),
-      Midterm: joi.number().min(0).max(20).optional(),
+      FinalExam: GradesFields.FinalExam.optional(),
+      Oral: GradesFields.Oral.optional(),
+      Practical: GradesFields.Practical.optional(),
+      Midterm: GradesFields.Midterm.optional(),
     })
     .required(),
   query: joi
@@ -47,15 +55,14 @@ export const updatecoursegrate = {
     .required(),
 };
 
+// Update grade by Instructor
 export const updatecoursegrateInstructor = {
   body: joi
     .object({
-      courseId: generalFields._id.optional(),
-      studentId: generalFields._id.optional(),
-      FinalExam: joi.number().min(0).max(50).optional(),
-      Oral: joi.number().min(0).max(10).optional(),
-      Practical: joi.number().min(0).max(20).optional(),
-      Midterm: joi.number().min(0).max(20).optional(),
+      FinalExam: GradesFields.FinalExam.optional(),
+      Oral: GradesFields.Oral.optional(),
+      Practical: GradesFields.Practical.optional(),
+      Midterm: GradesFields.Midterm.optional(),
     })
     .required(),
   query: joi
@@ -65,6 +72,7 @@ export const updatecoursegrateInstructor = {
     .required(),
 };
 
+// Update grade by Instructor && admin
 export const deletecoursegrate = {
   query: joi
     .object({

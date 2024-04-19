@@ -54,6 +54,7 @@ export const multerCloud = (allowedExtensionsArr) => {
 
 export const createImg = async ({ folder, files }) => {
   // List to store all the promises related to uploading files
+  console.log(files);
   const uploadPromises = [];
   const allImgNames = [];
   // Configuring promises for uploading each file
@@ -62,8 +63,14 @@ export const createImg = async ({ folder, files }) => {
       const { hexString } = await generateHexName();
 
       const buffer = await sharp(file.buffer)
-        .resize({ width: 800, height: 600, fit: "contain" })
-        .png({ quality: 80 })
+        .resize({
+          width: 800,
+          height: 600,
+          fit: "inside",
+          withoutEnlargement: true,
+        })
+        .webp({ quality: 80, progressive: true })
+        .toFormat("webp", { mozjpeg: true })
         .toBuffer();
 
       const imgName = `${folder}/${hexString}`;
@@ -106,6 +113,17 @@ export const GetsingleImg = async ({ ImgName }) => {
   return { url };
 };
 
+export const GetMultipleImages = (imgUrls) => {
+  const promises = imgUrls.map((imgUrl) =>
+    getSignedUrl(
+      s3Client,
+      new GetObjectCommand({ Key: imgUrl, Bucket: process.env.Bucket_name }),
+      { expiresIn: 3600 }
+    ).then((url) => ({ imgName: imgUrl, url }))
+  );
+  return Promise.all(promises);
+};
+
 export const deleteImg = async ({ imgName }) => {
   const params = {
     Key: imgName,
@@ -143,7 +161,6 @@ export const listoFiles = async ({ folder }) => {
 };
 
 export const deleteMuliFiles = async ({ objects }) => {
-
   if (objects?.Contents && objects?.Contents?.length > 0) {
     // تنسيق المصفوفة بشكل صحيح
     const Allkeys = objects.Contents.map((object) => {
@@ -174,7 +191,6 @@ export const deleteFolder = async ({ folder, objects }) => {
   if (!objects || objects?.Contents?.length === 0) {
     return { response: {} };
   }
-
 
   const params = new DeleteObjectCommand({
     Bucket: process.env.Bucket_name,

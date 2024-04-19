@@ -5,6 +5,7 @@ import {
 } from "../../../DB/models/StudentGrades.model.js";
 import CourseModel from "../../../DB/models/course.model.js";
 import semsterModel from "../../../DB/models/semster.model.js";
+import userModel from "../../../DB/models/user.model.js";
 import { roles } from "../../middleware/auth.js";
 import { ApiFeature } from "../../utils/apiFeature.js";
 import { arrayofstring } from "../../utils/arrayobjectIds.js";
@@ -16,12 +17,17 @@ import {
 import { asyncHandler } from "../../utils/errorHandling.js";
 
 export const uploadgrate = asyncHandler(async (req, res, next) => {
-  const { courseId, studentId, FinalExam, Oral, Practical, Midterm } = req.body;
+  const { courseId, studentId, Oral, Practical, Midterm } = req.body;
+  let { FinalExam } = req.body;
   let { semsterId } = req.body;
+  const setting = req.setting;
 
   //if he was admin
   if (req.user.role == roles.admin) {
-    if (semsterId && semsterId.toString() !== setting.MainSemsterId) {
+    if (
+      semsterId &&
+      semsterId.toString() !== setting.MainSemsterId.toString()
+    ) {
       const chksemster = await semsterModel.findById(semsterId);
       if (!chksemster) {
         return next(new Error("semster Not found", { cause: 404 }));
@@ -32,15 +38,9 @@ export const uploadgrate = asyncHandler(async (req, res, next) => {
     }
   }
 
-  // check course
-  const course = await CourseModel.findById(courseId);
-  if (!course) {
-    return next(new Error("Course Not found", { cause: 404 }));
-  }
-
   // Check if the user is an instructor for this course
   if (req.user.role == roles.instructor) {
-    semsterId = req.setting.MainSemsterId.toString();
+    semsterId = setting.MainSemsterId.toString();
     const Materials = await arrayofstring(req.user?.Materials);
     if (Materials.length == 0 || !Materials.includes(courseId.toString())) {
       return next(
@@ -50,8 +50,31 @@ export const uploadgrate = asyncHandler(async (req, res, next) => {
       );
     }
   }
-  // Find the registration document for this user
-  const register = await RegisterModel.findOne({ studentId: studentId });
+
+  // course and register and student promises
+  const promiseOperation = [];
+  const coursePromise = CourseModel.findById(courseId)
+    .select("course_name credit_hour")
+    .lean();
+  const studentPromise = userModel
+    .findById(studentId)
+    .select("Full_Name TotalGpa totalCreditHours National_Id");
+  const registerPromise = RegisterModel.findOne({
+    studentId: studentId,
+  }).select("coursesRegisterd studentId Available_Hours");
+  promiseOperation.push(coursePromise);
+  promiseOperation.push(studentPromise);
+  promiseOperation.push(registerPromise);
+
+  // promise all data wanted
+  const [course, student, register] = await Promise.all(promiseOperation);
+  if (!student) {
+    return next(new Error("student Not found", { cause: 404 }));
+  }
+
+  if (!course) {
+    return next(new Error("Course Not found", { cause: 404 }));
+  }
 
   // If registration document is not found
   if (!register) {
@@ -76,10 +99,8 @@ export const uploadgrate = asyncHandler(async (req, res, next) => {
     parseInt(FinalExam) + parseInt(Midterm) + parseInt(YearWorks);
 
   // Calculate grade and points
-  const { grade, points } = calculateGradeAndPoints(
-    TotalGrate,
-    course.credit_hour
-  );
+  const { grade, points } = calculateGradeAndPoints(TotalGrate);
+
   if (!grade) {
     return next(new Error("Server Error", { cause: 500 }));
   }
@@ -96,87 +117,78 @@ export const uploadgrate = asyncHandler(async (req, res, next) => {
     Midterm,
     YearWorks,
     TotalGrate,
-    creditHours: course.credit_hour,
+    creditHours: course.credit_hour, // Edit this later   [هتحتاج متضفهاش هنا تانى بس كدا ]
     semsterId: semsterId,
   };
+
   const grate = await GradeModel.create(GradeInSingleCourse);
   if (!grate) {
     return next(new Error("server Error Try again later", { cause: 400 }));
   }
+
   req.course = course;
   req.register = register;
   req.Grade = grate;
   req.semsterId = semsterId;
+  req.student = student;
+  console.log({ grate });
   return next();
 });
 
 export const updategrate = asyncHandler(async (req, res, next) => {
   const { GradeId } = req.query;
-  const { courseId, semsterId, FinalExam, Oral, Practical, Midterm } = req.body;
-
+  const { FinalExam, Oral, Practical, Midterm } = req.body;
+  const { MainSemsterId } = req.setting;
   // find this grate
-  const stuGrade = await GradeModel.findById(GradeId);
+  const stuGrade = await GradeModel.findById(GradeId)
+    .populate({
+      path: "courseId",
+      select: "course_name credit_hour",
+    })
+    .populate({
+      path: "studentId",
+      select: "TotalGpa totalCreditHours Full_Name",
+    });
+
   if (!stuGrade) {
     return next(new Error("Invaild GradeId", { cause: 400 }));
   }
 
-  // store old result before
-  req.oldGrade = stuGrade;
-
-  // check it valid semsterId
-  if (req.user.role == roles.admin) {
-    if (semsterId && semsterId !== stuGrade.semsterId.toString()) {
-      const chksemster = await semsterModel.findById(semsterId);
-      if (!chksemster) {
-        return next(new Error("Invaild semsterId", { cause: 400 }));
-      }
-      req.newsemster = chksemster;
-      stuGrade.semsterId = semsterId;
-    }
-  }
-
-  //check it Vaild courseId
-  if (courseId && courseId.toString() != stuGrade.courseId.toString()) {
-    const newcourse = await CourseModel.findById(courseId);
-    if (!newcourse) {
-      return next(new Error("Invaild courseId"));
-    }
-    stuGrade.courseId = newcourse._id;
-    req.newcourse = newcourse;
-  }
-
   // if he is Instructor
   if (req.user.role == roles.instructor) {
+    // رفض تعديل درجات لى سمسترات قديمة
+
+    if (stuGrade.semsterId.toString() !== MainSemsterId.toString()) {
+      return next(
+        new Error("You not allow to update old Grate from another semsters", {
+          cause: 400,
+        })
+      );
+    }
+
     // Check if the user is an instructor for this course
     const Materials = await arrayofstring(req.user.Materials);
-    if (!Materials.includes(stuGrade.courseId.toString())) {
+    if (!Materials.includes(stuGrade.courseId._id.toString())) {
       return next(
         new Error("You are not allowed to update this grades", {
           cause: 401,
         })
       );
     }
-
-    // check course he want update for allow or not
-    if (courseId) {
-      if (!Materials.includes(courseId.toString())) {
-        return next(
-          new Error("You are not allowed to make result for this courseId", {
-            cause: 401,
-          })
-        );
-      }
-    }
   }
 
+  // store old result before
+  req.oldGrade = stuGrade;
+
   // Calculate TotalGrate & YearWorks
-  if (Oral) stuGrade.Oral = Oral;
-  if (FinalExam) stuGrade.FinalExam = FinalExam;
-  if (Practical) stuGrade.Practical = Practical;
-  if (Midterm) stuGrade.Midterm = Midterm;
+  if (Oral) stuGrade.Oral = parseInt(Oral);
+  if (FinalExam) stuGrade.FinalExam = parseInt(FinalExam);
+  if (Practical) stuGrade.Practical = parseInt(Practical);
+  if (Midterm) stuGrade.Midterm = parseInt(Midterm);
 
   const YearWorks = stuGrade.Oral + stuGrade.Practical;
   const TotalGrate = stuGrade.FinalExam + stuGrade.Midterm + stuGrade.YearWorks;
+
   // add result to doc grade
   stuGrade.YearWorks = YearWorks;
   stuGrade.TotalGrate = TotalGrate;
@@ -189,7 +201,6 @@ export const updategrate = asyncHandler(async (req, res, next) => {
 
   stuGrade.Points = points;
   stuGrade.Grade = grade;
-
   //update Grade
   const result = await stuGrade.save();
   req.grade = result;
@@ -199,10 +210,46 @@ export const updategrate = asyncHandler(async (req, res, next) => {
 
 export const deletecoursegrate = asyncHandler(async (req, res, next) => {
   const { GradeId } = req.query;
-  const grade = await GradeModel.findById(GradeId);
+  const { MainSemsterId } = req.setting;
+  const grade = await GradeModel.findById(GradeId)
+    .populate({
+      path: "courseId",
+      select: "course_name credit_hour",
+    })
+    .populate({
+      path: "studentId",
+      select: "TotalGpa totalCreditHours Full_Name",
+    });
+
+  if (!grade) {
+    return next(new Error("grade Id not found", { cause: 400 }));
+  }
+  // if he is Instructor
+  if (req.user.role == roles.instructor) {
+    // رفض انة يحذف درجات مواد قديمة
+    if (grade.semsterId.toString() !== MainSemsterId.toString()) {
+      return next(
+        new Error("You not allow to update old Grate from another semsters", {
+          cause: 400,
+        })
+      );
+    }
+
+    // Check if the user is an instructor for this course
+    const Materials = await arrayofstring(req.user.Materials);
+    if (!Materials.includes(grade.courseId._id.toString())) {
+      return next(
+        new Error("You are not allowed to update this grades", {
+          cause: 401,
+        })
+      );
+    }
+  }
+
   if (!grade) {
     return next(new Error("grate for student not found", { cause: 404 }));
   }
+
   req.grade = grade;
   return next();
 });
