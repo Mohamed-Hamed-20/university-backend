@@ -14,7 +14,9 @@ export const addToRegister = asyncHandler(async (req, res, next) => {
   const userId = req.user._id;
   const { courseId } = req.query;
   // Get course information
-  const course = await CourseModel.findById(courseId);
+  const course = await CourseModel.findById(courseId)
+    .lean()
+    .select("_id course_name credit_hour OpenForRegistration ");
   if (!course || course.OpenForRegistration !== true) {
     return next(
       new Error("Invaild courseId or Not Allow to register", { cause: 400 })
@@ -24,6 +26,7 @@ export const addToRegister = asyncHandler(async (req, res, next) => {
   const availableCourses = await availableCoursesModel.findOne({
     studentId: userId,
   });
+
   if (!availableCourses) {
     return next(new Error("You don't have available courses!", { cause: 400 }));
   }
