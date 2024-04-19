@@ -118,7 +118,7 @@ export const Getuser = asyncHandler(async (req, res, next) => {
     totalCreditHours: user?.totalCreditHours || 0,
     semsterInfo: semsterInfoResult.MainSemsterId,
     imgName: user.imgName,
-    url: urlImgResult,
+    url: urlImgResult.url,
   };
 
   return res.status(200).json({ message: "Done", result });
