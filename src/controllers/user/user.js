@@ -110,20 +110,19 @@ export const Getuser = asyncHandler(async (req, res, next) => {
     National_Id: user.National_Id,
     Student_Code: user.Student_Code,
     Date_of_Birth: user.Date_of_Birth,
-    PhoneNumber: user.PhoneNumber,
+    PhoneNumber: user?.PhoneNumber,
     gender: user.gender,
-    department: user.department,
+    department: user?.department,
     level: levelResult.level,
     TotalGpa: user?.TotalGpa || 2,
     totalCreditHours: user?.totalCreditHours || 0,
     semsterInfo: semsterInfoResult.MainSemsterId,
-    imgName: user.imgName,
-    url: urlImgResult.url,
+    imgName: user?.imgName,
+    url: urlImgResult?.url,
   };
 
   return res.status(200).json({ message: "Done", result });
 });
-
 
 export const addStudent = asyncHandler(async (req, res, next) => {
   const {
