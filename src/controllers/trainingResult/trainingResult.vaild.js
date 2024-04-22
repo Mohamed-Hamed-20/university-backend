@@ -89,7 +89,6 @@ export const SearchTrainingResultByInstructor = {
 // student
 export const SearchTrainingResultByStudent = {
   query: joi.object({
-    studentId: generalFields._id.required().messages(customMessages),
     trainingId: generalFields._id.optional().messages(customMessages),
 
     sort: generalFields.sort,
