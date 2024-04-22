@@ -59,10 +59,37 @@ export const getSingleTrainingResult = {
     })
     .required(),
 };
-
-export const SearchTrainingResult = {
+//admin
+export const SearchTrainingResultByAdmin = {
   query: joi.object({
     studentId: generalFields._id.optional().messages(customMessages),
+    trainingId: generalFields._id.optional().messages(customMessages),
+
+    sort: generalFields.sort,
+    select: generalFields.select,
+    page: generalFields.page,
+    size: generalFields.size,
+    search: generalFields.search,
+  }),
+};
+
+export const SearchTrainingResultByInstructor = {
+  query: joi.object({
+    studentId: generalFields._id.optional().messages(customMessages),
+    trainingId: generalFields._id.required().messages(customMessages),
+
+    sort: generalFields.sort,
+    select: generalFields.select,
+    page: generalFields.page,
+    size: generalFields.size,
+    search: generalFields.search,
+  }),
+};
+
+// student
+export const SearchTrainingResultByStudent = {
+  query: joi.object({
+    studentId: generalFields._id.required().messages(customMessages),
     trainingId: generalFields._id.optional().messages(customMessages),
 
     sort: generalFields.sort,

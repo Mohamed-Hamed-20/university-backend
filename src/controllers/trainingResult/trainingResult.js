@@ -224,8 +224,9 @@ export const getSingleTrainingResult = asyncHandler(async (req, res, next) => {
   });
 });
 
+// training search result
 export const SearchTrainingResult = asyncHandler(async (req, res, next) => {
-  const { studentId, trainingId } = req.body;
+  const { studentId, trainingId } = req.query;
   const allowFields = ["studentId", "trainingId", "grade"];
   const searchFieldsText = ["grade"];
   const searchFieldsIds = ["_id", "studentId", "trainingId"];
@@ -241,7 +242,7 @@ export const SearchTrainingResult = asyncHandler(async (req, res, next) => {
       return next(new Error("trainingId must Be provided", { cause: 400 }));
     }
 
-    if (!req.user.Training.includes(trainingId.toString())) {
+    if (!req.user?.Training?.includes(trainingId.toString())) {
       return next(
         new Error("You not Allow to view this training Result", { cause: 403 })
       );
@@ -276,7 +277,6 @@ export const SearchTrainingResult = asyncHandler(async (req, res, next) => {
     .pagination()
     .sort()
     .select()
-    .filter()
     .populate(optionTraining)
     .populate(optionStudent)
     .search({ searchFieldsText, searchFieldsIds });
