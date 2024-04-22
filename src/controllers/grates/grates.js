@@ -16,7 +16,7 @@ import {
 } from "../../utils/calcGrates.js";
 import { asyncHandler } from "../../utils/errorHandling.js";
 
-export const uploadgrate = asyncHandler(async (req, res, next) => {
+export const uploadGrade = asyncHandler(async (req, res, next) => {
   const { courseId, studentId, Oral, Practical, Midterm } = req.body;
   let { FinalExam } = req.body;
   let { semsterId } = req.body;
@@ -51,40 +51,26 @@ export const uploadgrate = asyncHandler(async (req, res, next) => {
     }
   }
 
-  // course and register and student promises
-  const promiseOperation = [];
-  const coursePromise = CourseModel.findById(courseId)
-    .select("course_name credit_hour")
-    .lean();
-  const studentPromise = userModel
-    .findById(studentId)
-    .select("Full_Name TotalGpa totalCreditHours National_Id");
-  const registerPromise = RegisterModel.findOne({
-    studentId: studentId,
-  }).select("coursesRegisterd studentId Available_Hours");
-  promiseOperation.push(coursePromise);
-  promiseOperation.push(studentPromise);
-  promiseOperation.push(registerPromise);
+  // Fetch course, student, and registration data
+  const [course, student, register] = await Promise.all([
+    CourseModel.findById(courseId).select("course_name credit_hour").lean(),
+    userModel
+      .findById(studentId)
+      .select("Full_Name TotalGpa totalCreditHours National_Id"),
+    RegisterModel.findOne({ studentId: studentId }).select(
+      "coursesRegisterd studentId Available_Hours"
+    ),
+  ]);
 
-  // promise all data wanted
-  const [course, student, register] = await Promise.all(promiseOperation);
-  if (!student) {
-    return next(new Error("student Not found", { cause: 404 }));
-  }
-
-  if (!course) {
-    return next(new Error("Course Not found", { cause: 404 }));
-  }
-
-  // If registration document is not found
-  if (!register) {
+  // Check data existence
+  if (!student) return next(new Error("Student not found", { cause: 404 }));
+  if (!course) return next(new Error("Course not found", { cause: 404 }));
+  if (!register)
     return next(
       new Error("Registration document for user not found", { cause: 404 })
     );
-  }
 
-  // If user is not registered for this course
-  if (!register.coursesRegisterd.includes(courseId)) {
+  if (!register?.coursesRegisterd.includes(courseId)) {
     return next(
       new Error(
         "User is not registered for this course or course grade is already uploaded",
@@ -121,17 +107,19 @@ export const uploadgrate = asyncHandler(async (req, res, next) => {
     semsterId: semsterId,
   };
 
-  const grate = await GradeModel.create(GradeInSingleCourse);
-  if (!grate) {
-    return next(new Error("server Error Try again later", { cause: 400 }));
+  const gradeDocument = await GradeModel.create(GradeInSingleCourse);
+  if (!gradeDocument) {
+    return next(
+      new Error("Server Error. Please try again later", { cause: 400 })
+    );
   }
 
+  // Assign data to the next request
   req.course = course;
   req.register = register;
-  req.Grade = grate;
+  req.Grade = gradeDocument;
   req.semsterId = semsterId;
   req.student = student;
-  console.log({ grate });
   return next();
 });
 
@@ -178,7 +166,10 @@ export const updategrate = asyncHandler(async (req, res, next) => {
   }
 
   // store old result before
-  req.oldGrade = stuGrade;
+  const oldPoints = stuGrade.Points;
+  const oldCreditHours = stuGrade.courseId.credit_hour;
+  const newStudent = stuGrade.studentId;
+  req.oldGrade = { oldPoints, oldCreditHours, studentId: newStudent };
 
   // Calculate TotalGrate & YearWorks
   if (Oral) stuGrade.Oral = parseInt(Oral);
@@ -186,8 +177,11 @@ export const updategrate = asyncHandler(async (req, res, next) => {
   if (Practical) stuGrade.Practical = parseInt(Practical);
   if (Midterm) stuGrade.Midterm = parseInt(Midterm);
 
-  const YearWorks = stuGrade.Oral + stuGrade.Practical;
-  const TotalGrate = stuGrade.FinalExam + stuGrade.Midterm + stuGrade.YearWorks;
+  const YearWorks = parseInt(stuGrade.Oral) + stuGrade.Practical;
+  const TotalGrate =
+    parseInt(stuGrade.FinalExam) +
+    parseInt(stuGrade.Midterm) +
+    parseInt(stuGrade.YearWorks);
 
   // add result to doc grade
   stuGrade.YearWorks = YearWorks;
@@ -327,8 +321,10 @@ export const studentsGratesSearch = asyncHandler(async (req, res, next) => {
     select: "name year term  Max_Hours",
   };
 
-  const searchFieldsText = ["Grade", "TotalGrate"];
-  const searchFieldsIds = ["studentId", "semsterId"];
+  const searchFieldsText = ["studentId.Full_Name", "courseId.course_names"];
+  const searchFieldsIds = ["studentId", "courseId", "semsterId"];
+  const searchFieldsNumber = ["TotalGrate", "Points"];
+
   const apiFeatureInstance = new ApiFeature(
     GradeModel.find(filters).lean(),
     req.query,
@@ -340,13 +336,13 @@ export const studentsGratesSearch = asyncHandler(async (req, res, next) => {
     .populate(optionStudent)
     .populate(optionCourse)
     .populate(semsteroptions)
-    .search({ searchFieldsText, searchFieldsIds });
+    .search({ searchFieldsText, searchFieldsIds, searchFieldsNumber });
 
-  const results = await apiFeatureInstance.MongoseQuery;
+  const processedResults = await apiFeatureInstance.MongoseQuery;
 
   return res
     .status(200)
-    .json({ message: "Done student Grates", grades: results });
+    .json({ message: "Done student Grates", grades: processedResults });
 });
 
 // جديد

@@ -129,28 +129,23 @@ export const updateGPA = ({
   courseCreditHours,
   totalCreditHours,
 }) => {
-  console.log({
-    currentGPA,
-    courseGPA,
-    courseCreditHours,
-    totalCreditHours,
-  });
+  if (currentGPA == 0) {
+    courseCreditHours = 0;
+  }
 
   const totalPoints =
-    currentGPA * totalCreditHours - courseGPA * courseCreditHours;
+    parseFloat(currentGPA) * parseFloat(totalCreditHours) -
+    parseFloat(courseGPA) * parseFloat(courseCreditHours);
 
-  const updatedCreditHours = totalCreditHours - courseCreditHours;
+  const updatedCreditHours =
+    parseFloat(totalCreditHours) - parseFloat(courseCreditHours);
 
-  if (updatedCreditHours !== 0) {
-    const updatedGPA = totalPoints / updatedCreditHours;
+  const updatedGPA = parseFloat(totalPoints) / parseFloat(updatedCreditHours);
 
-    // تقريب القيمة
-    const roundedGPA = Math.round(updatedGPA * 1000) / 1000;
+  // تقريب القيمة
+  const roundedGPA = Math.round(updatedGPA * 1000) / 1000;
 
-    return { newGPA: roundedGPA, newCreditHours: updatedCreditHours };
-  } else {
-    return { newGPA: 0, newCreditHours: 0 };
-  }
+  return { newGPA: roundedGPA, newCreditHours: updatedCreditHours };
 };
 
 export const calculateTotalGPA = async ({ semesters }) => {

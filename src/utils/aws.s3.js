@@ -24,7 +24,16 @@ export const s3Client = new S3Client({
 });
 
 export const allowedExtensions = {
-  Image: ["image/png", "image/jpeg", "image/gif", "image/jfif", "image/webp"],
+  Image: [
+    "image/png",
+    "image/jpeg",
+    "image/gif",
+    "image/jfif",
+    "image/webp",
+    "image/tiff",
+    "application/octet-stream",
+  ],
+
   Files: ["application/pdf"],
   Videos: ["video/mp4", "video/webm", "video/mpeg"],
 };

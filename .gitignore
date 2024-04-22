@@ -2,5 +2,6 @@
 
 /node_modules
 
+./try.js
 
 /config/config.env

@@ -58,14 +58,18 @@ export class ApiFeature {
   }
 
   //search
-  search({ searchFieldsText, searchFieldsIds }) {
+  search({ searchFieldsText, searchFieldsIds, searchFieldsNumber }) {
     const { search } = this.QueryData;
     if (search) {
       if (mongoose.Types.ObjectId.isValid(search)) {
         const searchQuery = {
           $or: searchFieldsIds.map((field) => ({ [field]: search })),
         };
-        // console.log(JSON.stringify(searchQuery, null, 2));
+        this.MongoseQuery.find(searchQuery);
+      } else if (!isNaN(search)) {
+        const searchQuery = {
+          $or: searchFieldsNumber.map((field) => ({ [field]: search })),
+        };
         this.MongoseQuery.find(searchQuery);
       } else {
         const searchQuery = {

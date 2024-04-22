@@ -11,20 +11,20 @@ const { studentGrades } = routes;
 // رفع الدرجة الانستركتور   ======>   EDIT_R
 router.post(
   `${studentGrades.AddGradeByInstructor}`,
-  limiter({limit:70,Mintute:60}),
+  limiter({ limit: 70, Mintute: 60 }),
   valid(vSchema.addgrateInstructor),
   isAuth([roles.instructor]),
-  gc.uploadgrate,
+  gc.uploadGrade,
   sgc.addTosemster
 );
 
 // رفع الدرجة الادمن       ======>   EDIT_R
 router.post(
   `${studentGrades.AddGradeByAdmin}`,
-  limiter({limit:50,Mintute:60}),
+  limiter({ limit: 50, Mintute: 60 }),
   valid(vSchema.addgrate),
   isAuth([roles.admin]),
-  gc.uploadgrate,
+  gc.uploadGrade,
   sgc.addTosemster
 );
 // =============================================================

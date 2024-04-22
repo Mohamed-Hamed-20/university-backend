@@ -53,7 +53,6 @@ export const addtrain = asyncHandler(async (req, res, next) => {
 
 // update training
 export const updatetraining = asyncHandler(async (req, res, next) => {
-
   const { training_id } = req.query;
   const {
     training_name,
@@ -297,6 +296,20 @@ export const TrainingInfo = asyncHandler(async (req, res, next) => {
     // Remove ImgUrls from the training object
     delete training.ImgUrls;
   }
+  // تنسيق تاريخ البداية
+  if (training.start_date) {
+    const startDate = new Date(training.start_date);
+    training.start_date = startDate
+      .toLocaleDateString("en-GB")
+      .replace(/\//g, "-");
+  }
+
+  // تنسيق تاريخ النهاية
+  if (training.end_date) {
+    const endDate = new Date(training.end_date);
+    training.end_date = endDate.toLocaleDateString("en-GB").replace(/\//g, "-");
+  }
+
   // Return the training object in the response
   return res.status(200).json({ message: "training information", training });
 });

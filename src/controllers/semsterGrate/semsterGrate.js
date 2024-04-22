@@ -20,15 +20,14 @@ export const addTosemster = asyncHandler(async (req, res, next) => {
     semsterId,
   });
 
-  console.log(semsterGrades);
   //calc GPA for semster
   const { cumulativeGPA, totalCreditHours } = calculateCumulativeGPA({
     points: grade.Points,
     creditHours: course.credit_hour,
-    oldGPA: semsterGrades?.GpaInSemster || 0,
+    oldGPA: semsterGrades?.GpaInSemster || 2,
     oldCreditHours: semsterGrades?.HoursInSemster || 0,
   });
-  console.log({ cumulativeGPA, totalCreditHours });
+
   let result;
   if (!semsterGrades) {
     const newsemsterGrate = {
@@ -48,38 +47,28 @@ export const addTosemster = asyncHandler(async (req, res, next) => {
     semsterGrades.GpaInSemster = cumulativeGPA;
     semsterGrades.HoursInSemster = totalCreditHours;
     result = await semsterGrades.save();
-    console.log(result);
   }
 
   //student Update Gpa and hours passed
-  console.log({
-    Points: grade.Points,
-    creditHours: course.credit_hour,
-    oldGPA: student?.TotalGpa,
-    oldCreditHours: student.totalCreditHours,
-  });
   const { cumulativeGPA: TotalGpa, totalCreditHours: TotalHours } =
     calculateCumulativeGPA({
       points: grade.Points,
       creditHours: course.credit_hour,
-      oldGPA: student?.TotalGpa || 0,
+      oldGPA: student?.TotalGpa || 2,
       oldCreditHours: student?.totalCreditHours || 0,
     });
-
-  console.log({ TotalGpa, TotalHours });
 
   // update Gpa for student
   student.TotalGpa = TotalGpa;
   student.totalCreditHours = TotalHours;
-  console.log(student);
+
   //update and  filter coursesRegisterd and store new result
   const coursesRegisterd = filterArray(register.coursesRegisterd, courseId);
-  console.log(register);
   register.coursesRegisterd = coursesRegisterd;
 
-  const updatePromises = [student.save()];
-  const [newstudent] = await Promise.all(updatePromises);
-  // console.log({ newRegister, newstudent });
+  const updatePromises = [student.save(), register.save()];
+  const [newstudent, newRegister] = await Promise.all(updatePromises);
+
   if (!newstudent) {
     return next(new Error("SERVER ERROR :(", { cause: 500 }));
   }
@@ -88,14 +77,15 @@ export const addTosemster = asyncHandler(async (req, res, next) => {
     message: "Result uploaded successfully",
     grade: grade,
     semsterGrades: result,
-    student,
+    student: newstudent,
+    register: newRegister,
   });
 });
 
 export const updateSemsterGrate = asyncHandler(async (req, res, next) => {
   const oldGrade = req.oldGrade;
   const grade = req.grade;
-  console.log({ oldGrade, grade });
+
   // Find the SemesterGrade document based on studentId and _id
   const semsterGrade = await SemesterGradeModel.findOne({
     studentId: req.grade.studentId,
@@ -112,8 +102,8 @@ export const updateSemsterGrate = asyncHandler(async (req, res, next) => {
   // =====================================Update Gpa in semster ============================================
   //delete Gpa to new one
   const { newGPA, newCreditHours } = updateGPA({
-    courseGPA: oldGrade.Points,
-    courseCreditHours: oldGrade.courseId.credit_hour,
+    courseGPA: oldGrade.oldPoints,
+    courseCreditHours: oldGrade.oldCreditHours,
     currentGPA: semsterGrade.GpaInSemster,
     totalCreditHours: semsterGrade.HoursInSemster,
   });
@@ -121,7 +111,7 @@ export const updateSemsterGrate = asyncHandler(async (req, res, next) => {
   // add mew result to gpa
   const { cumulativeGPA, totalCreditHours } = calculateCumulativeGPA({
     points: grade.Points,
-    creditHours: oldGrade.courseId.credit_hour,
+    creditHours: grade.courseId.credit_hour,
     oldGPA: newGPA,
     oldCreditHours: newCreditHours,
   });
@@ -136,8 +126,8 @@ export const updateSemsterGrate = asyncHandler(async (req, res, next) => {
 
   //delete Gpa to new one حذف القديم
   const { newGPA: newTotalGpa, newCreditHours: newTotalHours } = updateGPA({
-    courseGPA: oldGrade.Points,
-    courseCreditHours: oldGrade.courseId.credit_hour,
+    courseGPA: oldGrade.oldPoints,
+    courseCreditHours: oldGrade.oldCreditHours,
     currentGPA: student.TotalGpa,
     totalCreditHours: student.totalCreditHours,
   });
@@ -146,7 +136,7 @@ export const updateSemsterGrate = asyncHandler(async (req, res, next) => {
   const { cumulativeGPA: TotalGpa, totalCreditHours: TotalHours } =
     calculateCumulativeGPA({
       points: grade.Points,
-      creditHours: oldGrade.courseId.credit_hour,
+      creditHours: grade.courseId.credit_hour,
       oldGPA: newTotalGpa,
       oldCreditHours: newTotalHours,
     });
