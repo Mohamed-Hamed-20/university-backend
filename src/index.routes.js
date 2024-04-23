@@ -45,7 +45,7 @@ export const bootstrap = (app, express) => {
   app.use(cors(corsOptions));
 
   //Allow feaching Data
-  app.use(express.json({ limit: "30kb" }));
+  app.use(express.json({ limit: "100kb" }));
   app.use(express.urlencoded({ extended: true }));
 
   //to apply data sanitizing

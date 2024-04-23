@@ -23,7 +23,7 @@ const userSchema = new Schema(
       required: true,
       unique: true,
       minlength: 14,
-      maxlength: 14,
+      maxlength: 15,
     },
     Date_of_Birth: {
       type: Date,
