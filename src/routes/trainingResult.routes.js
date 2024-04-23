@@ -10,7 +10,7 @@ const { TrainingResult } = routes;
 //upload Traing Grade by admin  ======>   EDIT_R
 router.post(
   `${TrainingResult.uploadByAdmin}`,
-  limiter({limit:40,Mintute:60}),
+  limiter({ limit: 40, Mintute: 60 }),
   valid(vSchema.createTrainingResult),
   isAuth([roles.admin]),
   trc.uploadTrainingResult
@@ -19,7 +19,7 @@ router.post(
 //upload Traing Grade by instructor  ======>   EDIT_R
 router.post(
   `${TrainingResult.uploadByInstructor}`,
-  limiter({limit:70,Mintute:60}),
+  limiter({ limit: 70, Mintute: 60 }),
   valid(vSchema.createTrainingResult),
   isAuth([roles.instructor]),
   trc.uploadTrainingResult
@@ -29,7 +29,7 @@ router.post(
 //delete Traing Grade by admin  ======>   EDIT_R
 router.delete(
   `${TrainingResult.deleteByAdmin}`,
-  limiter({limit:50,Mintute:60}),
+  limiter({ limit: 50, Mintute: 60 }),
   valid(vSchema.deleteTrainingResult),
   isAuth([roles.admin]),
   trc.deleteTrainingResult
@@ -38,7 +38,7 @@ router.delete(
 //delete Traing Grade by instructor  ======>   EDIT_R
 router.delete(
   `${TrainingResult.deleteByInstructor}`,
-  limiter({limit:60,Mintute:60}),
+  limiter({ limit: 60, Mintute: 60 }),
   valid(vSchema.deleteTrainingResult),
   isAuth([roles.instructor]),
   trc.deleteTrainingResult
@@ -48,7 +48,7 @@ router.delete(
 //update trainig Information by admin  EDIT_R
 router.put(
   `${TrainingResult.updateByAdmin}`,
-  limiter({limit:50,Mintute:60}),
+  limiter({ limit: 50, Mintute: 60 }),
   valid(vSchema.updateTrainingResult),
   isAuth([roles.admin]),
   trc.updateTrainingResult
@@ -57,7 +57,7 @@ router.put(
 //update training Information by instructor   EDIT_R
 router.put(
   `${TrainingResult.updateByInstructor}`,
-  limiter({limit:50,Mintute:60}),
+  limiter({ limit: 50, Mintute: 60 }),
   valid(vSchema.updateTrainingResult),
   isAuth([roles.instructor]),
   trc.updateTrainingResult
@@ -66,7 +66,7 @@ router.put(
 //get Single Training Result Information by student   EDIT_R
 router.get(
   `${TrainingResult.getSingleTrainingResultByStudent}`,
-  limiter({limit:20,Mintute:60}),
+  limiter({ limit: 20, Mintute: 60 }),
   valid(vSchema.getSingleTrainingResult),
   isAuth([roles.stu]),
   trc.getSingleTrainingResult
@@ -75,7 +75,7 @@ router.get(
 //get Single Training Result Information by instructor    EDIT_R
 router.get(
   `${TrainingResult.getSingleTrainingResultByInstructor}`,
-  limiter({limit:40,Mintute:60}),
+  limiter({ limit: 40, Mintute: 60 }),
   valid(vSchema.getSingleTrainingResult),
   isAuth([roles.instructor]),
   trc.getSingleTrainingResult
@@ -84,7 +84,7 @@ router.get(
 //get Single Training Result Information by Admin    EDIT_R
 router.get(
   `${TrainingResult.getSingleTrainingResultByAdmin}`,
-  limiter({limit:40,Mintute:60}),
+  limiter({ limit: 40, Mintute: 60 }),
   valid(vSchema.getSingleTrainingResult),
   isAuth([roles.admin]),
   trc.getSingleTrainingResult
@@ -93,8 +93,8 @@ router.get(
 //get Single Training Result Information by instructor    EDIT_R
 router.get(
   `${TrainingResult.SearchTrainingResultByInstructor}`,
-  limiter({limit:50,Mintute:60}),
-  valid(vSchema.SearchTrainingResult),
+  limiter({ limit: 50, Mintute: 60 }),
+  valid(vSchema.SearchTrainingResultByInstructor),
   isAuth([roles.instructor]),
   trc.SearchTrainingResult
 );
@@ -102,8 +102,8 @@ router.get(
 //get Search Training Result Information by Admin        EDIT_R
 router.get(
   `${TrainingResult.SearchTrainingResultByAdmin}`,
-  limiter({limit:50,Mintute:60}),
-  valid(vSchema.SearchTrainingResult),
+  limiter({ limit: 50, Mintute: 60 }),
+  valid(vSchema.SearchTrainingResultByAdmin),
   isAuth([roles.admin]),
   trc.SearchTrainingResult
 );
@@ -111,8 +111,8 @@ router.get(
 //get Search Training Result Information by student      EDIT_R
 router.get(
   `${TrainingResult.SearchTrainingResultByStudent}`,
-  limiter({limit:20,Mintute:60}),
-  valid(vSchema.SearchTrainingResult),
+  limiter({ limit: 20, Mintute: 60 }),
+  valid(vSchema.SearchTrainingResultByStudent),
   isAuth([roles.stu]),
   trc.SearchTrainingResult
 );
