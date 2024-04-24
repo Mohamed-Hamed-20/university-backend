@@ -410,16 +410,7 @@ const routedescription = [
 ];
 
 export const updateSetting = asyncHandler(async (req, res, next) => {
-  const { ApiUrl, Allow, MainSemsterId, MaxAllowTrainingToRegister } = req.body;
-
-  // Make sure both ApiUrl and Allow are either both sent or both not sent
-  if ((ApiUrl && !Allow) || (!ApiUrl && Allow)) {
-    return next(
-      new Error("Both ApiUrl and Allow must be sent or both not sent", {
-        cause: 400,
-      })
-    );
-  }
+  const { deniedRoutes, MainSemsterId, MaxAllowTrainingToRegister } = req.body;
 
   // Find the existing setting or create a new one if it doesn't exist
   let setting = req.setting;
@@ -449,17 +440,8 @@ export const updateSetting = asyncHandler(async (req, res, next) => {
   }
 
   // Update the setting based on the provided data
-  if (ApiUrl && Allow) {
-    if (Allow == "yes") {
-      const newDeniedRoutes = setting.deniedRoutes.filter((ApiPath) => {
-        return ApiPath !== ApiUrl;
-      });
-      setting.deniedRoutes = newDeniedRoutes;
-    } else if (Allow == "no") {
-      if (!setting.deniedRoutes.includes(ApiUrl)) {
-        setting.deniedRoutes.push(ApiUrl);
-      }
-    }
+  if (deniedRoutes) {
+    setting.deniedRoutes = deniedRoutes;
   }
 
   // Check if MainSemsterId is provided and update it if it's different
@@ -489,6 +471,13 @@ export const deleteSetting = asyncHandler(async (req, res, next) => {});
 // ViewSetting
 export const ViewSetting = asyncHandler(async (req, res, next) => {
   const setting = req.setting;
+  for (const Api of routedescription) {
+    if (setting.deniedRoutes.includes(Api.url)) {
+      Api.allow = "no";
+    } else {
+      Api.allow = "yes";
+    }
+  }
   return res
     .status(200)
     .json({ message: "All setting Information", routedescription, setting });

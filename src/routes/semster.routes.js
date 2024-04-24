@@ -13,7 +13,7 @@ const { semster } = routes;
 
 router.post(
   `${semster.addsemster}`,
-  limiter({limit:40,Mintute:60}),
+  limiter({ limit: 40, Mintute: 60 }),
   isAuth([roles.admin]),
   valid(vSchema.addsemster),
   sc.addsemster
@@ -21,7 +21,7 @@ router.post(
 
 router.put(
   `${semster.updatesemster}`,
-  limiter({limit:20,Mintute:60}),
+  limiter({ limit: 20, Mintute: 60 }),
   isAuth([roles.admin]),
   valid(vSchema.updatesemster),
   sc.updatesemster
@@ -29,7 +29,7 @@ router.put(
 
 router.delete(
   `${semster.deletesemster}`,
-  limiter({limit:20,Mintute:60}),
+  limiter({ limit: 20, Mintute: 60 }),
   isAuth([roles.admin]),
   valid(vSchema.deletesemster),
   sc.deletesemster
@@ -38,9 +38,9 @@ router.delete(
 
 router.get(
   `${semster.searchsemster}`,
-  limiter({limit:50,Mintute:60}),
+  limiter({ limit: 50, Mintute: 60 }),
   valid(vSchema.searchsemster),
-  isAuth([roles.admin]),
+  isAuth([roles.admin, roles.super]),
   sc.searchsemster
 );
 
@@ -49,7 +49,7 @@ router.get(
 //EDIT_R    student
 router.get(
   `${semster.MainSemsterInfoBystudent}`,
-  limiter({limit:30,Mintute:60}),
+  limiter({ limit: 30, Mintute: 60 }),
   isAuth([roles.stu]),
   sc.MainSemsterInfo
 );
@@ -57,15 +57,15 @@ router.get(
 //EDIT_R  admin
 router.get(
   `${semster.MainSemsterInfoByAdmin}`,
-  limiter({limit:50,Mintute:60}),
-  isAuth([roles.admin]),
+  limiter({ limit: 50, Mintute: 60 }),
+  isAuth([roles.admin, roles.super]),
   sc.MainSemsterInfo
 );
 
 // EDIT_R  instructor
 router.get(
   `${semster.MainSemsterInfoByInstructor}`,
-  limiter({limit:50,Mintute:60}),
+  limiter({ limit: 50, Mintute: 60 }),
   isAuth([roles.instructor]),
   sc.MainSemsterInfo
 );
