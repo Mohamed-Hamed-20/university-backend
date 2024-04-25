@@ -28,6 +28,7 @@ const semsterSchema = new mongoose.Schema({
   },
 });
 
+semsterSchema.index({ year: 1 });
 const SemesterModel = mongoose.model("Semster", semsterSchema);
 
 export default SemesterModel;

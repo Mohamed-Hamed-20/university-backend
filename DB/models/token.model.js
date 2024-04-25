@@ -17,10 +17,11 @@ const tokenSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
-    
   },
   { timestamps: true }
 );
+
+tokenSchema.index({ userId: 1, refreshTokens: 1 });
 
 const TokenModel = mongoose.model("Token", tokenSchema);
 

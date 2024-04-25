@@ -50,6 +50,12 @@ CourseSchema.path("Prerequisites").default(undefined);
 
 CourseSchema.path("Prerequisites").required(false);
 
+CourseSchema.index({ course_name: 1 });
+CourseSchema.index({ email: 1 });
+CourseSchema.index({ Materials: 1 });
+CourseSchema.index({ Training: 1 });
+
+
 const CourseModel = mongoose.model("course", CourseSchema);
 
 export default CourseModel;

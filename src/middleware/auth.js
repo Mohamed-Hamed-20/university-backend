@@ -42,7 +42,6 @@ export const isAuth = (roles) => {
       password: process.env.ACCESS_TOKEN_ENCRPTION,
     });
 
-
     try {
       const decode = verifyToken({
         token: splitedToken,
@@ -102,7 +101,7 @@ export const isAuth = (roles) => {
               new Error("Invalid refresh Token or IP ", { cause: 400 })
             );
           }
-          // token  => search in db
+          // search in DB
           const reftoken = await TokenModel.findOne({
             refreshTokens: { $in: refreshToken },
             isvalid: true,

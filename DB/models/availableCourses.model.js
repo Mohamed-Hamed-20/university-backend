@@ -15,6 +15,10 @@ const availableCoursesschema = new Schema(
   },
   { timestamps: true }
 );
+
+availableCoursesschema.index({ studentId: 1 }, { unique: true });
+availableCoursesschema.index({ Available_Courses: 1 });
+
 const availableCoursesModel = model("availableCourse", availableCoursesschema);
 
 export default availableCoursesModel;

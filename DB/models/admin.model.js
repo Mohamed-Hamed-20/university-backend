@@ -1,4 +1,4 @@
-import mongoose, { Schema, Types, model } from "mongoose";
+import mongoose, { Schema, model } from "mongoose";
 
 //user model Schema
 const adminSchema = new Schema(
@@ -65,6 +65,9 @@ const adminSchema = new Schema(
   },
   { timestamps: true }
 );
+
+adminSchema.index({ email: 1 }, { unique: true });
+adminSchema.index({ FullName: 1 });
 
 export const adminModel =
   mongoose.models.adminModel || model("admin", adminSchema);

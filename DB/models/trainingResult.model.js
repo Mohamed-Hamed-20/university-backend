@@ -19,6 +19,9 @@ const trainingResultSchema = new Schema({
   },
 });
 
+trainingResultSchema.index({ studentId: 1 });
+trainingResultSchema.index({ trainingId: 1 });
+
 const trainingResultModel = model("trainingResult", trainingResultSchema);
 
 export default trainingResultModel;

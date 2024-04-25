@@ -21,6 +21,10 @@ const Registerschema = new Schema(
   },
   { timestamps: true }
 );
+
+Registerschema.index({ studentId: 1 });
+Registerschema.index({ coursesRegisterd: 1 });
+
 const RegisterModel = model("Register", Registerschema);
 
 export default RegisterModel;

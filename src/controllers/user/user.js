@@ -3,14 +3,13 @@ import { generateToken, storeRefreshToken } from "../../utils/Token.js";
 import { ApiFeature } from "../../utils/apiFeature.js";
 import {
   createImg,
-  deleteFolder,
   deleteImg,
   deleteMuliFiles,
   GetsingleImg,
   listoFiles,
   updateImg,
 } from "../../utils/aws.s3.js";
-import { calclevel, calculateGPA } from "../../utils/calcGrates.js";
+import { calclevel } from "../../utils/calcGrates.js";
 import { asyncHandler } from "../../utils/errorHandling.js";
 import { verifypass } from "../../utils/hashpassword.js";
 import { roles } from "../../middleware/auth.js";
@@ -25,6 +24,7 @@ import TrainingRegisterModel from "../../../DB/models/trainingRegister.model.js"
 import trainingResultModel from "../../../DB/models/trainingResult.model.js";
 import TokenModel from "../../../DB/models/token.model.js";
 import { decryptData, encryptData } from "../../utils/crypto.js";
+import { sanitizeStudent } from "../../utils/sanitize.data.js";
 
 export const login = asyncHandler(async (req, res, next) => {
   const { Student_Code, password } = req.body;
@@ -53,14 +53,14 @@ export const login = asyncHandler(async (req, res, next) => {
   }
 
   //generate accessToken
-  const accessTokenPromise = await generateToken({
+  const accessTokenPromise = generateToken({
     payload: { userId: user._id, role: user.role, IpAddress: req.ip },
     signature: process.env.ACCESS_TOKEN_SECRET,
     expiresIn: process.env.accessExpireIn,
   });
 
   //generate refreshToken
-  const refreshTokenPromise = await generateToken({
+  const refreshTokenPromise = generateToken({
     payload: { userId: user._id, role: user.role, IpAddress: req.ip },
     signature: process.env.REFRESH_TOKEN_SECRET,
     expiresIn: process.env.REFRESH_ExpireIn,
@@ -107,16 +107,17 @@ export const Getuser = asyncHandler(async (req, res, next) => {
 
   if (!user) {
     return next(
-      new Error("Invalid User Data, please try again", { statusCode: 500 })
+      new Error("Invalid User Data, please try again", { cause: 500 })
     );
   }
 
   const levelPromise = calclevel({
     totalCreditHours: user.totalCreditHours || 0,
   });
+
   const semsterInfoPromise = SemesterModel.findById(setting.MainSemsterId)
     .lean()
-    .select("name year term Max_Hours");
+    .select("name year term");
 
   let urlImgPromise;
   if (user?.imgName) {
@@ -129,24 +130,15 @@ export const Getuser = asyncHandler(async (req, res, next) => {
     urlImgPromise,
   ]);
 
-  const result = {
-    Full_Name: user.Full_Name,
-    _id: user._id,
-    National_Id: user.National_Id,
-    Student_Code: user.Student_Code,
-    Date_of_Birth: user.Date_of_Birth,
-    PhoneNumber: user?.PhoneNumber,
-    gender: user.gender,
-    department: user?.department,
-    level: levelResult.level,
-    TotalGpa: user?.TotalGpa || 2,
-    totalCreditHours: user?.totalCreditHours || 0,
-    semsterInfo: semsterInfoResult.MainSemsterId,
-    imgName: user?.imgName,
-    url: urlImgResult?.url,
-  };
-
-  return res.status(200).json({ message: "Done", result });
+  return res.status(200).json({
+    message: "Done",
+    result: {
+      ...sanitizeStudent(user),
+      level: levelResult.level,
+      semsterInfo: semsterInfoResult,
+      url: urlImgResult?.url,
+    },
+  });
 });
 
 export const addStudent = asyncHandler(async (req, res, next) => {

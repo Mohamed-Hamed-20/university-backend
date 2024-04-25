@@ -21,6 +21,8 @@ const settingSchema = new Schema({
   },
 });
 
+settingSchema.index({ MainSemsterId: 1 });
+
 const settingModel = mongoose.model("setting", settingSchema);
 
 export default settingModel;

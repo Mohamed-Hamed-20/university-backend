@@ -13,7 +13,7 @@ const GrateSchema = new mongoose.Schema({
   },
   creditHours: {
     type: Number,
-    required: true,
+    required: false,
     enum: [2, 3],
   },
   Points: {
@@ -101,6 +101,14 @@ const semsterGradeSchema = new mongoose.Schema({
     },
   ],
 });
+
+GrateSchema.index({ studentId: 1 });
+GrateSchema.index({ courseId: 1 });
+GrateSchema.index({ semsterId: 1 });
+
+semsterGradeSchema.index({ studentId: 1 });
+semsterGradeSchema.index({ semsterId: 1 });
+semsterGradeSchema.index({ courseGrates: 1 });
 
 export const GradeModel = mongoose.model("Grate", GrateSchema);
 export const SemesterGradeModel = mongoose.model(

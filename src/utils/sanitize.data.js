@@ -1,13 +1,15 @@
 export const sanitizeStudent = (user) => {
   return {
-    _id: user?.fullName,
+    _id: user?._id,
     Full_Name: user?.Full_Name,
     National_Id: user?.National_Id,
     Student_Code: user?.Student_Code,
     Date_of_Birth: user?.Date_of_Birth,
+    PhoneNumber: user?.PhoneNumber,
     gender: user?.gender,
-    TotalGpa: user?.TotalGpa,
-    totalCreditHours: user?.totalCreditHours,
+    TotalGpa: user?.TotalGpa || 2,
+    totalCreditHours: user?.totalCreditHours || 0,
+    imgName: user?.imgName,
   };
 };
 
@@ -20,4 +22,4 @@ export const sanitizeAdmin = (Admin) => {
     gender: Admin.gender,
     role: Admin.role,
   };
-};  
+};

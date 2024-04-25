@@ -18,6 +18,9 @@ const trainingRegisterSchema = new Schema({
   ],
 });
 
+trainingRegisterSchema.index({ trainingRegisterd: 1 });
+trainingRegisterSchema.index({ studentId: 1 });
+
 const TrainingRegisterModel = model("TrainingRegister", trainingRegisterSchema);
 
 export default TrainingRegisterModel;

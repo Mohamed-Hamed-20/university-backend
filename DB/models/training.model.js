@@ -50,6 +50,9 @@ const trainingschema = new Schema(
   },
   { timestamps: true }
 );
+
+trainingschema.index({ training_name: 1 });
+
 const trainingmodel = model("Training", trainingschema);
 
 export default trainingmodel;

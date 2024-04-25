@@ -95,5 +95,10 @@ InstructorSchema.path("Training").default(undefined);
 
 InstructorSchema.path("Training").required(false);
 
+InstructorSchema.index({ FullName: 1 });
+InstructorSchema.index({ email: 1 });
+InstructorSchema.index({ Materials: 1 });
+InstructorSchema.index({ Training: 1 });
+
 export const InstructorModel =
   mongoose.models.InstructorModel || model("Instructor", InstructorSchema);
