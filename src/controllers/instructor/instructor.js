@@ -14,6 +14,7 @@ import {
 } from "../../utils/aws.s3.js";
 import { asyncHandler } from "../../utils/errorHandling.js";
 import { hashpassword, verifypass } from "../../utils/hashpassword.js";
+import { encryptData } from "../../utils/crypto.js";
 
 export const login = asyncHandler(async (req, res, next) => {
   const { email, password } = req.body;
@@ -67,9 +68,6 @@ export const login = asyncHandler(async (req, res, next) => {
   });
 
   const successpromise = storeRefreshToken(refreshToken, user._id, next);
-  if (!success) {
-    return next(new Error("Failed to store refresh token"), { cause: 500 });
-  }
 
   const [encrptAcessToken, encrptRefToken, success] = await Promise.all([
     encrptAcessTokenpromise,
@@ -77,6 +75,9 @@ export const login = asyncHandler(async (req, res, next) => {
     successpromise,
   ]);
 
+  if (!success) {
+    return next(new Error("Failed to store refresh token"), { cause: 500 });
+  }
   return res.status(200).json({
     message: "done login",
     accessToken: encrptAcessToken,
