@@ -426,7 +426,7 @@ const routedescription = [
 ];
 
 export const updateSetting = asyncHandler(async (req, res, next) => {
-  const { deniedRoutes, MainSemsterId, MaxAllowTrainingToRegister } = req.body;
+  const { ApiUrls, MaxAllowTrainingToRegister, MainSemsterId } = req.body;
 
   // Find the existing setting or create a new one if it doesn't exist
   let setting = req.setting;
@@ -456,8 +456,21 @@ export const updateSetting = asyncHandler(async (req, res, next) => {
   }
 
   // Update the setting based on the provided data
-  if (deniedRoutes) {
-    setting.deniedRoutes = deniedRoutes;
+  if (ApiUrls && ApiUrls.length > 0) {
+    for (const API of ApiUrls) {
+      if (API.allow == "yes") {
+        if (setting.deniedRoutes.includes(API.url)) {
+          const deniedRoutes = setting.deniedRoutes.filter((url) => {
+            return url !== API.url;
+          });
+          setting.deniedRoutes = deniedRoutes;
+        }
+      } else if (API.allow == "no") {
+        if (!setting.deniedRoutes.includes(API.url)) {
+          setting.deniedRoutes.push(API.url);
+        }
+      }
+    }
   }
 
   // Check if MainSemsterId is provided and update it if it's different
@@ -465,10 +478,11 @@ export const updateSetting = asyncHandler(async (req, res, next) => {
     MainSemsterId &&
     setting.MainSemsterId.toString() !== MainSemsterId.toString()
   ) {
-    const semster = await SemesterModel.findById(MainSemsterId);
+    const semster = await SemesterModel.findById(MainSemsterId).lean();
     if (!semster) {
       return next(new Error("Invalid SemsterId not found", { cause: 404 }));
     }
+    setting.MainSemsterId = semster._id;
   }
 
   // Update MaxAllowTrainingToRegister if provided

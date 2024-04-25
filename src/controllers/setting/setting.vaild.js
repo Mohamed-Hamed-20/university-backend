@@ -5,14 +5,22 @@ import { AllRoutes } from "../../utils/routes.path.js";
 export const updateSetting = {
   body: joi
     .object({
-      deniedRoutes: joi
+      ApiUrls: joi
         .array()
         .items(
-          joi
-            .string()
-            .trim()
-            .valid(...AllRoutes)
-            .optional()
+          joi.object({
+            url: joi
+              .string()
+              .trim()
+              .valid(...AllRoutes)
+              .required(),
+            allow: joi
+              .string()
+              .lowercase()
+              .trim()
+              .valid("yes", "no")
+              .required(),
+          })
         )
         .optional(),
 
