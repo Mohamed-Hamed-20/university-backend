@@ -11,7 +11,7 @@ const { courseRegister } = routes;
 
 router.post(
   `${courseRegister.addCourse}`,
-  limiter({limit:50,Mintute:60}),
+  limiter({ limit: 50, Mintute: 60 }),
   valid(vSchema.addToRegister),
   isAuth([roles.stu]),
   acc.addToRegister
@@ -19,7 +19,7 @@ router.post(
 
 router.patch(
   `${courseRegister.deleteCourse}`,
-  limiter({limit:30,Mintute:60}),
+  limiter({ limit: 30, Mintute: 60 }),
   isAuth([roles.stu]),
   valid(vSchema.deleteFromRegister),
   acc.deleteFromRegister
@@ -28,16 +28,16 @@ router.patch(
 //EDIT_R  Admin
 router.get(
   `${courseRegister.GetRegisterInfoByAdmin}`,
-  limiter({limit:100,Mintute:60}),
+  limiter({ limit: 100, Mintute: 60 }),
   valid(vSchema.getRegisterAdmin),
-  isAuth([roles.admin]),
+  isAuth([roles.admin, roles.super]),
   acc.getRegister
 );
 
 //EDIT_R student
 router.get(
   `${courseRegister.GetRegisterInfoByStudent}`,
-  limiter({limit:50,Mintute:60}),
+  limiter({ limit: 50, Mintute: 60 }),
   isAuth([roles.stu]),
   acc.getRegister
 );
@@ -47,16 +47,16 @@ router.get(
 //EDIT_R Admin
 router.get(
   `${courseRegister.searchRegisterByAdmin}`,
-  limiter({limit:50,Mintute:60}),
+  limiter({ limit: 50, Mintute: 60 }),
   valid(vSchema.searchRegister),
-  isAuth([roles.admin]),
+  isAuth([roles.admin, roles.super]),
   acc.searchRegister
 );
 
 //EDIT_R instrctor
 router.get(
   `${courseRegister.searchRegisterByInstructor}`,
-  limiter({limit:50,Mintute:60}),
+  limiter({ limit: 50, Mintute: 60 }),
   valid(vSchema.searchRegisterInstructor),
   isAuth([roles.instructor]),
   acc.searchRegister

@@ -22,8 +22,8 @@ export const uploadGrade = asyncHandler(async (req, res, next) => {
   let { semsterId } = req.body;
   const setting = req.setting;
 
-  //if he was admin
-  if (req.user.role == roles.admin) {
+  //if he was super
+  if (req.user.role == roles.super) {
     if (
       semsterId &&
       semsterId.toString() !== setting.MainSemsterId.toString()
