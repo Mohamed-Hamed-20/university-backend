@@ -4,6 +4,7 @@ import userModel from "../../DB/models/user.model.js";
 import TokenModel from "../../DB/models/token.model.js";
 import { adminModel } from "../../DB/models/admin.model.js";
 import { InstructorModel } from "../../DB/models/instructor.model.js";
+import { decryptData } from "../utils/crypto.js";
 
 export const roles = {
   super: "superAdmin",
@@ -15,7 +16,7 @@ export const roles = {
 export const isAuth = (roles) => {
   return asyncHandler(async (req, res, next) => {
     const accessToken = req.headers.authorization;
-    const refreshToken = req.headers["refresh-token"];
+    let refreshToken = req.headers["refresh-token"];
     //check token send
     if (!accessToken || !refreshToken) {
       return next(
@@ -31,9 +32,17 @@ export const isAuth = (roles) => {
     }
 
     //split Token
-    const splitedToken = accessToken.split(
+    const splitedTokenEncrpted = accessToken.split(
       process.env.ACCESS_TOKEN_startwith
     )[1];
+
+    // Decrpt token
+    const splitedToken = await decryptData({
+      encryptedData: splitedTokenEncrpted,
+      password: process.env.ACCESS_TOKEN_ENCRPTION,
+    });
+
+
     try {
       const decode = verifyToken({
         token: splitedToken,
@@ -77,6 +86,12 @@ export const isAuth = (roles) => {
     } catch (error) {
       if (error.message.includes("jwt expired")) {
         try {
+          // decrpt token
+          refreshToken = await decryptData({
+            encryptedData: refreshToken,
+            password: process.env.REFRESH_TOKEN_ENCRPTION,
+          });
+
           // verify refresh token
           const verifyreftoken = verifyToken({
             token: refreshToken,
@@ -89,13 +104,14 @@ export const isAuth = (roles) => {
           }
           // token  => search in db
           const reftoken = await TokenModel.findOne({
-            refreshToken: refreshToken,
+            refreshTokens: { $in: refreshToken },
             isvalid: true,
             userId: verifyreftoken.userId,
-          });
+          }).lean();
+
           if (!reftoken) {
             return next(
-              new Error("Wrong token or user Not found", { cause: 404 })
+              new Error("Invaild Refresh Token Login Again", { cause: 404 })
             );
           }
 

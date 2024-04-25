@@ -7,14 +7,17 @@ const tokenSchema = new mongoose.Schema(
       ref: "user",
       required: true,
     },
-    refreshToken: {
-      type: String,
-      required: true,
-    },
+    refreshTokens: [
+      {
+        type: String,
+        required: true,
+      },
+    ],
     isvalid: {
       type: Boolean,
       default: true,
     },
+    
   },
   { timestamps: true }
 );

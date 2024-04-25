@@ -29,31 +29,58 @@ export const login = asyncHandler(async (req, res, next) => {
     password: password,
     hashpassword: user.password,
   });
+
   if (!matched) {
     return next(new Error("Invalid Email or password", { cause: 404 }));
   }
 
   //generate accessToken
-  const accessToken = await generateToken({
+  const accessTokenPromise = generateToken({
     payload: { userId: user._id, role: user.role, IpAddress: req.ip },
     signature: process.env.ACCESS_TOKEN_SECRET,
     expiresIn: process.env.accessExpireIn,
   });
+
   //generate refreshToken
-  const refreshToken = await generateToken({
+  const refreshTokenPromise = generateToken({
     payload: { userId: user._id, role: user.role, IpAddress: req.ip },
     signature: process.env.REFRESH_TOKEN_SECRET,
     expiresIn: process.env.REFRESH_ExpireIn,
   });
 
-  const success = await storeRefreshToken(refreshToken, user._id, next);
+  // get tokes promises
+  const [accessToken, refreshToken] = await Promise.all([
+    accessTokenPromise,
+    refreshTokenPromise,
+  ]);
+
+  // encrpt accesss tokens
+  const encrptAcessTokenpromise = encryptData({
+    data: accessToken,
+    password: process.env.ACCESS_TOKEN_ENCRPTION,
+  });
+
+  // encrpt refresh tokens
+  const encrptRefTokenpromise = encryptData({
+    data: refreshToken,
+    password: process.env.REFRESH_TOKEN_ENCRPTION,
+  });
+
+  const successpromise = storeRefreshToken(refreshToken, user._id, next);
   if (!success) {
     return next(new Error("Failed to store refresh token"), { cause: 500 });
   }
+
+  const [encrptAcessToken, encrptRefToken, success] = await Promise.all([
+    encrptAcessTokenpromise,
+    encrptRefTokenpromise,
+    successpromise,
+  ]);
+
   return res.status(200).json({
     message: "done login",
-    accessToken: accessToken,
-    refreshToken: refreshToken,
+    accessToken: encrptAcessToken,
+    refreshToken: encrptRefToken,
     role: user.role,
   });
 });

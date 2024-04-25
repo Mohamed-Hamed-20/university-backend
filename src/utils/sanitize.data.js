@@ -10,3 +10,14 @@ export const sanitizeStudent = (user) => {
     totalCreditHours: user?.totalCreditHours,
   };
 };
+
+export const sanitizeAdmin = (Admin) => {
+  return {
+    FullName: Admin.FullName,
+    email: Admin.email,
+    phone: Admin.phone,
+    Date_of_Birth: Admin.Date_of_Birth,
+    gender: Admin.gender,
+    role: Admin.role,
+  };
+};  

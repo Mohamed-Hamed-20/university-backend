@@ -17,6 +17,7 @@ export const routes = {
     deleteImgByAdmin: "/delete/image/from/student/By/Admin",
     deleteImgBystu: "/delete/image/from/student/By/student",
     Availablecourses: "/get/available/courses",
+    logout: "/logout",
   },
   Admin: {
     _id: "/Api/admins",
@@ -32,6 +33,9 @@ export const routes = {
     deleteImgBysuper: "/delete/image/from/admin/by/super",
     deleteImgByAdmin: "/delete/image/from/admin/by/admin",
     dashboardAdmin: "/information",
+    confirmEmail: "/confirm/Email",
+    checkConfirmEmail: "/check/confirm/email",
+    logout: "/logout",
   },
   instructor: {
     _id: "/Api/instructors",
@@ -45,6 +49,7 @@ export const routes = {
     AddImgByAdmin: "/Add/image/to/instructor/ByAdmin",
     deleteImgByInstructor: "/delete/image/to/instructor/by/instructor",
     deleteImgByAdmin: "/delete/image/to/instructor/by/Admin",
+    logout: "/logout",
   },
   course: {
     _id: "/Api/courses",
@@ -111,8 +116,7 @@ export const routes = {
     AddImages: "/Add/images/to/training",
     deleteImages: "/delete/images/from/training",
     singleTraininginfoByAdmin: "/get/single/training/info/by/admin",
-    singleTraininginfoByinstructor:
-      "/get/single/training/info/by/instructor",
+    singleTraininginfoByinstructor: "/get/single/training/info/by/instructor",
     singleTraininginfoBystudent: "/get/single/training/info/by/student",
     allTrainingByAdmin: "/get/all/trainings/info/by/admin",
     allTrainingBystudent: "/get/all/trainings/info/by/student",
@@ -297,6 +301,7 @@ export const AllRoutes = [
   `${routes.Admin._id}${routes.Admin.searchAdmin}`,
   `${routes.Admin._id}${routes.Admin.AddImgBySuper}`,
 ];
+
 export const RoutesNotAllowTodenied = [
   `${routes.Admin._id}${routes.Admin.login}`,
   `${routes.Admin._id}${routes.Admin.getinfoSuper}`,
@@ -305,4 +310,3 @@ export const RoutesNotAllowTodenied = [
   `${routes.setting._id}${routes.setting.ViewSetting}`,
 ];
 
-// console.log(AllRoutes);

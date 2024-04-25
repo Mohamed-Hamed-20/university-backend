@@ -15,7 +15,7 @@ export const sendEmail = async ({ to, subject, html, bcc } = {}) => {
       },
     });
     const info = await transporter.sendMail({
-      from: `"Banha University👻" <${process.env.email}>`, // sender address
+      from: `"Banha University - AOM Team" <${process.env.email}>`, // sender address
       to,
       bcc, // list of receivers
       subject, // Subject line

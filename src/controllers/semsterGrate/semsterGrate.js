@@ -38,7 +38,6 @@ export const addTosemster = asyncHandler(async (req, res, next) => {
       courseGrates: [req.Grade._id],
     };
     result = await SemesterGradeModel.create(newsemsterGrate);
-    console.log(result);
   }
 
   // if he already have update semster Grades

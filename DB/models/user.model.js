@@ -47,11 +47,17 @@ const userSchema = new Schema(
       default: "user",
       lowercase: true,
     },
-    // level: {
-    //   type: String,
-    //   lowercase: true,
-    //   enum: ["one", "two", "three", "four", "graduated"],
-    // },
+    Activecode: {
+      type: String,
+      min: 6,
+      max: 500,
+    },
+    Agents: [
+      {
+        type: String,
+        required: false,
+      },
+    ],
     department: {
       type: String,
       lowercase: true,
@@ -70,15 +76,15 @@ const userSchema = new Schema(
       type: Number,
       required: false,
       default: 2,
-      min: 0,
-      max: 30,
+      // min: 0,
+      // max: 30,
     },
     totalCreditHours: {
       type: Number,
       required: false,
       default: 0,
-      min: 0,
-      max: 200,
+      // min: 0,
+      // max: 200,
     },
   },
   { timestamps: true }

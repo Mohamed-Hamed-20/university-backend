@@ -4,19 +4,30 @@ import TokenModel from "../../DB/models/token.model.js";
 export const storeRefreshToken = async (refreshToken, userId, next) => {
   try {
     let token = await TokenModel.findOne({ userId: userId });
+
     if (token) {
-      token.refreshToken = refreshToken;
+      if (token.refreshTokens.length >= 4) {
+        const newRefresh = token.refreshTokens.slice().filter((ele, index) => {
+          return index !== 0;
+        });
+
+        token.refreshTokens = newRefresh;
+      }
+
+      token.refreshTokens.push(refreshToken);
     } else {
       token = new TokenModel({
         userId: userId,
-        refreshToken: refreshToken,
+        refreshTokens: [refreshToken],
         isValid: true,
       });
     }
+
     const result = await token.save();
     if (!result) {
       throw new Error("Failed to store refresh token");
     }
+
     return true;
   } catch (error) {
     throw new Error("Failed to store refresh token");

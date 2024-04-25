@@ -31,6 +31,22 @@ export const login = {
     .required(),
 };
 
+export const SendconfirmEmailValid = {
+  query: joi
+    .object({
+      key: joi.string().trim().required(),
+    })
+    .required(),
+};
+
+export const checkConfirmEmail = {
+  params: joi
+    .object({
+      key: joi.string().trim().required(),
+    })
+    .required(),
+};
+
 export const updateAdmin = {
   body: joi
     .object({

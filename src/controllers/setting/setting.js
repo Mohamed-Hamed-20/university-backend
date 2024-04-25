@@ -31,6 +31,11 @@ const routedescription = [
     desc: "Retrieves a list of courses available for students to enroll in.",
   },
   {
+    name: "Get logout for Students",
+    url: `${routes.student._id}${routes.student.logout}`,
+    desc: "student logout from his account.",
+  },
+  {
     name: "Search Courses by Student",
     url: `${routes.course._id}${routes.course.searchCourseByStu}`,
     desc: "Searches for courses based on criteria specified by a student.",
@@ -80,6 +85,7 @@ const routedescription = [
     url: `${routes.TrainingResult._id}${routes.TrainingResult.SearchTrainingResultByStudent}`,
     desc: "Searches for training results based on criteria specified by a student.",
   },
+
   // Routes for Admins
   {
     name: "Admin Login",
@@ -135,6 +141,11 @@ const routedescription = [
     name: "Delete Image from Admin by Admin",
     url: `${routes.Admin._id}${routes.Admin.deleteImgByAdmin}`,
     desc: "Allows admin to delete an image from another admin's profile.",
+  },
+  {
+    name: "Get logout for Admin & super Admin",
+    url: `${routes.Admin._id}${routes.Admin.logout}`,
+    desc: "Admin logout from his account",
   },
   {
     name: "Admin Dashboard",
@@ -306,6 +317,11 @@ const routedescription = [
     name: "Instructor Login",
     url: `${routes.instructor._id}${routes.instructor.login}`,
     desc: "Allows instructors to log in to their accounts.",
+  },
+  {
+    name: "Get logout for Instructor",
+    url: `${routes.instructor._id}${routes.instructor.logout}`,
+    desc: "Instructor logout from his account",
   },
   {
     name: "Add Image to Instructor by Instructor",

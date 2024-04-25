@@ -54,7 +54,14 @@ const adminSchema = new Schema(
     Activecode: {
       type: String,
       min: 6,
+      max: 500,
     },
+    Agents: [
+      {
+        type: String,
+        required: false,
+      },
+    ],
   },
   { timestamps: true }
 );

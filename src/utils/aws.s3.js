@@ -10,7 +10,7 @@ import {
 import dotenv from "dotenv";
 import sharp from "sharp";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import { generateHexName } from "./crpto.js";
+import { generateHexName } from "./crypto.js";
 
 dotenv.config({ path: "./config/config.env" });
 
@@ -63,7 +63,6 @@ export const multerCloud = (allowedExtensionsArr) => {
 
 export const createImg = async ({ folder, files }) => {
   // List to store all the promises related to uploading files
-  console.log(files);
   const uploadPromises = [];
   const allImgNames = [];
   // Configuring promises for uploading each file

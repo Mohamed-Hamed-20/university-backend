@@ -6,7 +6,11 @@ import semsterModel from "../../../DB/models/semster.model.js";
 import trainingmodel from "../../../DB/models/training.model.js";
 import userModel from "../../../DB/models/user.model.js";
 import { roles } from "../../middleware/auth.js";
-import { generateToken, storeRefreshToken } from "../../utils/Token.js";
+import {
+  generateToken,
+  storeRefreshToken,
+  verifyToken,
+} from "../../utils/Token.js";
 import { ApiFeature } from "../../utils/apiFeature.js";
 import {
   createImg,
@@ -19,12 +23,18 @@ import {
 } from "../../utils/aws.s3.js";
 import { asyncHandler } from "../../utils/errorHandling.js";
 import { hashpassword, verifypass } from "../../utils/hashpassword.js";
-
+import { sanitizeAdmin } from "../../utils/sanitize.data.js";
+import { decryptData, encryptData } from "../../utils/crypto.js";
+import { sendEmail } from "../../utils/sendEmail.js";
+import { confirmEmailTemplet } from "../../utils/templetHtml.js";
+import { routes } from "../../utils/routes.path.js";
+const { Admin } = routes;
 export const login = asyncHandler(async (req, res, next) => {
   const { email, password } = req.body;
+  const userAgent = req.headers["user-agent"];
 
   // check Email
-  const user = await adminModel.findOne({ email: email });
+  const user = await adminModel.findOne({ email: email }).lean();
   if (!user) {
     return next(new Error("Invalid Email or password", { cause: 404 }));
   }
@@ -34,42 +44,204 @@ export const login = asyncHandler(async (req, res, next) => {
     password: password,
     hashpassword: user.password,
   });
+
   if (!matched) {
     return next(new Error("Invalid Email or password", { cause: 404 }));
   }
 
-  if (!user.isconfrimed) {
-    return next(
-      new Error(
-        "your Email Not verfied Did you want send to you verfication link to confirm your email",
-        { cause: 404 }
-      )
-    );
+  if (true == false) {
+    if (!user.isconfrimed || !user?.Agents?.includes(userAgent)) {
+      const encrypted = await encryptData({
+        data: JSON.stringify({
+          userId: user._id,
+          role: user.role,
+          Agent: userAgent,
+        }),
+        password: process.env.cryptoKeyConfirmEmails,
+      });
+
+      if (!encrypted) {
+        return next(new Error("Error in encption data", { cause: 500 }));
+      }
+      return res
+        .status(401)
+        .json({ message: "Email Need To confirm", key: encrypted });
+    }
   }
 
   //generate accessToken
-  const accessToken = await generateToken({
+  const accessTokenPromise = generateToken({
     payload: { userId: user._id, role: user.role, IpAddress: req.ip },
     signature: process.env.ACCESS_TOKEN_SECRET,
     expiresIn: process.env.accessExpireIn,
   });
+
   //generate refreshToken
-  const refreshToken = await generateToken({
+  const refreshTokenPromise = generateToken({
     payload: { userId: user._id, role: user.role, IpAddress: req.ip },
     signature: process.env.REFRESH_TOKEN_SECRET,
     expiresIn: process.env.REFRESH_ExpireIn,
   });
 
-  const success = await storeRefreshToken(refreshToken, user._id, next);
+  // promise ref and access
+  const [accessToken, refreshToken] = await Promise.all([
+    accessTokenPromise,
+    refreshTokenPromise,
+  ]);
+
+  // encrpt accesss tokens
+  const encrptAcessTokenpromise = encryptData({
+    data: accessToken,
+    password: process.env.ACCESS_TOKEN_ENCRPTION,
+  });
+
+  // encrpt refresh tokens
+  const encrptRefTokenpromise = encryptData({
+    data: refreshToken,
+    password: process.env.REFRESH_TOKEN_ENCRPTION,
+  });
+
+  const successpromise = storeRefreshToken(refreshToken, user._id, next);
+
+  const [encrptAcessToken, encrptRefToken, success] = await Promise.all([
+    encrptAcessTokenpromise,
+    encrptRefTokenpromise,
+    successpromise,
+  ]);
+
   if (!success) {
     return next(new Error("Failed to store refresh token"), { cause: 500 });
   }
+
+  // response login
   return res.status(200).json({
     message: "done login",
-    accessToken: accessToken,
-    refreshToken: refreshToken,
+    accessToken: encrptAcessToken,
+    refreshToken: encrptRefToken,
     role: user.role,
+    user: sanitizeAdmin(user),
   });
+});
+
+export const SendconfirmEmail = asyncHandler(async (req, res, next) => {
+  const { key } = req.query;
+  const userAgent = req.headers["user-agent"];
+
+  // decrpt key user have
+  const decrypted = await decryptData({
+    encryptedData: key,
+    password: process.env.cryptoKeyConfirmEmails,
+  });
+
+  if (!decrypted) {
+    return next(new Error("Invalid Key decrypted", { cause: 400 }));
+  }
+
+  // Get dat
+  const data = JSON.parse(decrypted);
+
+  if (!data.userId || !data.role) {
+    return next(new Error("Invaild Key payload", { cause: 400 }));
+  }
+
+  let user;
+  if (data.role == roles.stu) {
+    user = await userModel.findById(data.userId);
+  } else if (data.role == roles.instructor) {
+    user = await InstructorModel.findById(data.userId);
+  } else {
+    user = await adminModel.findById(data.userId);
+  }
+
+  if (!user) {
+    return next(new Error("Invaild userId", { cause: 400 }));
+  }
+
+  const token = await generateToken({
+    payload: { userId: user._id, role: user.role, userAgent },
+    expiresIn: process.env.ConfirmEmailExpireIn,
+    signature: process.env.ConfirmEmailPassword,
+  });
+
+  if (!token) {
+    return next(new Error("Faild to create Token", { cause: 500 }));
+  }
+
+  const encrypted = await encryptData({
+    data: token,
+    password: process.env.cryptoKeyConfirmEmails,
+  });
+
+  if (!encrypted) {
+    return next(new Error("Error In encrypted Data", { cause: 500 }));
+  }
+
+  user.Activecode = encrypted;
+  const saveActiveCode = await user.save();
+
+  // return error
+  if (!saveActiveCode) {
+    return next(new Error("Error In Save Activation code", { cause: 500 }));
+  }
+
+  const to = user.email;
+  const subject =
+    "This message to Make sure you email is comfirmed To our Website";
+  const link = `${req.protocol}://${req.headers.host}${Admin._id}${Admin.checkConfirmEmail}/${encrypted}`;
+
+  const html = `${await confirmEmailTemplet(link)}`;
+  const isSend = await sendEmail({ to, subject, html });
+  if (!isSend) {
+    return next(new Error("Faild to send confirm Email", { cause: 500 }));
+  }
+
+  return res
+    .status(200)
+    .json({ message: "Email send successfully check your Inbox" });
+});
+
+//check confiremed email
+export const checkConfirmEmail = asyncHandler(async (req, res, next) => {
+  const { key } = req.params;
+
+  const decrypt = await decryptData({
+    encryptedData: key,
+    password: process.env.cryptoKeyConfirmEmails,
+  });
+
+  const data = verifyToken({
+    token: decrypt,
+    signature: process.env.ConfirmEmailPassword,
+  });
+
+  let user;
+  if (data.role == roles.stu) {
+    user = await userModel.findById(data.userId);
+  } else if (data.role == roles.instructor) {
+    user = await InstructorModel.findById(data.userId);
+  } else {
+    user = await adminModel.findById(data.userId);
+  }
+
+  if (user.Activecode !== key) {
+    return next(new Error("Invalid Activation code", { statusCode: 400 }));
+  }
+
+  // user.Activecode;
+
+  if (user && user.Activecode) {
+    delete user.Activecode;
+  }
+
+  if (!user.Agents.includes(data.userAgent)) {
+    user?.Agents?.push(data.userAgent);
+  }
+  const result = await user.save();
+
+  // Don't include decrypt in the response
+  delete result.decrypt;
+
+  return res.status(200).json({ key: data, result });
 });
 
 export const CreateAdmin = asyncHandler(async (req, res, next) => {
@@ -293,12 +465,15 @@ export const searchAdmin = asyncHandler(async (req, res, next) => {
 });
 
 export const dashboard = asyncHandler(async (req, res, next) => {
-  const courses = await CourseModel.countDocuments();
-  const students = await userModel.countDocuments();
-  const admins = await adminModel.countDocuments();
-  const instructors = await InstructorModel.countDocuments();
-  const semsters = await semsterModel.countDocuments();
-  const training = await trainingmodel.countDocuments();
+  const [courses, students, admins, instructors, semsters, training] =
+    await Promise.all([
+      CourseModel.countDocuments(),
+      userModel.countDocuments(),
+      adminModel.countDocuments(),
+      InstructorModel.countDocuments(),
+      semsterModel.countDocuments(),
+      trainingmodel.countDocuments(),
+    ]);
 
   return res.status(200).json({
     message: "done",
@@ -407,4 +582,26 @@ export const deleteAdminImg = asyncHandler(async (req, res, next) => {
     .status(200)
     .json({ message: "Image deleted successfully", result, response });
 });
-export const logout = asyncHandler(async (req, res, next) => {});
+
+export const logout = asyncHandler(async (req, res, next) => {
+  const user = req.user;
+  const HashrefreshToken = req.headers["refresh-token"];
+
+  const refreshToken = await decryptData({
+    encryptedData: HashrefreshToken,
+    password: process.env.REFRESH_TOKEN_ENCRPTION,
+  });
+
+  const token = await TokenModel.findOneAndUpdate(
+    {
+      userId: user._id,
+    },
+    { $pull: { refreshTokens: refreshToken } },
+    { new: true }
+  );
+
+  if (!token) {
+    return next(new Error("token document not found", { cause: 400 }));
+  }
+  return res.status(200).json({ message: "user logout successfully" });
+});

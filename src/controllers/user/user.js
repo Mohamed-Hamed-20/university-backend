@@ -24,6 +24,7 @@ import {
 import TrainingRegisterModel from "../../../DB/models/trainingRegister.model.js";
 import trainingResultModel from "../../../DB/models/trainingResult.model.js";
 import TokenModel from "../../../DB/models/token.model.js";
+import { decryptData, encryptData } from "../../utils/crypto.js";
 
 export const login = asyncHandler(async (req, res, next) => {
   const { Student_Code, password } = req.body;
@@ -50,28 +51,52 @@ export const login = asyncHandler(async (req, res, next) => {
       });
     }
   }
+
   //generate accessToken
-  const accessToken = await generateToken({
+  const accessTokenPromise = await generateToken({
     payload: { userId: user._id, role: user.role, IpAddress: req.ip },
     signature: process.env.ACCESS_TOKEN_SECRET,
     expiresIn: process.env.accessExpireIn,
   });
 
   //generate refreshToken
-  const refreshToken = await generateToken({
+  const refreshTokenPromise = await generateToken({
     payload: { userId: user._id, role: user.role, IpAddress: req.ip },
     signature: process.env.REFRESH_TOKEN_SECRET,
     expiresIn: process.env.REFRESH_ExpireIn,
   });
 
-  const success = await storeRefreshToken(refreshToken, user._id, next);
+  const [accessToken, refreshToken] = await Promise.all([
+    accessTokenPromise,
+    refreshTokenPromise,
+  ]);
+
+  // encrpt accesss tokens
+  const encrptAcessTokenpromise = encryptData({
+    data: accessToken,
+    password: process.env.ACCESS_TOKEN_ENCRPTION,
+  });
+
+  // encrpt refresh tokens
+  const encrptRefTokenpromise = encryptData({
+    data: refreshToken,
+    password: process.env.REFRESH_TOKEN_ENCRPTION,
+  });
+  const successpromise = storeRefreshToken(refreshToken, user._id, next);
+
+  const [encrptAcessToken, encrptRefToken, success] = await Promise.all([
+    encrptAcessTokenpromise,
+    encrptRefTokenpromise,
+    successpromise,
+  ]);
+
   if (!success) {
     return next(new Error("Failed to store refresh token"), { cause: 500 });
   }
   return res.status(200).json({
     message: "done login",
-    accessToken: accessToken,
-    refreshToken: refreshToken,
+    accessToken: encrptAcessToken,
+    refreshToken: encrptRefToken,
     role: user.role,
   });
 });
@@ -135,7 +160,7 @@ export const addStudent = asyncHandler(async (req, res, next) => {
     department,
   } = req.body;
 
-  // التحقق من عدم تكرار البيانات
+  // Make sure data NOt dublicate
   const existingStudent = await userModel.findOne({
     $or: [
       { National_Id: National_Id },
@@ -145,6 +170,7 @@ export const addStudent = asyncHandler(async (req, res, next) => {
     ],
   });
 
+  // search if student is already Exist
   if (existingStudent) {
     if (existingStudent.National_Id === National_Id) {
       return next(new Error(" National Id is Already Exist", { cause: 400 }));
@@ -160,7 +186,7 @@ export const addStudent = asyncHandler(async (req, res, next) => {
     }
   }
 
-  // بناء كائن الطالب
+  // sudent object
   const student = {
     Full_Name,
     National_Id,
@@ -191,6 +217,7 @@ export const addStudent = asyncHandler(async (req, res, next) => {
     },
   });
 });
+
 export const updateStudent = asyncHandler(async (req, res, next) => {
   const {
     Full_Name,
@@ -202,7 +229,10 @@ export const updateStudent = asyncHandler(async (req, res, next) => {
     department,
     restpassword,
   } = req.body;
+
   const { userId } = req.query;
+
+  // find Student
   const user = await userModel.findById({ _id: userId });
   if (!user) {
     return next(new Error("user Not found", { cause: 404 }));
@@ -210,8 +240,8 @@ export const updateStudent = asyncHandler(async (req, res, next) => {
 
   //check full name
   if (Full_Name && user.Full_Name != Full_Name) {
-    const usernaem = await userModel.findOne({ Full_Name: Full_Name });
-    if (usernaem && usernaem._id.toString() != userId) {
+    const username = await userModel.findOne({ Full_Name: Full_Name }).lean();
+    if (username && username._id.toString() != userId) {
       return next(new Error("student Name is already exist", { cause: 400 }));
     }
     user.Full_Name = Full_Name;
@@ -219,19 +249,28 @@ export const updateStudent = asyncHandler(async (req, res, next) => {
 
   //check  national id
   if (National_Id && user.National_Id != National_Id) {
-    const chkNational_Id = await userModel.findOne({
-      National_Id: National_Id,
-    });
+    const chkNational_Id = await userModel
+      .findOne({
+        National_Id: National_Id,
+      })
+      .lean();
+
+    // if someone already have tis name
     if (chkNational_Id && chkNational_Id._id.toString() != userId) {
       return next(new Error("National id is already exist", { cause: 400 }));
     }
     user.National_Id = National_Id;
   }
 
+  // check student code
   if (Student_Code && user.Student_Code != Student_Code) {
-    const chkStudent_Code = await userModel.findOne({
-      Student_Code: Student_Code,
-    });
+    const chkStudent_Code = await userModel
+      .findOne({
+        Student_Code: Student_Code,
+      })
+      .lean();
+
+    // Student code is already exist
     if (chkStudent_Code && chkStudent_Code._id.toString() != userId) {
       return next(new Error("Student code is already exist", { cause: 400 }));
     }
@@ -239,14 +278,18 @@ export const updateStudent = asyncHandler(async (req, res, next) => {
   }
 
   if (PhoneNumber && user.PhoneNumber != PhoneNumber) {
-    const chkphone = await userModel.findOne({
-      PhoneNumber: PhoneNumber,
-    });
+    const chkphone = await userModel
+      .findOne({
+        PhoneNumber: PhoneNumber,
+      })
+      .lean();
+
     if (chkphone && chkphone._id.toString() != userId) {
       return next(new Error("phone number is already exist", { cause: 400 }));
     }
     user.PhoneNumber = PhoneNumber;
   }
+
   if (restpassword) {
     user.password = National_Id || user.National_Id;
     delete user.password;
@@ -256,11 +299,15 @@ export const updateStudent = asyncHandler(async (req, res, next) => {
   user.Date_of_Birth = Date_of_Birth || user.Date_of_Birth;
   user.department = department || user.department;
 
+  // save updated data
   const result = await user.save();
+
   if (!result) {
     return next(new Error("Error In update user information", { cause: 500 }));
   }
-  res.status(200).json({
+
+  // response
+  return res.status(200).json({
     message: "Student information updated successfully",
     result: result,
   });
@@ -288,7 +335,7 @@ export const deleteStudent = asyncHandler(async (req, res, next) => {
   // all operation to delete
   deleteOperations.concat([
     user.deleteOne(), // delete student
-    RegisterModel.findOneAndDelete({ studentId: userId }), // delete register model
+    RegisterModel.deleteOne({ studentId: userId }), // delete register model
     GradeModel.deleteMany({ studentId: userId }),
     SemesterGradeModel.deleteMany({ studentId: userId }),
     TrainingRegisterModel.deleteOne({ studentId: userId }),
@@ -297,7 +344,7 @@ export const deleteStudent = asyncHandler(async (req, res, next) => {
 
   const deleteInfo = await Promise.all(deleteOperations);
 
-  // response
+  // response every thing deleted
   return res
     .status(200)
     .json({ message: "User deleted successfully", deleteInfo });
@@ -338,6 +385,7 @@ export const searchuser = asyncHandler(async (req, res, next) => {
 
   const users = await apiFeatureInstance.MongoseQuery;
 
+  // add images to response
   for (const user of users) {
     if (user.imgName) {
       const { url } = await GetsingleImg({ ImgName: user.imgName });
@@ -345,6 +393,7 @@ export const searchuser = asyncHandler(async (req, res, next) => {
     }
   }
 
+  // response
   return res
     .status(200)
     .json({ message: "Done All Student Information", students: users });
@@ -352,7 +401,8 @@ export const searchuser = asyncHandler(async (req, res, next) => {
 
 export const AddStuImg = asyncHandler(async (req, res, next) => {
   let { studentId } = req.body;
-  if (!req?.file) {
+
+  if (!req.file) {
     return next(new Error("File should be provided", { cause: 400 }));
   }
 
@@ -412,6 +462,7 @@ export const AddStuImg = asyncHandler(async (req, res, next) => {
     result = student;
   }
 
+  // response Images Uploaded
   return res
     .status(200)
     .json({ message: "Images Uploaded successfully", result });
@@ -420,17 +471,19 @@ export const AddStuImg = asyncHandler(async (req, res, next) => {
 export const deleteStuImg = asyncHandler(async (req, res, next) => {
   const { imgName } = req.body;
   let { studentId } = req.body;
+
   if (req.user.role == roles.stu) {
     studentId = req.user._id;
   }
-  const student = await userModel.findById(studentId);
+
+  const student = await userModel.findById(studentId).lean();
 
   if (!student) {
     return next(new Error("Student not found", { cause: 404 }));
   }
 
   if (student?.imgName !== imgName) {
-    return next(new Error("Invalid imgName not found", { cause: 400 }));
+    return next(new Error("Invalid imgName not found", { cause: 404 }));
   }
 
   // Delete image
@@ -458,7 +511,25 @@ export const deleteStuImg = asyncHandler(async (req, res, next) => {
 
 export const logout = asyncHandler(async (req, res, next) => {
   const user = req.user;
-  const token = await TokenModel.findOneAndUpdate({
-    userId: user._id,
+  const HashrefreshToken = req.headers["refresh-token"];
+
+  console.log({ user, HashrefreshToken });
+
+  const refreshToken = await decryptData({
+    encryptedData: HashrefreshToken,
+    password: process.env.REFRESH_TOKEN_ENCRPTION,
   });
+
+  const token = await TokenModel.findOneAndUpdate(
+    {
+      userId: user._id,
+    },
+    { $pull: { refreshTokens: refreshToken } },
+    { new: true }
+  );
+
+  if (!token) {
+    return next(new Error("token document not found", { cause: 400 }));
+  }
+  return res.status(200).json({ message: "user logout successfully" });
 });
