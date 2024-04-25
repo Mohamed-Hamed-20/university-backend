@@ -13,7 +13,13 @@ export const updateSetting = {
               .string()
               .trim()
               .valid(...AllRoutes)
-              .required(),
+              .required()
+              .messages({
+                "string.base": "URL must be a string",
+                "any.required": "URL is required",
+                "string.empty": "URL cannot be empty",
+                "any.only": "Invalid URL",
+              }),
             allow: joi
               .string()
               .lowercase()
