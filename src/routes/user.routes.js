@@ -12,14 +12,14 @@ const { student } = routes;
 
 router.post(
   `${student.login}`,
-  limiter({ limit: 10, Mintute: 15 }),
+  // limiter({ limit: 10, Mintute: 15 }),
   valid(vSchema.login),
   uc.login
 );
 
 router.post(
   `${student.createStudent}`,
-  limiter({ limit: 50, Mintute: 15 }),
+  // limiter({ limit: 50, Mintute: 15 }),
   valid(vSchema.registeruser),
   isAuth([roles.admin]),
   uc.addStudent

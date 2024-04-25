@@ -13,7 +13,7 @@ const { Admin } = routes;
 //login admin SuperAdmins
 router.post(
   `${Admin.login}`,
-  limiter({ limit: 10, Mintute: 15 }),
+  // limiter({ limit: 10, Mintute: 15 }),
   valid(vSchema.login),
   ac.login
 );
