@@ -33,10 +33,10 @@ export const login = asyncHandler(async (req, res, next) => {
   const user = await userModel
     .findOne({ Student_Code: Student_Code })
     .lean()
-    .select("_id Full_Name Student_Code National_Id password");
+    .select("_id Full_Name Student_Code National_Id password role");
 
   if (!user) {
-    return next(new Error("Invalid Student Code or password"), { cause: 400 });
+    return next(new Error("Invalid Student Code or password", { cause: 400 }));
   }
 
   if (user?.password) {
@@ -76,6 +76,7 @@ export const login = asyncHandler(async (req, res, next) => {
     refreshTokenPromise,
   ]);
 
+  console.log({ accessToken, refreshToken });
   // encrpt accesss tokens
   const encrptAcessTokenpromise = encryptData({
     data: accessToken,
@@ -408,12 +409,14 @@ export const searchuser = asyncHandler(async (req, res, next) => {
   const users = await apiFeatureInstance.MongoseQuery;
 
   // add images to response
-  for (const user of users) {
-    if (user.imgName) {
-      const { url } = await GetsingleImg({ ImgName: user.imgName });
-      user.url = url;
-    }
-  }
+  await Promise.all(
+    users.map(async (user) => {
+      if (user.imgName) {
+        const { url } = await GetsingleImg({ ImgName: user.imgName });
+        user.url = url;
+      }
+    })
+  );
 
   // response
   return res
@@ -436,7 +439,9 @@ export const AddStuImg = asyncHandler(async (req, res, next) => {
     studentId = req.user._id.toString();
   }
 
-  const student = await userModel.findById(studentId);
+  const student = await userModel
+    .findById(studentId)
+    .select("_id imgName Full_Name ");
   if (!student) {
     return next(new Error("student not found", { cause: 404 }));
   }
@@ -498,7 +503,10 @@ export const deleteStuImg = asyncHandler(async (req, res, next) => {
     studentId = req.user._id;
   }
 
-  const student = await userModel.findById(studentId).lean();
+  const student = await userModel
+    .findById(studentId)
+    .lean()
+    .select("_id imgName Full_Name Student_Code");
 
   if (!student) {
     return next(new Error("Student not found", { cause: 404 }));
@@ -516,11 +524,10 @@ export const deleteStuImg = asyncHandler(async (req, res, next) => {
   }
 
   // Remove imgName field from the student document
-  const result = await userModel.findByIdAndUpdate(
-    studentId,
-    { $unset: { imgName: "" } },
-    { new: true }
-  );
+  const result = await userModel
+    .findByIdAndUpdate(studentId, { $unset: { imgName: "" } }, { new: true })
+    .lean()
+    .select("_id Full_Name National_Id Student_Code imgName");
 
   if (!result) {
     return next(new Error("Failed to update student", { cause: 500 }));
@@ -535,8 +542,6 @@ export const logout = asyncHandler(async (req, res, next) => {
   const user = req.user;
   const HashrefreshToken = req.headers["refresh-token"];
 
-  console.log({ user, HashrefreshToken });
-
   const refreshToken = await decryptData({
     encryptedData: HashrefreshToken,
     password: process.env.REFRESH_TOKEN_ENCRPTION,
@@ -548,7 +553,9 @@ export const logout = asyncHandler(async (req, res, next) => {
     },
     { $pull: { refreshTokens: refreshToken } },
     { new: true }
-  );
+  )
+    .lean()
+    .select("_id refreshTokens");
 
   if (!token) {
     return next(new Error("token document not found", { cause: 400 }));
