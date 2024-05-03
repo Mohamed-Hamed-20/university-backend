@@ -34,7 +34,7 @@ router.get(
 
 router.put(
   `${student.updateStudent}`,
-  limiter({ limit: 50, Mintute: 15 }),
+  // limiter({ limit: 50, Mintute: 15 }),
   valid(vSchema.updateStudent),
   isAuth([roles.admin]),
   uc.updateStudent
@@ -42,7 +42,7 @@ router.put(
 
 router.delete(
   `${student.deleteStudent}`,
-  limiter({ limit: 15, Mintute: 20 }),
+  // limiter({ limit: 15, Mintute: 20 }),
   valid(vSchema.deleteStudent),
   isAuth([roles.admin]),
   uc.deleteStudent

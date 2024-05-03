@@ -7,11 +7,13 @@ export const availableHoursForUser = async ({
 } = {}) => {
   try {
     if (!setting) {
-      throw new Error("Need to provied semsterId first in setting");
+      throw new Error("Need to provied semsterId first in setting", {
+        cause: 400,
+      });
     }
     const semsterInfo = await SemesterModel.findById(setting.MainSemsterId);
     if (!semsterInfo) {
-      throw new Error("semster Info Invaild");
+      throw new Error("semster Info Invaild", { cause: 400 });
     }
     let availablehour;
     if (!RegisterInfo || RegisterInfo.coursesRegisterd.length == 0) {
@@ -31,6 +33,6 @@ export const availableHoursForUser = async ({
     }
     return availablehour;
   } catch (error) {
-    throw new Error(error);
+    throw new Error(error.message, { cause: 500 });
   }
 };

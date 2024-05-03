@@ -273,7 +273,7 @@ export const courseInfo = asyncHandler(async (req, res, next) => {
   const course = await CourseModel.findById(courseId).lean();
 
   if (!course) {
-    throw new Error("Course not found");
+    return next(new Error("course not found ", { cause: 404 }));
   }
 
   if (course.ImgUrls && course.ImgUrls.length > 0) {

@@ -63,11 +63,6 @@ export const updateStudent = {
       userId: generalFields._id.required(),
     })
     .required(),
-  headers: joi
-    .object({
-      authorization: joi.string().trim().required(),
-    })
-    .required(),
 };
 
 export const deleteStudent = {
@@ -87,7 +82,6 @@ export const searchuser = {
       search: generalFields.search,
     })
     .required(),
-
 };
 
 export const AddStuImg = {

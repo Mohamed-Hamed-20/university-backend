@@ -28,13 +28,18 @@ import { sanitizeStudent } from "../../utils/sanitize.data.js";
 
 export const login = asyncHandler(async (req, res, next) => {
   const { Student_Code, password } = req.body;
+
   //check Student_Code
-  const user = await userModel.findOne({ Student_Code: Student_Code });
+  const user = await userModel
+    .findOne({ Student_Code: Student_Code })
+    .lean()
+    .select("_id Full_Name Student_Code National_Id password");
+
   if (!user) {
     return next(new Error("Invalid Student Code or password"), { cause: 400 });
   }
 
-  if (user.password) {
+  if (user?.password) {
     const matched = await verifypass({
       password: password,
       hashpassword: user.password,
@@ -82,17 +87,17 @@ export const login = asyncHandler(async (req, res, next) => {
     data: refreshToken,
     password: process.env.REFRESH_TOKEN_ENCRPTION,
   });
-  const successpromise = storeRefreshToken(refreshToken, user._id, next);
+  const success = await storeRefreshToken(refreshToken, user._id, next);
 
-  const [encrptAcessToken, encrptRefToken, success] = await Promise.all([
+  const [encrptAcessToken, encrptRefToken] = await Promise.all([
     encrptAcessTokenpromise,
     encrptRefTokenpromise,
-    successpromise,
   ]);
 
   if (!success) {
     return next(new Error("Failed to store refresh token"), { cause: 500 });
   }
+
   return res.status(200).json({
     message: "done login",
     accessToken: encrptAcessToken,
@@ -153,14 +158,16 @@ export const addStudent = asyncHandler(async (req, res, next) => {
   } = req.body;
 
   // Make sure data NOt dublicate
-  const existingStudent = await userModel.findOne({
-    $or: [
-      { National_Id: National_Id },
-      { Student_Code: Student_Code },
-      { Full_Name: Full_Name },
-      { PhoneNumber: PhoneNumber },
-    ],
-  });
+  const existingStudent = await userModel
+    .findOne({
+      $or: [
+        { National_Id: National_Id },
+        { Student_Code: Student_Code },
+        { Full_Name: Full_Name },
+        { PhoneNumber: PhoneNumber },
+      ],
+    })
+    .lean();
 
   // search if student is already Exist
   if (existingStudent) {
@@ -219,127 +226,150 @@ export const updateStudent = asyncHandler(async (req, res, next) => {
     PhoneNumber,
     gender,
     department,
-    restpassword,
+    resetPassword,
   } = req.body;
 
   const { userId } = req.query;
 
-  // find Student
-  const user = await userModel.findById({ _id: userId });
+  const user = await userModel
+    .findById({ _id: userId })
+    .lean()
+    .select(
+      "_id Full_Name National_Id Student_Code Date_of_Birth PhoneNumber gender password department"
+    );
+
   if (!user) {
-    return next(new Error("user Not found", { cause: 404 }));
+    return next({ message: "User not found", cause: 404 });
   }
 
-  //check full name
-  if (Full_Name && user.Full_Name != Full_Name) {
-    const username = await userModel.findOne({ Full_Name: Full_Name }).lean();
-    if (username && username._id.toString() != userId) {
-      return next(new Error("student Name is already exist", { cause: 400 }));
-    }
-    user.Full_Name = Full_Name;
+  const myquery = [];
+
+  // ======================Check and update fields
+
+  // check for full name
+  if (Full_Name && user.Full_Name !== Full_Name) {
+    myquery.push({ Full_Name: Full_Name });
   }
 
-  //check  national id
-  if (National_Id && user.National_Id != National_Id) {
-    const chkNational_Id = await userModel
-      .findOne({
-        National_Id: National_Id,
-      })
-      .lean();
-
-    // if someone already have tis name
-    if (chkNational_Id && chkNational_Id._id.toString() != userId) {
-      return next(new Error("National id is already exist", { cause: 400 }));
-    }
-    user.National_Id = National_Id;
+  // check for National_Id
+  if (National_Id && user.National_Id !== National_Id) {
+    myquery.push({ National_Id: National_Id });
   }
 
   // check student code
   if (Student_Code && user.Student_Code != Student_Code) {
-    const chkStudent_Code = await userModel
+    myquery.push({ Student_Code: Student_Code });
+  }
+
+  // check for phone number
+  if (PhoneNumber && user.PhoneNumber !== PhoneNumber) {
+    myquery.push({ PhoneNumber: PhoneNumber });
+  }
+
+  // make sure no duplication and data set In
+  if (myquery.length > 0) {
+    // Make sure data NOt dublicate
+    const existingStudent = await userModel
       .findOne({
-        Student_Code: Student_Code,
+        $or: myquery,
       })
       .lean();
 
-    // Student code is already exist
-    if (chkStudent_Code && chkStudent_Code._id.toString() != userId) {
-      return next(new Error("Student code is already exist", { cause: 400 }));
+    // search if student is already Exist
+    if (existingStudent) {
+      if (existingStudent.National_Id === National_Id) {
+        return next(new Error(" National Id is Already Exist", { cause: 400 }));
+      }
+      if (existingStudent.Student_Code === Student_Code) {
+        return next(new Error("Student Code is Already Exist", { cause: 400 }));
+      }
+      if (existingStudent.Full_Name === Full_Name) {
+        return next(new Error("Full Name is Already Exist", { cause: 400 }));
+      }
+      if (existingStudent.PhoneNumber === PhoneNumber) {
+        return next(new Error("phone is Already Exist", { cause: 400 }));
+      }
     }
-    user.Student_Code = Student_Code;
   }
 
-  if (PhoneNumber && user.PhoneNumber != PhoneNumber) {
-    const chkphone = await userModel
-      .findOne({
-        PhoneNumber: PhoneNumber,
-      })
-      .lean();
+  const userUpdate = {};
+  // Check and update fields
+  if (Full_Name) userUpdate.Full_Name = Full_Name;
+  if (National_Id) userUpdate.National_Id = National_Id;
+  if (Student_Code) userUpdate.Student_Code = Student_Code;
+  if (PhoneNumber) userUpdate.PhoneNumber = PhoneNumber;
 
-    if (chkphone && chkphone._id.toString() != userId) {
-      return next(new Error("phone number is already exist", { cause: 400 }));
-    }
-    user.PhoneNumber = PhoneNumber;
-  }
-
-  if (restpassword) {
+  // reset his password
+  if (resetPassword) {
     user.password = National_Id || user.National_Id;
     delete user.password;
   }
 
-  user.gender = gender || user.gender;
-  user.Date_of_Birth = Date_of_Birth || user.Date_of_Birth;
-  user.department = department || user.department;
+  // Update fields
+  if (gender) userUpdate.gender = gender;
+  if (Date_of_Birth) userUpdate.Date_of_Birth = Date_of_Birth;
+  if (department) userUpdate.department = department;
 
-  // save updated data
-  const result = await user.save();
+  // Find and update user
+  const updatedUser = await userModel.findByIdAndUpdate(
+    { _id: userId },
+    userUpdate,
+    { new: true, lean: true, select: "_id Full_Name Student_Code gender" }
+  );
 
-  if (!result) {
-    return next(new Error("Error In update user information", { cause: 500 }));
+  // if not updated
+  if (!updatedUser) {
+    return next(
+      new Error("Error IN Updateing student information", { cause: 500 })
+    );
   }
 
-  // response
   return res.status(200).json({
     message: "Student information updated successfully",
-    result: result,
+    result: updatedUser,
   });
 });
 
 export const deleteStudent = asyncHandler(async (req, res, next) => {
   const { userId } = req.query;
-  const user = await userModel.findById(userId);
+  const user = await userModel.findById(userId).select("_id ");
 
   if (!user) {
-    return next(new Error("User not found"), { cause: 404 });
+    return next(new Error("User not found", { cause: 404 }));
   }
-
-  const newName = slugify(user.Full_Name, {
-    replacement: "_",
-  });
 
   const deleteOperations = [];
-  if (user?.imgName) {
+
+  if (user.imgName) {
+    const newName = slugify(user.Full_Name, {
+      replacement: "_",
+    });
     const folder = `${process.env.Folder_stu}/${newName}-${user._id}/`;
     const { objects } = await listoFiles({ folder });
-    deleteOperations.push(deleteMuliFiles({ objects })); // delete IMages
+    deleteOperations.push(deleteMuliFiles({ objects })); // delete images
   }
 
-  // all operation to delete
-  deleteOperations.concat([
+  // gather all delete operations
+
+  const deletionTasks = [
     user.deleteOne(), // delete student
-    RegisterModel.deleteOne({ studentId: userId }), // delete register model
-    GradeModel.deleteMany({ studentId: userId }),
-    SemesterGradeModel.deleteMany({ studentId: userId }),
-    TrainingRegisterModel.deleteOne({ studentId: userId }),
-    trainingResultModel.deleteMany({ studentId: userId }),
-  ]);
+    RegisterModel.deleteOne({ studentId: user._id }), // delete register model
+    GradeModel.deleteMany({ studentId: user._id }),
+    SemesterGradeModel.deleteMany({ studentId: user._id }),
+    TrainingRegisterModel.deleteOne({ studentId: user._id }),
+    trainingResultModel.deleteMany({ studentId: user._id }),
+  ];
+
+  deleteOperations.push(...deletionTasks);
 
   const deleteInfo = await Promise.all(deleteOperations);
 
-  // response every thing deleted
-  return res
-    .status(200)
-    .json({ message: "User deleted successfully", deleteInfo });
+  // response with deleted data
+  return res.status(200).json({
+    message: "User deleted successfully",
+    deleteInfo,
+    deletedUser: user,
+  });
 });
 
 export const searchuser = asyncHandler(async (req, res, next) => {
@@ -363,9 +393,9 @@ export const searchuser = asyncHandler(async (req, res, next) => {
   ];
 
   const searchFieldsIds = ["_id"];
-
+  const searchFieldsNumber = [];
   const apiFeatureInstance = new ApiFeature(
-    userModel.find({}).lean(),
+    userModel.find().lean(),
     req.query,
     allowFields
   )
@@ -373,7 +403,7 @@ export const searchuser = asyncHandler(async (req, res, next) => {
     .select()
     .filter()
     .sort()
-    .search({ searchFieldsText, searchFieldsIds });
+    .search({ searchFieldsText, searchFieldsIds, searchFieldsNumber });
 
   const users = await apiFeatureInstance.MongoseQuery;
 

@@ -17,7 +17,7 @@ import trainingRouter from "./routes/training.routes.js";
 import TrainingResultRouter from "./routes/trainingResult.routes.js";
 import TrainingRegisterRouter from "./routes/TrainingRegister.routes.js";
 
-import { GlobalErrorHandling } from "./utils/errorHandling.js";
+import { asyncHandler, GlobalErrorHandling } from "./utils/errorHandling.js";
 import morgan from "morgan";
 import { hellowpage } from "./utils/templetHtml.js";
 import { settingAPIS } from "./controllers/setting/setting.js";

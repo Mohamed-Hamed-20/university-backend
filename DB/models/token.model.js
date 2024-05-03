@@ -21,7 +21,7 @@ const tokenSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-tokenSchema.index({ userId: 1, refreshTokens: 1 });
+tokenSchema.index({ userId: 1, isvalid: 1 });
 
 const TokenModel = mongoose.model("Token", tokenSchema);
 

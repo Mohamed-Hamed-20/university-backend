@@ -4,7 +4,7 @@ import userModel from "../../DB/models/user.model.js";
 import TokenModel from "../../DB/models/token.model.js";
 import { adminModel } from "../../DB/models/admin.model.js";
 import { InstructorModel } from "../../DB/models/instructor.model.js";
-import { decryptData } from "../utils/crypto.js";
+import { decryptData, encryptData } from "../utils/crypto.js";
 
 export const roles = {
   super: "superAdmin",
@@ -132,10 +132,16 @@ export const isAuth = (roles) => {
             );
           }
 
+          const EncrptedNewacessToken = await encryptData({
+            data: newaccessToken,
+            password: process.env.ACCESS_TOKEN_ENCRPTION,
+          });
+
+          // response refreshed
           return res.status(200).json({
             message: "Token refreshed",
-            accessToken: newaccessToken,
-            refreshToken: refreshToken,
+            accessToken: EncrptedNewacessToken,
+            refreshToken: req.headers["refresh-token"],
           });
         } catch (error) {
           if (error.message.includes("jwt expired")) {
@@ -148,7 +154,7 @@ export const isAuth = (roles) => {
           return next(new error(error.message, { cause: 400 }));
         }
       } else {
-        throw new Error(error);
+        throw new Error(error.message, { cause: 400 });
         // return next(new Error("invalid token", { cause: 500 }));
       }
     }
