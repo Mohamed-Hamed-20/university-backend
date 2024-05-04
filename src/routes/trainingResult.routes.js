@@ -12,7 +12,7 @@ router.post(
   `${TrainingResult.uploadByAdmin}`,
   limiter({ limit: 40, Mintute: 60 }),
   valid(vSchema.createTrainingResult),
-  isAuth([roles.admin]),
+  isAuth([roles.admin, roles.super]),
   trc.uploadTrainingResult
 );
 
@@ -31,7 +31,7 @@ router.delete(
   `${TrainingResult.deleteByAdmin}`,
   limiter({ limit: 50, Mintute: 60 }),
   valid(vSchema.deleteTrainingResult),
-  isAuth([roles.admin]),
+  isAuth([roles.admin, roles.super]),
   trc.deleteTrainingResult
 );
 
@@ -50,7 +50,7 @@ router.put(
   `${TrainingResult.updateByAdmin}`,
   limiter({ limit: 50, Mintute: 60 }),
   valid(vSchema.updateTrainingResult),
-  isAuth([roles.admin]),
+  isAuth([roles.admin, roles.super]),
   trc.updateTrainingResult
 );
 
@@ -86,7 +86,7 @@ router.get(
   `${TrainingResult.getSingleTrainingResultByAdmin}`,
   limiter({ limit: 40, Mintute: 60 }),
   valid(vSchema.getSingleTrainingResult),
-  isAuth([roles.admin]),
+  isAuth([roles.admin, roles.super]),
   trc.getSingleTrainingResult
 );
 // =============================================================================================
@@ -104,7 +104,7 @@ router.get(
   `${TrainingResult.SearchTrainingResultByAdmin}`,
   limiter({ limit: 50, Mintute: 60 }),
   valid(vSchema.SearchTrainingResultByAdmin),
-  isAuth([roles.admin]),
+  isAuth([roles.admin, roles.super]),
   trc.SearchTrainingResult
 );
 

@@ -36,7 +36,7 @@ router.put(
   `${student.updateStudent}`,
   // limiter({ limit: 50, Mintute: 15 }),
   valid(vSchema.updateStudent),
-  isAuth([roles.admin]),
+  isAuth([roles.admin, roles.super]),
   uc.updateStudent
 );
 
@@ -44,7 +44,7 @@ router.delete(
   `${student.deleteStudent}`,
   // limiter({ limit: 15, Mintute: 20 }),
   valid(vSchema.deleteStudent),
-  isAuth([roles.admin]),
+  isAuth([roles.admin, roles.super]),
   uc.deleteStudent
 );
 
@@ -52,7 +52,7 @@ router.get(
   `${student.searchstudent}`,
   limiter({ limit: 20, Mintute: 10 }),
   valid(vSchema.searchuser),
-  isAuth([roles.admin]),
+  isAuth([roles.admin, roles.super]),
   uc.searchuser
 );
 

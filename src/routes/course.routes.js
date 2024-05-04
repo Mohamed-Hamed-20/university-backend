@@ -15,7 +15,7 @@ const { course } = routes;
 
 router.post(
   `${course.AddCourse}`,
-  limiter({limit:60,Mintute:60}),
+  limiter({ limit: 60, Mintute: 60 }),
   valid(vSchema.addcourse),
   isAuth([roles.admin]),
   cc.addCourse
@@ -23,7 +23,7 @@ router.post(
 
 router.put(
   `${course.updateCourse}`,
-  limiter({limit:60,Mintute:60}),
+  limiter({ limit: 60, Mintute: 60 }),
   valid(vSchema.updatecourse),
   isAuth([roles.admin]),
   cc.updatecourse
@@ -31,7 +31,7 @@ router.put(
 
 router.delete(
   `${course.deleteCourse}`,
-  limiter({limit:30,Mintute:60}),
+  limiter({ limit: 30, Mintute: 60 }),
   valid(vSchema.deletecourse),
   isAuth([roles.admin]),
   cc.deletecourse
@@ -40,7 +40,7 @@ router.delete(
 //upload one or more image
 router.post(
   `${course.AddCourseImg}`,
-  limiter({limit:60,Mintute:60}),
+  limiter({ limit: 60, Mintute: 60 }),
   multerCloud(allowedExtensions.Image).array("courseImage", 3),
   valid(vSchema.AddcourseImg),
   isAuth([roles.admin]),
@@ -49,7 +49,7 @@ router.post(
 
 router.patch(
   `${course.deleteCourseImg}`,
-  limiter({limit:30,Mintute:60}),
+  limiter({ limit: 30, Mintute: 60 }),
   valid(vSchema.deletecourseImg),
   isAuth([roles.admin]),
   cc.deletecourseImg
@@ -60,7 +60,7 @@ router.patch(
 // EDIT_R   student
 router.get(
   `${course.searchCourseByStu}`,
-  limiter({limit:30,Mintute:15}),
+  limiter({ limit: 30, Mintute: 15 }),
   valid(vSchema.searchcourse),
   isAuth([roles.stu]),
   cc.searchcourse
@@ -69,16 +69,16 @@ router.get(
 // EDIT_R   admin
 router.get(
   `${course.searchCourseByAdmin}`,
-  limiter({limit:40,Mintute:15}),
+  limiter({ limit: 40, Mintute: 15 }),
   valid(vSchema.searchcourse),
-  isAuth([roles.admin]),
+  isAuth([roles.admin, roles.super]),
   cc.searchcourse
 );
 
 //   EDIT_R     instructor
 router.get(
   `${course.searchCourseByInstructor}`,
-  limiter({limit:40,Mintute:15}),
+  limiter({ limit: 40, Mintute: 15 }),
   valid(vSchema.searchcourse),
   isAuth([roles.instructor]),
   cc.searchcourse
@@ -89,16 +89,16 @@ router.get(
 //   EDIT_R     admin courseInfo
 router.get(
   `${course.GetsingleInfoByAdmin}`,
-  limiter({limit:50,Mintute:15}),
+  limiter({ limit: 50, Mintute: 15 }),
   valid(vSchema.deletecourse),
-  isAuth([roles.admin]),
+  isAuth([roles.admin, roles.super]),
   cc.courseInfo
 );
 
 //   EDIT_R     student
 router.get(
   `${course.GetsingleInfoByStu}`,
-  limiter({limit:50,Mintute:15}),
+  limiter({ limit: 50, Mintute: 15 }),
   valid(vSchema.deletecourse),
   isAuth([roles.stu]),
   cc.courseInfo
@@ -107,7 +107,7 @@ router.get(
 // EDIT_R     instructor
 router.get(
   `${course.GetsingleInfoByInstructor}`,
-  limiter({limit:70,Mintute:15}),
+  limiter({ limit: 70, Mintute: 15 }),
   valid(vSchema.deletecourse),
   isAuth([roles.instructor]),
   cc.courseInfo

@@ -36,9 +36,9 @@ router.get(
 //search Training Regsterd by Admin  ======>   EDIT_R
 router.get(
   `${RegisterTraining.searchTrainingsRegisterdByAdmin}`,
-  limiter({limit:50,Mintute:60}),
+  limiter({ limit: 50, Mintute: 60 }),
   valid(vSchema.searchRegister),
-  isAuth([roles.admin]),
+  isAuth([roles.admin, roles.super]),
   TRC.searchRegisterTraining
 );
 
