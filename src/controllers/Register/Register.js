@@ -143,10 +143,11 @@ export const deleteFromRegister = asyncHandler(async (req, res, next) => {
 
 export const getRegister = asyncHandler(async (req, res, next) => {
   const { studentId } = req.query;
+  console.log(studentId);
   let userId = req.user._id;
 
-  if (req.user.role == roles.admin) {
-    userId = studentId;
+  if (req.user.role == roles.admin || req.user.role == roles.super) {
+    userId = studentId.toString();
   }
 
   let register = await RegisterModel.findOne({ studentId: userId })
