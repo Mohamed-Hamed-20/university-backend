@@ -23,7 +23,7 @@ router.post(
   `${studentGrades.AddGradeByAdmin}`,
   limiter({ limit: 50, Mintute: 60 }),
   valid(vSchema.addgrate),
-  isAuth([roles.super]),
+  isAuth([roles.super, roles.admin]),
   gc.uploadGrade,
   sgc.addTosemster
 );
@@ -34,7 +34,7 @@ router.put(
   `${studentGrades.updateGradeByAdmin}`,
   limiter({ limit: 40, Mintute: 60 }),
   valid(vSchema.updatecoursegrate),
-  isAuth([roles.super]),
+  isAuth([roles.super, roles.admin]),
   gc.updategrate,
   sgc.updateSemsterGrate
 );
@@ -55,7 +55,7 @@ router.delete(
   `${studentGrades.deleteGradeByAdmin}`,
   limiter({ limit: 100, Mintute: 60 }),
   valid(vSchema.deletecoursegrate),
-  isAuth([roles.super]),
+  isAuth([roles.super, roles.admin]),
   gc.deletecoursegrate,
   sgc.deleteSemsterGrate
 );

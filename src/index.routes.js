@@ -22,6 +22,7 @@ import morgan from "morgan";
 import { hellowpage } from "./utils/templetHtml.js";
 import { settingAPIS } from "./controllers/setting/setting.js";
 import { routes } from "./utils/routes.path.js";
+import { GradeModel } from "../DB/models/StudentGrades.model.js";
 
 export const bootstrap = (app, express) => {
   const allowedOrigins = [
@@ -56,6 +57,20 @@ export const bootstrap = (app, express) => {
 
   // DB connection
   connectDB();
+
+const searchTerm = "tomas muler";
+
+GradeModel.find({
+  $or: [{ "studentId.Full_Name": { $regex: new RegExp(searchTerm, "i") } }],
+})
+  .populate("studentId")
+  .then((students) => {
+    console.log(students);
+  })
+  .catch((err) => {
+    console.error(err);
+  });
+
 
   if ((process.env.MOOD = "DEV")) {
     app.use(morgan("dev"));
