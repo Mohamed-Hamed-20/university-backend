@@ -130,8 +130,16 @@ export const deleteTraining = asyncHandler(async (req, res, next) => {
 });
 
 export const getTraining = asyncHandler(async (req, res, next) => {
-  const userId = req.user._id;
+  let userId = req.user._id;
+  const { studentId } = req.query;
 
+  if (roles.admin == req.user.role || roles.super == req.user.role) {
+    if (!studentId) {
+      return next(new Error("studentId is required"));
+    }
+    userId = studentId.toString();
+  }
+  console.log(userId);
   let TrainingRegister = await TrainingRegisterModel.findOne({
     studentId: userId,
   })

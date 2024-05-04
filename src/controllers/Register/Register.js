@@ -5,8 +5,7 @@ import { roles } from "../../middleware/auth.js";
 import { ApiFeature } from "../../utils/apiFeature.js";
 import { arrayofstring } from "../../utils/arrayobjectIds.js";
 import { availableHoursForUser } from "../../utils/availableHours.js";
-import { GetMultipleImages, GetsingleImg } from "../../utils/aws.s3.js";
-import { calculateGPA } from "../../utils/calcGrates.js";
+import { GetMultipleImages } from "../../utils/aws.s3.js";
 import { asyncHandler } from "../../utils/errorHandling.js";
 import { sanitizeStudent } from "../../utils/sanitize.data.js";
 
@@ -215,6 +214,9 @@ export const searchRegister = asyncHandler(async (req, res, next) => {
     select:
       "Full_Name National_Id Student_Code department gender PhoneNumber Date_of_Birth",
     path: "studentId",
+    match: {
+      // Full_Name: { $regex: new RegExp("^" + req?.query?.search + "$", "i") },
+    },
   };
   const optionCourse = {
     path: "coursesRegisterd",
@@ -233,7 +235,7 @@ export const searchRegister = asyncHandler(async (req, res, next) => {
     .pagination()
     .sort()
     .select()
-    .search({ searchFieldsText, searchFieldsIds })
+    // .search({ searchFieldsText, searchFieldsIds })
     .populate(optionStudent)
     .populate(optionCourse);
 

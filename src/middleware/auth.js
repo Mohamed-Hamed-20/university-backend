@@ -47,7 +47,7 @@ export const isAuth = (roles) => {
         token: splitedToken,
         signature: process.env.ACCESS_TOKEN_SECRET,
       });
-      console.log(decode);
+
       if (!decode.userId || !decode.role || !decode.IpAddress) {
         return next(new Error("Invalid Token Payload", { cause: 400 }));
       }

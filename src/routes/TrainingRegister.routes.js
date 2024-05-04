@@ -10,7 +10,7 @@ const { RegisterTraining } = routes;
 //login admin SuperAdmins
 router.post(
   `${RegisterTraining.addTraining}`,
-  limiter({limit:30,Mintute:60}),
+  limiter({ limit: 30, Mintute: 60 }),
   valid(vSchema.addTraining),
   isAuth([roles.stu]),
   TRC.addTraining
@@ -18,7 +18,7 @@ router.post(
 
 router.patch(
   `${RegisterTraining.deleteTraining}`,
-  limiter({limit:30,Mintute:60}),
+  limiter({ limit: 30, Mintute: 60 }),
   isAuth([roles.stu]),
   valid(vSchema.deleteTraining),
   TRC.deleteTraining
@@ -26,8 +26,8 @@ router.patch(
 
 router.get(
   `${RegisterTraining.getTrainingRegisterdInfoTostu}`,
-  limiter({limit:20,Mintute:60}),
-  isAuth([roles.stu]),
+  limiter({ limit: 20, Mintute: 60 }),
+  isAuth([roles.stu, roles.admin, roles.super]),
   TRC.getTraining
 );
 
@@ -45,7 +45,7 @@ router.get(
 //search Training Regsterd by instructor  ======>   EDIT_R
 router.get(
   `${RegisterTraining.searchTrainingsRegisterdByInstructor}`,
-  limiter({limit:50,Mintute:60}),
+  limiter({ limit: 50, Mintute: 60 }),
   valid(vSchema.searchRegister),
   isAuth([roles.instructor]),
   TRC.searchRegisterTraining
