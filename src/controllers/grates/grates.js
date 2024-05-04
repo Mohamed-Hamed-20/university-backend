@@ -382,12 +382,12 @@ export const gradeSingleuser = asyncHandler(async (req, res, next) => {
 });
 
 export const stugrades = asyncHandler(async (req, res, next) => {
-  let { studentId } = req.body;
+  let { studentId } = req.query;
 
   if (req.user.role == roles.stu) {
     studentId = req.user._id;
   }
-
+  console.log(studentId);
   const semesters = await SemesterGradeModel.find({ studentId })
     .populate({
       path: "courseGrates",
