@@ -26,6 +26,7 @@ import TokenModel from "../../../DB/models/token.model.js";
 import { decryptData, encryptData } from "../../utils/crypto.js";
 import { sanitizeStudent } from "../../utils/sanitize.data.js";
 
+// student login
 export const login = asyncHandler(async (req, res, next) => {
   const { Student_Code, password } = req.body;
 
@@ -107,6 +108,7 @@ export const login = asyncHandler(async (req, res, next) => {
   });
 });
 
+// GET Information student
 export const Getuser = asyncHandler(async (req, res, next) => {
   const user = req.user;
   const setting = req.setting;
@@ -147,6 +149,42 @@ export const Getuser = asyncHandler(async (req, res, next) => {
   });
 });
 
+export const studentInformation = asyncHandler(async (req, res, next) => {
+  const { studentId } = req.query;
+  const setting = req.setting;
+  const user = await userModel.findById(studentId).lean();
+
+  const levelPromise = calclevel({
+    totalCreditHours: user.totalCreditHours || 0,
+  });
+
+  const semsterInfoPromise = SemesterModel.findById(setting.MainSemsterId)
+    .lean()
+    .select("name year term");
+
+  let urlImgPromise;
+  if (user?.imgName) {
+    urlImgPromise = GetsingleImg({ ImgName: user.imgName });
+  }
+
+  const [levelResult, semsterInfoResult, urlImgResult] = await Promise.all([
+    levelPromise,
+    semsterInfoPromise,
+    urlImgPromise,
+  ]);
+
+  return res.status(200).json({
+    message: "student Information",
+    result: {
+      ...sanitizeStudent(user),
+      level: levelResult.level,
+      semsterInfo: semsterInfoResult,
+      url: urlImgResult?.url,
+    },
+  });
+});
+
+// create new student By admin
 export const addStudent = asyncHandler(async (req, res, next) => {
   const {
     Full_Name,
@@ -218,6 +256,7 @@ export const addStudent = asyncHandler(async (req, res, next) => {
   });
 });
 
+// update student by Admin
 export const updateStudent = asyncHandler(async (req, res, next) => {
   const {
     Full_Name,
@@ -331,6 +370,7 @@ export const updateStudent = asyncHandler(async (req, res, next) => {
   });
 });
 
+// delete student
 export const deleteStudent = asyncHandler(async (req, res, next) => {
   const { userId } = req.query;
   const user = await userModel.findById(userId).select("_id ");
@@ -373,6 +413,7 @@ export const deleteStudent = asyncHandler(async (req, res, next) => {
   });
 });
 
+// search and get data for student
 export const searchuser = asyncHandler(async (req, res, next) => {
   const allowFields = [
     "Full_Name",
@@ -424,6 +465,7 @@ export const searchuser = asyncHandler(async (req, res, next) => {
     .json({ message: "Done All Student Information", students: users });
 });
 
+// upload student Image
 export const AddStuImg = asyncHandler(async (req, res, next) => {
   let { studentId } = req.body;
 
@@ -495,6 +537,7 @@ export const AddStuImg = asyncHandler(async (req, res, next) => {
     .json({ message: "Images Uploaded successfully", result });
 });
 
+// delete student Images
 export const deleteStuImg = asyncHandler(async (req, res, next) => {
   const { imgName } = req.body;
   let { studentId } = req.body;
@@ -538,6 +581,7 @@ export const deleteStuImg = asyncHandler(async (req, res, next) => {
     .json({ message: "Image deleted successfully", result, response });
 });
 
+// student make log out from his account
 export const logout = asyncHandler(async (req, res, next) => {
   const user = req.user;
   const HashrefreshToken = req.headers["refresh-token"];

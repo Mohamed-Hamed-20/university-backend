@@ -7,7 +7,8 @@ import { limiter } from "../utils/apply.security.js";
 import { routes } from "../utils/routes.path.js";
 const router = Router();
 const { TrainingResult } = routes;
-//upload Traing Grade by admin  ======>   EDIT_R
+
+// upload Traing Grade by ADMIN 
 router.post(
   `${TrainingResult.uploadByAdmin}`,
   limiter({ limit: 40, Mintute: 60 }),

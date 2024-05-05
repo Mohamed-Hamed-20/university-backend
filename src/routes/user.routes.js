@@ -12,62 +12,70 @@ const { student } = routes;
 
 router.post(
   `${student.login}`,
-  // limiter({ limit: 10, Mintute: 15 }),
+  limiter({ limit: 12, Mintute: 10 }),
   valid(vSchema.login),
   uc.login
 );
 
+router.get(
+  `${student.getInfo}`,
+  limiter({ limit: 20, Mintute: 5 }),
+  isAuth([roles.stu]),
+  uc.Getuser
+);
+
+router.get(
+  `${student.getInfoAdmin}`,
+  limiter({ limit: 20, Mintute: 5 }),
+  valid(vSchema.studentInformation),
+  isAuth([roles.admin, roles.super]),
+  uc.studentInformation
+);
+
 router.post(
   `${student.createStudent}`,
-  // limiter({ limit: 50, Mintute: 15 }),
+  limiter({ limit: 50, Mintute: 15 }),
   valid(vSchema.registeruser),
   isAuth([roles.admin]),
   uc.addStudent
 );
 
-router.get(
-  `${student.getInfo}`,
-  limiter({ limit: 10, Mintute: 20 }),
-  isAuth([roles.stu]),
-  uc.Getuser
-);
-
 router.put(
   `${student.updateStudent}`,
-  // limiter({ limit: 50, Mintute: 15 }),
+  limiter({ limit: 40, Mintute: 15 }),
   valid(vSchema.updateStudent),
-  isAuth([roles.admin, roles.super]),
+  isAuth([roles.admin]),
   uc.updateStudent
 );
 
 router.delete(
   `${student.deleteStudent}`,
-  // limiter({ limit: 15, Mintute: 20 }),
+  limiter({ limit: 15, Mintute: 20 }),
   valid(vSchema.deleteStudent),
-  isAuth([roles.admin, roles.super]),
+  isAuth([roles.admin]),
   uc.deleteStudent
 );
 
 router.get(
   `${student.searchstudent}`,
-  limiter({ limit: 20, Mintute: 10 }),
+  limiter({ limit: 22, Mintute: 5 }),
   valid(vSchema.searchuser),
   isAuth([roles.admin, roles.super]),
   uc.searchuser
 );
 
-//upload Images admin  ======>   EDIT_R
+// upload Images to student BY ADMIN
+
 router.post(
   `${student.AddImgByAdmin}`,
-  limiter({ limit: 25, Mintute: 60 }),
+  limiter({ limit: 25, Mintute: 40 }),
   multerCloud(allowedExtensions.Image).single("studentImage"),
   valid(vSchema.AddStuImg),
   isAuth([roles.admin]),
   uc.AddStuImg
 );
 
-//upload Images student  ======>  EDIT_R
-
+// upload Images to student BY student
 router.post(
   `${student.AddImgByStu}`,
   limiter({ limit: 8, Mintute: 24 * 60 }),
@@ -76,8 +84,7 @@ router.post(
   uc.AddStuImg
 );
 
-//delete Images admin  ======>  EDIT_R
-
+// delete Images to student BY ADMIN
 router.patch(
   `${student.deleteImgByAdmin}`,
   limiter({ limit: 20, Mintute: 15 }),
@@ -86,17 +93,21 @@ router.patch(
   uc.deleteStuImg
 );
 
-//delete Images student  ======>  EDIT_R
-
+// delete Images to student BY student
 router.patch(
   `${student.deleteImgBystu}`,
-  limiter({ limit: 8, Mintute: 24 * 60 }),
+  limiter({ limit: 9, Mintute: 24 * 60 }),
   valid(vSchema.StudeleteStuImg),
   isAuth([roles.stu]),
   uc.deleteStuImg
 );
 
 // router logout
-router.get(`${student.logout}`, isAuth([roles.stu]), uc.logout);
+router.get(
+  `${student.logout}`,
+  limiter({ limit: 12, Mintute: 10 }),
+  isAuth([roles.stu]),
+  uc.logout
+);
 
 export default router;

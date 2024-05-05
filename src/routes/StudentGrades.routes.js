@@ -110,7 +110,7 @@ router.get(
 );
 // ================================================================================
 
-// صحيفة الطالب التفصيلية  to student  ======>   EDIT_R
+// صحيفة الطالب التفصيلية  to student  
 router.get(
   `${studentGrades.NewspaperBystudent}`,
   limiter({ limit: 30, Mintute: 60 }),
@@ -118,7 +118,7 @@ router.get(
   gc.stugrades
 );
 
-// صحيفة الطالب التفصيلية  to Admin  ======>   EDIT_R
+// صحيفة الطالب التفصيلية  to Admin and super
 router.get(
   `${studentGrades.NewspaperByAdmin}`,
   limiter({ limit: 80, Mintute: 60 }),

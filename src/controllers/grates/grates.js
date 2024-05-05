@@ -387,7 +387,7 @@ export const stugrades = asyncHandler(async (req, res, next) => {
   if (req.user.role == roles.stu) {
     studentId = req.user._id;
   }
-  console.log(studentId);
+
   const semesters = await SemesterGradeModel.find({ studentId })
     .populate({
       path: "courseGrates",

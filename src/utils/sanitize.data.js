@@ -10,6 +10,7 @@ export const sanitizeStudent = (user) => {
     TotalGpa: user?.TotalGpa || 2,
     totalCreditHours: user?.totalCreditHours || 0,
     imgName: user?.imgName,
+    url: user?.url,
   };
 };
 

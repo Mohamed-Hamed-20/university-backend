@@ -29,6 +29,8 @@ import { sendEmail } from "../../utils/sendEmail.js";
 import { confirmEmailTemplet } from "../../utils/templetHtml.js";
 import { routes } from "../../utils/routes.path.js";
 const { Admin } = routes;
+
+// Login Admin or super admin
 export const login = asyncHandler(async (req, res, next) => {
   const { email, password } = req.body;
   const userAgent = req.headers["user-agent"];
@@ -123,6 +125,7 @@ export const login = asyncHandler(async (req, res, next) => {
   });
 });
 
+// send confirm email to admin or super
 export const SendconfirmEmail = asyncHandler(async (req, res, next) => {
   const { key } = req.query;
   const userAgent = req.headers["user-agent"];
@@ -244,6 +247,7 @@ export const checkConfirmEmail = asyncHandler(async (req, res, next) => {
   return res.status(200).json({ key: data, result });
 });
 
+// Create Admin
 export const CreateAdmin = asyncHandler(async (req, res, next) => {
   const { FullName, email, password, phone, Date_of_Birth, gender } = req.body;
 
@@ -297,6 +301,7 @@ export const CreateAdmin = asyncHandler(async (req, res, next) => {
   });
 });
 
+// update Admin
 export const updateAdmin = asyncHandler(async (req, res, next) => {
   const { FullName, phone, email, password, Date_of_Birth, gender } = req.body;
   const { userId } = req.query;
@@ -348,6 +353,7 @@ export const updateAdmin = asyncHandler(async (req, res, next) => {
     .json({ message: "User updated successfully", user: result });
 });
 
+// delete Admin
 export const deleteAdmin = asyncHandler(async (req, res, next) => {
   const { userId } = req.query;
   const user = await adminModel
@@ -384,22 +390,7 @@ export const deleteAdmin = asyncHandler(async (req, res, next) => {
     .json({ message: "Admin Delete successfully", user: user, result });
 });
 
-// export const updaterole = asyncHandler(async (req, res, next) => {
-//   const { role } = req.body;
-//   const { userId } = req.query;
-//   const user = await adminModel.findById(userId);
-//   if (!user) {
-//     return next(new Error("Invalid userId not found", { cause: 404 }));
-//   }
-//   user.role = role;
-//   const result = await user.save();
-//   return res.status(200).json({
-//     message: `User updated successfully Henow is ${result.role}`,
-//     user: result,
-//   });
-// });
-
-//Get user
+//Get Infromation
 export const Getuser = asyncHandler(async (req, res, next) => {
   const user = req.user;
   if (!user) {
@@ -425,6 +416,7 @@ export const Getuser = asyncHandler(async (req, res, next) => {
   return res.status(200).json({ message: "Done", user: result });
 });
 
+// search for admins
 export const searchAdmin = asyncHandler(async (req, res, next) => {
   const allowFields = [
     "FullName",
@@ -464,6 +456,7 @@ export const searchAdmin = asyncHandler(async (req, res, next) => {
     .json({ message: "Done All Admin Information", admins });
 });
 
+// admin dashboard
 export const dashboard = asyncHandler(async (req, res, next) => {
   const [courses, students, admins, instructors, semsters, training] =
     await Promise.all([
@@ -481,6 +474,7 @@ export const dashboard = asyncHandler(async (req, res, next) => {
   });
 });
 
+// upload images to admin
 export const AddAdminImg = asyncHandler(async (req, res, next) => {
   const { adminId } = req.body;
 
@@ -539,6 +533,7 @@ export const AddAdminImg = asyncHandler(async (req, res, next) => {
     .json({ message: "Images Uploaded successfully", result });
 });
 
+// delete images to admin
 export const deleteAdminImg = asyncHandler(async (req, res, next) => {
   const { adminId } = req.body;
   let { imgName } = req.body;
@@ -583,6 +578,7 @@ export const deleteAdminImg = asyncHandler(async (req, res, next) => {
     .json({ message: "Image deleted successfully", result, response });
 });
 
+// admin or super logout
 export const logout = asyncHandler(async (req, res, next) => {
   const user = req.user;
   const HashrefreshToken = req.headers["refresh-token"];

@@ -15,10 +15,10 @@ export const updateSetting = {
               .valid(...AllRoutes)
               .required()
               .messages({
-                "string.base": "URL must be a string",
-                "any.required": "URL is required",
-                "string.empty": "URL cannot be empty",
-                "any.only": "Invalid URL",
+                "string.base": "{#label} must be a string",
+                "any.required": "{#label} is required",
+                "string.empty": "{#label} cannot be empty",
+                "any.only": "Invalid {#label}",
               }),
             allow: joi
               .string()

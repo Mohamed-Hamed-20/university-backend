@@ -5,7 +5,7 @@ import { roles } from "../../middleware/auth.js";
 import { ApiFeature } from "../../utils/apiFeature.js";
 import { arrayofstring } from "../../utils/arrayobjectIds.js";
 import { availableHoursForUser } from "../../utils/availableHours.js";
-import { GetMultipleImages } from "../../utils/aws.s3.js";
+import { GetMultipleImages, GetsingleImg } from "../../utils/aws.s3.js";
 import { asyncHandler } from "../../utils/errorHandling.js";
 import { sanitizeStudent } from "../../utils/sanitize.data.js";
 
@@ -177,7 +177,8 @@ export const getRegister = asyncHandler(async (req, res, next) => {
     );
   }
 
-  // إرسال البيانات المعدلة
+
+
   return res
     .status(200)
     .json({ message: "Done", student: sanitizeStudent(req.user), register });

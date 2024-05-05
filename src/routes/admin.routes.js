@@ -13,12 +13,12 @@ const { Admin } = routes;
 //login admin SuperAdmins
 router.post(
   `${Admin.login}`,
-  // limiter({ limit: 10, Mintute: 15 }),
+  limiter({ limit: 10, Mintute: 10 }),
   valid(vSchema.login),
   ac.login
 );
 
-// confirm Emial for Admin
+// confirm Email for Admin
 router.get(
   `${Admin.confirmEmail}`,
   valid(vSchema.SendconfirmEmailValid),
@@ -34,47 +34,49 @@ router.get(
   ac.checkConfirmEmail
 );
 
-// ==============================================================================
+// Get Information to Admin && super
 router.get(
   `${Admin.getinfoAdmin}`,
   limiter({ limit: 40, Mintute: 60 }),
   isAuth([roles.admin]),
   ac.Getuser
 );
+
 router.get(
   `${Admin.getinfoSuper}`,
   limiter({ limit: 40, Mintute: 60 }),
   isAuth([roles.super]),
   ac.Getuser
 );
-// ==================================================================
 
-//create admin
-
+// create admin
 router.post(
   `${Admin.createAdmin}`,
-  limiter({ limit: 100, Mintute: 60 }),
+  limiter({ limit: 8, Mintute: 60 }),
   valid(vSchema.CreateAdmin),
   isAuth([roles.super]),
   ac.CreateAdmin
 );
 
+// update admin
 router.put(
   `${Admin.updateAdmin}`,
-  limiter({ limit: 100, Mintute: 60 }),
+  limiter({ limit: 12, Mintute: 60 }),
   valid(vSchema.updateAdmin),
   isAuth([roles.super]),
   ac.updateAdmin
 );
 
+// delete admin
 router.delete(
   `${Admin.deleteAdmin}`,
-  limiter({ limit: 100, Mintute: 60 }),
+  limiter({ limit: 8, Mintute: 60 }),
   valid(vSchema.deleteAdmin),
   isAuth([roles.super]),
   ac.deleteAdmin
 );
 
+// search for admins
 router.get(
   `${Admin.searchAdmin}`,
   limiter({ limit: 40, Mintute: 60 }),
@@ -83,8 +85,7 @@ router.get(
   ac.searchAdmin
 );
 
-//=================================================================================================
-//upload one or more image
+//upload Image to admin By super
 router.post(
   `${Admin.AddImgBySuper}`,
   limiter({ limit: 15, Mintute: 30 }),
@@ -94,7 +95,7 @@ router.post(
   ac.AddAdminImg
 );
 
-//   EDIT_R     admin
+//upload Image to admin By admin
 router.post(
   `${Admin.AddImgByAdmin}`,
   limiter({ limit: 15, Mintute: 12 * 60 }),
@@ -103,7 +104,7 @@ router.post(
   ac.AddAdminImg
 );
 
-//   EDIT_R     admin
+//delete Image to admin By Admin
 router.patch(
   `${Admin.deleteImgByAdmin}`,
   limiter({ limit: 5, Mintute: 30 }),
@@ -111,7 +112,7 @@ router.patch(
   ac.deleteAdminImg
 );
 
-// by super
+//delete Image to admin By super
 router.patch(
   `${Admin.deleteImgBysuper}`,
   limiter({ limit: 50, Mintute: 60 }),
@@ -120,6 +121,7 @@ router.patch(
   ac.deleteAdminImg
 );
 
+// dashboard for admins
 router.get(
   `${Admin.dashboardAdmin}`,
   limiter({ limit: 40, Mintute: 60 }),
@@ -127,5 +129,6 @@ router.get(
   ac.dashboard
 );
 
+// make logout by admin && super
 router.get(`${Admin.logout}`, isAuth([roles.admin, roles.super]), uc.logout);
 export default router;

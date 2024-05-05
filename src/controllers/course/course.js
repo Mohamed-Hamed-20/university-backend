@@ -4,6 +4,7 @@ import { arrayofIds } from "../../utils/arrayobjectIds.js";
 import { ApiFeature } from "../../utils/apiFeature.js";
 import { createImg, deleteImg, GetsingleImg } from "../../utils/aws.s3.js";
 import slugify from "slugify";
+import { GradeModel } from "../../../DB/models/StudentGrades.model.js";
 
 export const addCourse = asyncHandler(async (req, res, next) => {
   const {
@@ -18,7 +19,10 @@ export const addCourse = asyncHandler(async (req, res, next) => {
   const course = {};
 
   // Check if the course name already exists
-  const chkcourse = await CourseModel.findOne({ course_name: course_name });
+  const chkcourse = await CourseModel.findOne({ course_name: course_name })
+    .lean()
+    .select("course_name credit_hour");
+
   if (chkcourse) {
     return next(new Error("Course name already exists", { cause: 400 }));
   } else {
@@ -30,7 +34,10 @@ export const addCourse = asyncHandler(async (req, res, next) => {
     const prerequisiteIds = arrayofIds(Prerequisites);
     const foundPrerequisites = await CourseModel.find({
       _id: { $in: prerequisiteIds },
-    });
+    })
+      .lean()
+      .select("_id");
+
     if (foundPrerequisites.length !== Prerequisites.length) {
       return next(
         new Error("One or more prerequisites are invalid", { cause: 400 })
@@ -73,7 +80,7 @@ export const updatecourse = asyncHandler(async (req, res, next) => {
   if (course_name && course?.course_name != course_name) {
     const chkcourse = await CourseModel.findOne({ course_name });
     if (chkcourse && chkcourse._id.toString() != courseId) {
-      return next(new Error("course Name Is Already Exist ", { cause: 400 }));
+      return next(new Error("course Name Is Already Exist", { cause: 400 }));
     } else {
       course.course_name = course_name;
     }
@@ -110,14 +117,17 @@ export const updatecourse = asyncHandler(async (req, res, next) => {
 
 export const deletecourse = asyncHandler(async (req, res, next) => {
   const { courseId } = req.query;
-  const course = await CourseModel.findByIdAndDelete(courseId);
-  if (!course) {
-    return next(new Error("Invalid courseId", { cause: 404 }));
-  }
+
+  const result = await CourseModel.findOneAndDelete({ _id: courseId });
+
+  // if (result.deletedCount === 0) {
+  //   return next(new Error("Invalid courseId", { cause: 404 }));
+  // }
+
   //response
   return res
     .status(200)
-    .json({ message: "course delete Successfully", course });
+    .json({ message: "course delete Successfully", course: result });
 });
 
 export const searchcourse = asyncHandler(async (req, res, next) => {

@@ -3,17 +3,35 @@ import { customMessages, generalFields } from "../../middleware/validation.js";
 
 // student Greneral fields use it
 const StudentFields = {
-  Full_Name: joi.string().lowercase().min(9).max(66).messages(customMessages),
+  Full_Name: joi
+    .string()
+    .trim()
+    .lowercase()
+    .min(9)
+    .max(66)
+    .messages(customMessages),
   Student_Code: joi
     .string()
+    .trim()
     .pattern(/^[0-9]{15}$/)
-    .messages(),
+    .messages({
+      "string.base": "{#label} must be a string",
+      "any.required": "{#label} is required",
+      "string.empty": "{#label} cannot be empty",
+      "any.only": "{#label} must be contain 15 numbers",
+    }),
   National_Id: joi
     .string()
     .pattern(/^[0-9]{14}$/)
-    .messages(),
+    .messages({
+      "string.base": "{#label} must be a string",
+      "any.required": "{#label} is required",
+      "string.empty": "{#label} cannot be empty",
+      "any.only": "{#label} must be contain 14 numbers",
+    }),
+
   Date_of_Birth: joi.date().iso().messages(customMessages),
-  imgName: joi.string().min(15).max(300).messages(customMessages),
+  imgName: joi.string().trim().min(15).max(300).messages(customMessages),
 };
 
 export const registeruser = {
@@ -45,6 +63,13 @@ export const login = {
     .required(),
 };
 
+export const studentInformation = {
+  query: joi
+    .object({
+      studentId: generalFields._id.required().messages(customMessages),
+    })
+    .required(),
+};
 export const updateStudent = {
   body: joi
     .object({
@@ -72,6 +97,7 @@ export const deleteStudent = {
     })
     .required(),
 };
+
 export const searchuser = {
   query: joi
     .object({

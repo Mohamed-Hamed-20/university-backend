@@ -8,6 +8,7 @@ export const routes = {
     _id: "/Api/students",
     login: "/login",
     getInfo: "/get/information",
+    getInfoAdmin: "/get/information/by/admin",
     createStudent: "/create/student",
     updateStudent: "/update/student",
     deleteStudent: "/delete/student",
@@ -309,4 +310,3 @@ export const RoutesNotAllowTodenied = [
   `${routes.setting._id}${routes.setting.deleteSetting}`,
   `${routes.setting._id}${routes.setting.ViewSetting}`,
 ];
-

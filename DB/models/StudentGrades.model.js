@@ -110,6 +110,23 @@ semsterGradeSchema.index({ studentId: 1 });
 semsterGradeSchema.index({ semsterId: 1 });
 semsterGradeSchema.index({ courseGrates: 1 });
 
+GrateSchema.post("deleteMany", async function (docs, next) {
+  try {
+    const gradesIds = docs.map((doc) => {
+      return doc._id;
+    });
+
+    await SemesterGradeModel.updateMany(
+      { courseGrates: { $in: gradesIds } },
+      { $pull: { courseGrates: { $in: gradesIds } } }
+    );
+
+    next();
+  } catch (error) {
+    next(error);
+  }
+});
+
 export const GradeModel = mongoose.model("Grate", GrateSchema);
 export const SemesterGradeModel = mongoose.model(
   "semsterGrade",
