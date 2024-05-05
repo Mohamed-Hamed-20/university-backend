@@ -40,7 +40,6 @@ router.get(
   TRC.getTraining
 );
 
-//=========================================================================================
 
 //search Training Regsterd by Admin  ======>   EDIT_R
 router.get(

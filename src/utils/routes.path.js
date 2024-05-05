@@ -42,6 +42,7 @@ export const routes = {
     _id: "/Api/instructors",
     login: "/login",
     InstructorInfo: "/info",
+    GetInstructorInfoByAdmin: "/get/info/by/admin",
     createInstructor: "/create/instructor",
     updateInstructor: "/update/instructor",
     deleteInstructor: "/delete/instructor",

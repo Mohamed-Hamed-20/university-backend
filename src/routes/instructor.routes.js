@@ -24,12 +24,20 @@ router.get(
   Ic.Getuser
 );
 
+// get information by admin or super
+router.get(
+  `${instructor.GetInstructorInfoByAdmin}`,
+  limiter({ limit: 40, Mintute: 30 }),
+  isAuth([roles.admin, roles.super]),
+  Ic.Getuser
+);
 
+// ==============================
 //create Instructor
 router.post(
   `${instructor.createInstructor}`,
   limiter({ limit: 100, Mintute: 60 }),
-  valid(vSchema.CreateInstructor),
+  valid(vSchema.GetInstructorInfoByAdmin),
   isAuth([roles.admin]),
   Ic.CreateInstructor
 );

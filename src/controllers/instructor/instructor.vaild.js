@@ -133,3 +133,11 @@ export const deleteInstructorImg = {
     })
     .required(),
 };
+
+export const GetInstructorInfoByAdmin = {
+  query: joi
+    .object({
+      InstructorId: generalFields._id.required(),
+    })
+    .required(),
+};

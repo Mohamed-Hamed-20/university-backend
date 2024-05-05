@@ -334,8 +334,12 @@ export const deleteInstructor = asyncHandler(async (req, res, next) => {
 
 //Get user
 export const Getuser = asyncHandler(async (req, res, next) => {
-  const userId = req.user._id;
-
+  let userId = req.user._id;
+  const { InstructorId } = req.query;
+  // id he was admin
+  if ([roles.admin, roles.super].includes(req.user.role)) {
+    userId = InstructorId.toString();
+  }
   const user = await InstructorModel.findById(userId)
     .populate({
       path: "Training",
@@ -343,7 +347,8 @@ export const Getuser = asyncHandler(async (req, res, next) => {
     })
     .populate({
       path: "Materials",
-      select: "_id course_name desc credit_hour",
+      select:
+        "_id course_name desc credit_hour ImgUrls department Prerequisites",
     });
 
   if (!user) {
@@ -357,6 +362,9 @@ export const Getuser = asyncHandler(async (req, res, next) => {
     const { url } = await GetsingleImg({ ImgName: user.imgName });
     urlImg = url;
   }
+
+
+  
   const result = {
     FullName: user.FullName,
     email: user.email,
