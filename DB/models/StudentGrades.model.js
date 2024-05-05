@@ -112,6 +112,7 @@ semsterGradeSchema.index({ courseGrates: 1 });
 
 GrateSchema.post("deleteMany", async function (docs, next) {
   try {
+    console.log(docs);
     const gradesIds = docs.map((doc) => {
       return doc._id;
     });

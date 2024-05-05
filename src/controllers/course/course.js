@@ -120,14 +120,14 @@ export const deletecourse = asyncHandler(async (req, res, next) => {
 
   const result = await CourseModel.findOneAndDelete({ _id: courseId });
 
-  // if (result.deletedCount === 0) {
-  //   return next(new Error("Invalid courseId", { cause: 404 }));
-  // }
+  if (!result) {
+    return next(new Error("Invaild courses Id"));
+  }
 
   //response
   return res
     .status(200)
-    .json({ message: "course delete Successfully", course: result });
+    .json({ message: "course deleted Successfully", course: result });
 });
 
 export const searchcourse = asyncHandler(async (req, res, next) => {

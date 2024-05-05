@@ -100,16 +100,13 @@ CourseSchema.post("findOneAndDelete", async function (doc, next) {
   try {
     const deletedCourse = doc;
 
-    console.log("Deleted Course:", deletedCourse);
+    if (!deletedCourse) {
+      return next();
+    }
 
     const bulkOperations = [];
 
-    bulkOperations.push({
-      deleteMany: {
-        filter: { courseId: deletedCourse._id },
-        model: "GrateModel",
-      },
-    });
+    bulkOperations.push(GradeModel.deleteMany({ courseId: deletedCourse._id }));
 
     bulkOperations.push({
       updateMany: {
@@ -143,10 +140,11 @@ CourseSchema.post("findOneAndDelete", async function (doc, next) {
       },
     });
 
-    await Promise.all(
-      bulkOperations.map((op) => mongoose.model(op.model).bulkWrite([op]))
+    console.log(bulkOperations);
+    const info = await Promise.all(
+      bulkOperations.map((op) => mongoose.model(op.model).bulkWrite(op))
     );
-
+    console.log("info");
     return next();
   } catch (error) {
     next(error);

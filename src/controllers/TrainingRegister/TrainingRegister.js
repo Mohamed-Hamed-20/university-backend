@@ -134,13 +134,10 @@ export const getTraining = asyncHandler(async (req, res, next) => {
   const { studentId } = req.query;
 
   if (roles.admin == req.user.role || roles.super == req.user.role) {
-    if (!studentId) {
-      return next(new Error("studentId is required"));
-    }
     userId = studentId.toString();
   }
-  console.log(userId);
-  let TrainingRegister = await TrainingRegisterModel.findOne({
+
+  let TrainingRegister = await TrainingRegisterModel.find({
     studentId: userId,
   })
     .populate({
@@ -164,7 +161,7 @@ export const getTraining = asyncHandler(async (req, res, next) => {
 
   // تحميل الصور لكل دورة مسجلة باستخدام Promise.all
   const promises = [];
-  TrainingRegister.trainingRegisterd.forEach((training) => {
+  TrainingRegister?.trainingRegisterd?.forEach((training) => {
     if (training.ImgUrls && training.ImgUrls.length > 0) {
       training.images = [];
       training.ImgUrls.forEach((imgName) => {

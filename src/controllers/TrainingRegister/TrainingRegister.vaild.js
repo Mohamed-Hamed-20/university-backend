@@ -34,3 +34,11 @@ export const searchRegister = {
     })
     .required(),
 };
+
+export const getTrainingRegisterdInfoByadmin = {
+  query: joi
+    .object({
+      studentId: generalFields._id.required().messages(customMessages),
+    })
+    .required(),
+};

@@ -27,7 +27,16 @@ router.patch(
 router.get(
   `${RegisterTraining.getTrainingRegisterdInfoTostu}`,
   limiter({ limit: 20, Mintute: 60 }),
-  isAuth([roles.stu, roles.admin, roles.super]),
+  isAuth([roles.stu]),
+  TRC.getTraining
+);
+
+// get training regsiterd by admin
+router.get(
+  `${RegisterTraining.getTrainingRegisterdInfoByadmin}`,
+  valid(vSchema.getTrainingRegisterdInfoByadmin),
+  limiter({ limit: 20, Mintute: 60 }),
+  isAuth([roles.admin, roles.super]),
   TRC.getTraining
 );
 

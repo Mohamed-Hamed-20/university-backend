@@ -128,6 +128,7 @@ export const routes = {
     addTraining: "/add/training/to/register",
     deleteTraining: "/delete/training/from/register",
     getTrainingRegisterdInfoTostu: "/get/trainings/registerd/info/to/student",
+    getTrainingRegisterdInfoByadmin: "/get/trainings/registerd/info/by/admin",
     searchTrainingsRegisterdByAdmin: "/search/for/trainings/registerd/by/admin",
     searchTrainingsRegisterdByInstructor:
       "/search/for/trainings/registerd/by/instructor",
