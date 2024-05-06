@@ -14,7 +14,7 @@ router.post(
   ac.forgetPassword
 );
 
-router.get(
+router.post(
   `${auth.Resetpass}/:key`,
   valid(vSchema.ResetPassword),
   ac.ResetPassword
