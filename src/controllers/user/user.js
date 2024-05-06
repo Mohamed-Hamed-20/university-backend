@@ -619,8 +619,8 @@ export const getqr = asyncHandler(async(req,res,next)=>{
   })
   const data =await encryptData({data:token,password:process.env.DEFAULT_SIGNATURE})
   const url=await gqr.GenerateQrCode(data)
-  console.log(url);
+  //console.log(url);
   return res
   .status(200)
-  .json({message :"Qr generat successfully",url})
+  .json({message :"Qr generated successfully", url})
 });

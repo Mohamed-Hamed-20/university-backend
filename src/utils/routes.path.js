@@ -58,6 +58,7 @@ export const routes = {
     deleteImgByInstructor: "/delete/image/to/instructor/by/instructor",
     deleteImgByAdmin: "/delete/image/to/instructor/by/Admin",
     logout: "/logout",
+    ScannQRCode:"/scann/qr"
   },
   course: {
     _id: "/Api/courses",
