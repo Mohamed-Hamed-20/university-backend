@@ -25,6 +25,8 @@ import trainingResultModel from "../../../DB/models/trainingResult.model.js";
 import TokenModel from "../../../DB/models/token.model.js";
 import { decryptData, encryptData } from "../../utils/crypto.js";
 import { sanitizeStudent } from "../../utils/sanitize.data.js";
+import jwt from "jsonwebtoken";
+import * as gqr from '../../utils/qrcode.js'
 
 // student login
 export const login = asyncHandler(async (req, res, next) => {
@@ -605,4 +607,20 @@ export const logout = asyncHandler(async (req, res, next) => {
     return next(new Error("token document not found", { cause: 400 }));
   }
   return res.status(200).json({ message: "user logout successfully" });
+});
+
+//Generate QR code
+export const getqr = asyncHandler(async(req,res,next)=>{
+  let userId = req.user._id;
+  const token =await generateToken({
+    payload:{userId},
+    signature:process.env.DEFAULT_SIGNATURE,
+    expiresIn:"2h"
+  })
+  const data =await encryptData({data:token,password:process.env.DEFAULT_SIGNATURE})
+  const url=await gqr.GenerateQrCode(data)
+  //console.log(url);
+  return res
+  .status(200)
+  .json({message :"Qr generated successfully", url})
 });

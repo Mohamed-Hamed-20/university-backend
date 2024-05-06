@@ -105,4 +105,10 @@ router.patch(
 
 router.get(`${instructor.logout}`, isAuth([roles.instructor]), uc.logout);
 
+router.post(`${instructor.ScannQRCode}`,
+  limiter({limiter:500,Mintute:120}),
+  isAuth([roles.instructor]),
+  Ic.ScanQrCode
+)
+
 export default router;
