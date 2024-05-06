@@ -25,25 +25,21 @@ export const forgetPassword = asyncHandler(async (req, res, next) => {
   if (!user) {
     return next(new Error("Invaild Email not found", { cause: 404 }));
   }
-  console.log(user);
   const token = await generateToken({
     payload: { email: user.email, userId: user._id, role: user.role },
     signature: process.env.ForgetPassword,
     expiresIn: "7m",
   });
-  console.log({ token });
   const encrypted = await encryptData({
     data: token,
     password: process.env.ForgetPassword,
   });
-  console.log({ encrypted });
   const to = user.email;
   const subject = "This message to Reset you Password";
-  const link = `${req.protocol}://${req.headers.host}${auth._id}${auth.Resetpass}/${encrypted}`;
+  const link = `http://localhost:3000/forgetpassword/${encrypted}`;
 
   const html = `${await confirmEmailTemplet(link)}`;
   const isSend = await sendEmail({ to, subject, html });
-  console.log({ isSend });
   if (!isSend) {
     return next(new Error("Faild to send confirm Email", { cause: 500 }));
   }
@@ -53,19 +49,15 @@ export const forgetPassword = asyncHandler(async (req, res, next) => {
 
 export const ResetPassword = asyncHandler(async (req, res, next) => {
   const { key, password, confrimPassword } = req.body;
-  console.log({ key, password, confrimPassword });
   const token = await decryptData({
     encryptedData: key,
     password: process.env.ForgetPassword,
   });
 
-  console.log(token);
   const data = verifyToken({
     token: token,
     signature: process.env.ForgetPassword,
   });
-
-  console.log(data);
 
   if (!data.email || !data.userId || !data.role) {
     return next(new Error("Invaild Data", { cause: 400 }));

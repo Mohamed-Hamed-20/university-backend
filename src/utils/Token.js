@@ -50,7 +50,6 @@ export const storeRefreshToken = async (refreshToken, userId, next) => {
     return true;
   } catch (error) {
     // Throw an exception in case of failure
-    console.log(error.message);
     throw new Error(error.message);
   }
 };

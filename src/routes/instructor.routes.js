@@ -37,7 +37,7 @@ router.get(
 router.post(
   `${instructor.createInstructor}`,
   limiter({ limit: 100, Mintute: 60 }),
-  valid(vSchema.GetInstructorInfoByAdmin),
+  valid(vSchema.CreateInstructor),
   isAuth([roles.admin]),
   Ic.CreateInstructor
 );

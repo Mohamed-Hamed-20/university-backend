@@ -3,7 +3,11 @@ import CourseModel from "../../../DB/models/course.model.js";
 import { InstructorModel } from "../../../DB/models/instructor.model.js";
 import trainingmodel from "../../../DB/models/training.model.js";
 import { roles } from "../../middleware/auth.js";
-import { generateToken, storeRefreshToken, verifyToken } from "../../utils/Token.js";
+import {
+  generateToken,
+  storeRefreshToken,
+  verifyToken,
+} from "../../utils/Token.js";
 import { ApiFeature } from "../../utils/apiFeature.js";
 import { arrayofIds } from "../../utils/arrayobjectIds.js";
 import {
@@ -16,7 +20,7 @@ import { asyncHandler } from "../../utils/errorHandling.js";
 import { hashpassword, verifypass } from "../../utils/hashpassword.js";
 import { decryptData, encryptData } from "../../utils/crypto.js";
 import userModel from "../../../DB/models/user.model.js";
-import {sanitizeStudent} from '../../utils/sanitize.data.js'
+import { sanitizeStudent } from "../../utils/sanitize.data.js";
 
 export const login = asyncHandler(async (req, res, next) => {
   const { email, password } = req.body;
@@ -365,8 +369,6 @@ export const Getuser = asyncHandler(async (req, res, next) => {
     urlImg = url;
   }
 
-
-  
   const result = {
     FullName: user.FullName,
     email: user.email,
@@ -536,25 +538,28 @@ export const deleteInstructorImg = asyncHandler(async (req, res, next) => {
 
 export const logout = asyncHandler(async (req, res, next) => {});
 
-export const ScanQrCode=asyncHandler(async(req,res,next)=>{
-  const {data1}=req.body 
-  //const data2="7c6ba673be31779c03cc14da7d909df4cd516b83dc6242b4fd0b02f3dc883f15f1be4dde293cb9b9097ae142dc06a61bf4af267b54b0aa20f66a3c0da23b852f86ce5031f7287cb1f41277336256be9a35e1689ab4b0e973f3ec6802dc3c9e16e77fa941c51ae7a0191baed7fecaec98821490523be0126b60aed86fc0279c905bc4c0e755f12dcefe3415f36065b9c02ec85e92fb166cead06e3d1427b399317a41e238cc85d28246809bfdae3ac3adc7dd0ca7b0a7f4399f2b0ff9150bd2bb"
-  //console.log(typeof(data2)); 
-  const data =await decryptData({encryptedData : data1,
-    password : process.env.DEFAULT_SIGNATURE});
-  console.log(data);
-  const StudentId =verifyToken({token:data,
-    signature:process.env.DEFAULT_SIGNATURE});
-  const student = await userModel.findById({_id:StudentId.userId})
+export const ScanQrCode = asyncHandler(async (req, res, next) => {
+  const { data1 } = req.body;
+
+  const data = await decryptData({
+    encryptedData: data1,
+    password: process.env.DEFAULT_SIGNATURE,
+  });
+
+  const StudentId = verifyToken({
+    token: data,
+    signature: process.env.DEFAULT_SIGNATURE,
+  });
+  const student = await userModel.findById({ _id: StudentId.userId });
   let url;
   if (student?.imgName) {
-    url =await GetsingleImg({ ImgName: student.imgName });
+    url = await GetsingleImg({ ImgName: student.imgName });
   }
-  return res.status(200)
-  .json({message:"Scanning successfully",
-    result:{
-      student:sanitizeStudent(student)
-      ,url:url.url
-    }
-  })
+  return res.status(200).json({
+    message: "Scanning successfully",
+    result: {
+      student: sanitizeStudent(student),
+      url: url.url,
+    },
+  });
 });
