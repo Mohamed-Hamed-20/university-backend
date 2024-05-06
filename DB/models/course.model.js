@@ -1,7 +1,8 @@
 import mongoose, { Types } from "mongoose";
-import { GradeModel } from "./StudentGrades.model.js";
+import { GradeModel, SemesterGradeModel } from "./StudentGrades.model.js";
 import RegisterModel from "./Register.model.js";
 import availableCoursesModel from "./availableCourses.model.js";
+import { InstructorModel } from "./instructor.model.js";
 
 const CourseSchema = new mongoose.Schema(
   {
@@ -103,48 +104,42 @@ CourseSchema.post("findOneAndDelete", async function (doc, next) {
     if (!deletedCourse) {
       return next();
     }
+    const GradesTodelete = await GradeModel.find({ courseId: doc._id });
+    const GradesIds = GradesTodelete.map((doc) => doc._id);
 
     const bulkOperations = [];
 
-    bulkOperations.push(GradeModel.deleteMany({ courseId: deletedCourse._id }));
+    bulkOperations.push(GradeModel.deleteMany({ _id: { $in: GradesIds } }));
 
-    bulkOperations.push({
-      updateMany: {
-        filter: { coursesRegisterd: deletedCourse._id },
-        update: { $pull: { coursesRegisterd: deletedCourse._id } },
-        model: "RegisterModel",
-      },
-    });
-
-    bulkOperations.push({
-      updateMany: {
-        filter: { coursesRegisterd: deletedCourse._id },
-        update: { $inc: { Available_Hours: +deletedCourse.credit_hour } },
-        model: "RegisterModel",
-      },
-    });
-
-    bulkOperations.push({
-      updateMany: {
-        filter: { Available_Courses: deletedCourse._id },
-        update: { $pull: { Available_Courses: deletedCourse._id } },
-        model: "availableCoursesModel",
-      },
-    });
-
-    bulkOperations.push({
-      updateMany: {
-        filter: { Materials: deletedCourse._id },
-        update: { $pull: { Materials: deletedCourse._id } },
-        model: "InstructorModel",
-      },
-    });
-
-    console.log(bulkOperations);
-    const info = await Promise.all(
-      bulkOperations.map((op) => mongoose.model(op.model).bulkWrite(op))
+    bulkOperations.push(
+      SemesterGradeModel.updateMany(
+        { courseGrates: { $in: GradesIds } },
+        { $pull: { courseGrates: { $in: GradesIds } } }
+      )
     );
-    console.log("info");
+
+    bulkOperations.push(
+      RegisterModel.updateMany(
+        { coursesRegisterd: doc._id },
+        {
+          $pull: { coursesRegisterd: doc._id },
+          $inc: { Available_Hours: doc.credit_hour },
+        }
+      )
+    );
+
+    bulkOperations.push(
+      availableCoursesModel.updateMany(
+        {},
+        { $pull: { Available_Courses: doc._id } }
+      )
+    );
+
+    bulkOperations.push(
+      InstructorModel.updateMany({}, { $pull: { Materials: doc._id } })
+    );
+
+    const info = await Promise.all(bulkOperations);
     return next();
   } catch (error) {
     next(error);

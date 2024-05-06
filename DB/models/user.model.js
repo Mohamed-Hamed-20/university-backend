@@ -93,7 +93,7 @@ const userSchema = new Schema(
 userSchema.index({ Student_Code: 1 }, { unique: true });
 userSchema.index({ National_Id: 1 }, { unique: true });
 userSchema.index({ Full_Name: 1 }, { unique: true });
-
+userSchema.index({ Full_Name: "text" });
 const userModel = model("user", userSchema);
 
 export default userModel;

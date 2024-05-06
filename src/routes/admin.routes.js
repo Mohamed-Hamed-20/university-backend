@@ -131,4 +131,5 @@ router.get(
 
 // make logout by admin && super
 router.get(`${Admin.logout}`, isAuth([roles.admin, roles.super]), uc.logout);
+
 export default router;

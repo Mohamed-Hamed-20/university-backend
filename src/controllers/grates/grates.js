@@ -321,22 +321,37 @@ export const studentsGratesSearch = asyncHandler(async (req, res, next) => {
     select: "name year term  Max_Hours",
   };
 
-  const searchFieldsText = ["studentId.Full_Name", "courseId.course_names"];
-  const searchFieldsIds = ["studentId", "courseId", "semsterId"];
-  const searchFieldsNumber = ["TotalGrate", "Points"];
+  const searchFieldsIds = ["studentId", "courseId"];
 
-  const apiFeatureInstance = new ApiFeature(
-    GradeModel.find(filters).lean(),
-    req.query,
-    allowFields
-  )
+  let studentIds = [];
+  if (req?.query?.search) {
+    const studentObjIds = await userModel
+      .find({
+        Full_Name: { $regex: new RegExp(req?.query?.search?.trim(), "i") },
+      })
+      .select("_id")
+      .lean();
+
+    studentIds = studentObjIds.map((obj) => obj._id);
+  }
+
+  let query;
+  if (studentIds.length > 0) {
+    query = GradeModel.find({
+      studentId: { $in: studentIds },
+      ...filters,
+    }).lean();
+  } else {
+    query = GradeModel.find(filters).lean();
+  }
+
+  const apiFeatureInstance = new ApiFeature(query, req.query, allowFields)
     .pagination()
     .sort()
     .select()
     .populate(optionStudent)
     .populate(optionCourse)
-    .populate(semsteroptions)
-    .search({ searchFieldsText, searchFieldsIds, searchFieldsNumber });
+    .populate(semsteroptions);
 
   const processedResults = await apiFeatureInstance.MongoseQuery;
 

@@ -4,6 +4,7 @@ import cors from "cors";
 import hpp from "hpp";
 import mongosanitize from "express-mongo-sanitize";
 
+import AuthRouter from "./routes/auth.routes.js";
 import userRouter from "./routes/user.routes.js";
 import adminRouter from "./routes/admin.routes.js";
 import settingRouter from "./routes/setting.routes.js";
@@ -68,6 +69,7 @@ export const bootstrap = (app, express) => {
 
   app.use(settingAPIS);
   // API
+  app.use(`${routes.auth._id}`, AuthRouter);
   app.use(`${routes.student._id}`, userRouter);
   app.use(`${routes.Admin._id}`, adminRouter);
   app.use(`${routes.instructor._id}`, instructorRouter);

@@ -4,6 +4,11 @@ export const routes = {
     v2: "/v2",
     v3: "/v3",
   },
+  auth: {
+    _id: "/Api/auth",
+    forgetPassword: "/forgetPassword",
+    Resetpass: "/reset/password",
+  },
   student: {
     _id: "/Api/students",
     login: "/login",
