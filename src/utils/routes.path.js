@@ -24,6 +24,7 @@ export const routes = {
     deleteImgBystu: "/delete/image/from/student/By/student",
     Availablecourses: "/get/available/courses",
     logout: "/logout",
+    GetQR:"/get/qr"
   },
   Admin: {
     _id: "/Api/admins",
