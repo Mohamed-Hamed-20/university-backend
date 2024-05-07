@@ -86,6 +86,10 @@ export const bootstrap = (app, express) => {
   //Welcome Page
   app.get("/", async (req, res, next) => {
     console.log({ IP: req.ip });
+    console.log(req.get("host"));
+    console.log(
+      "url : " + req.protocol + "://" + req.get("host") + req.originalUrl
+    );
     // return res.json({ AllRoutes });
     const result = await hellowpage();
     return res.send(`${result}`);

@@ -36,7 +36,8 @@ export const forgetPassword = asyncHandler(async (req, res, next) => {
   });
   const to = user.email;
   const subject = "This message to Reset you Password";
-  const link = `http://localhost:3000/forgetpassword/${encrypted}`;
+
+  let link = `${req.protocol}://${req.get("host")}/forgetpassword/${encrypted}`;
 
   const html = `${await confirmEmailTemplet(link)}`;
   const isSend = await sendEmail({ to, subject, html });
@@ -59,11 +60,13 @@ export const ResetPassword = asyncHandler(async (req, res, next) => {
     signature: process.env.ForgetPassword,
   });
 
+  console.log(data);
+
   if (!data.email || !data.userId || !data.role) {
     return next(new Error("Invaild Data", { cause: 400 }));
   }
 
-  const hashpass = hashpassword({
+  const hashpass = await hashpassword({
     password: password,
     saltRound: process.env.salt_Round || 8,
   });
@@ -83,5 +86,5 @@ export const ResetPassword = asyncHandler(async (req, res, next) => {
     );
   }
 
-  return res.json({ message: "password reset successfully" });
+  return res.json({ message: "password reset successfully", user: updateUser });
 });
