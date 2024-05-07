@@ -26,7 +26,7 @@ export const forgetPassword = asyncHandler(async (req, res, next) => {
     return next(new Error("Invaild Email not found", { cause: 404 }));
   }
   const token = await generateToken({
-    payload: { email: user.email, userId: user._id, role: user.role },
+    payload: { email: user.email, userId: user._id, role: myRole },
     signature: process.env.ForgetPassword,
     expiresIn: "7m",
   });
@@ -65,7 +65,7 @@ export const ResetPassword = asyncHandler(async (req, res, next) => {
   if (!data.email || !data.userId || !data.role) {
     return next(new Error("Invaild Data", { cause: 400 }));
   }
-
+  console.log(password);
   const hashpass = await hashpassword({
     password: password,
     saltRound: process.env.salt_Round || 8,
@@ -73,18 +73,23 @@ export const ResetPassword = asyncHandler(async (req, res, next) => {
 
   let updateUser;
   if (roles.instructor == data.role) {
-    updateUser = await InstructorModel.findByIdAndDelete(
+    updateUser = await InstructorModel.findByIdAndUpdate(
       { _id: data.userId },
       { password: hashpass },
       { new: true }
-    );
+    )
+      .lean()
+      .select("_id");
   } else {
-    updateUser = await adminModel.findByIdAndDelete(
-      { _id: data.userId },
-      { password: hashpass },
-      { new: true }
-    );
+    updateUser = await adminModel
+      .findByIdAndUpdate(
+        { _id: data.userId },
+        { password: hashpass },
+        { new: true }
+      )
+      .lean()
+      .select("_id");
   }
 
-  return res.json({ message: "password reset successfully", user: updateUser });
+  return res.json({ message: "password reset successfully" });
 });
