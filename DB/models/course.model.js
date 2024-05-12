@@ -27,11 +27,13 @@ const CourseSchema = new mongoose.Schema(
     OpenForRegistration: {
       type: Boolean,
       default: false,
+      required: false,
     },
     department: [
       {
         type: String,
         enum: ["cs", "is", "sc", "ai"],
+        required: false,
       },
     ],
     Prerequisites: [
@@ -53,49 +55,6 @@ const CourseSchema = new mongoose.Schema(
 CourseSchema.path("Prerequisites").default(undefined);
 
 CourseSchema.path("Prerequisites").required(false);
-
-// CourseSchema.pre("deleteOne", async function (next) {
-//   try {
-//     const filter = this.getQuery();
-
-//     if (!filter._id) {
-//       throw new Error("Missing _id in filter");
-//     }
-
-//     // حذف الكورس من المواد المسجلة للطلاب
-//     await RegisterModel.updateMany(
-//       { coursesRegisterd: filter._id },
-//       { $pull: { coursesRegisterd: filter._id } }
-//     );
-
-//     // حذف الكورس من قائمة المواد المتاحة للطلاب
-//     const course = await CourseModel.findById(filter._id);
-//     const removedHours = course.credit_hour;
-//     await availableCoursesModel.updateMany(
-//       { Available_Courses: filter._id },
-//       { $pull: { Available_Courses: filter._id } }
-//     );
-
-//     // زيادة عدد الساعات المتاحة
-//     await RegisterModel.updateMany(
-//       {},
-//       { $inc: { Available_Hours: removedHours } }
-//     );
-
-//     // حذف الدرجات المرتبطة بالكورس
-//     await GradeModel.deleteMany({ courseId: filter._id });
-
-//     // حذف الكورس من قائمة المواد للمدرسين
-//     await InstructorModel.updateMany(
-//       { Materials: filter._id },
-//       { $pull: { Materials: filter._id } }
-//     );
-
-//     next();
-//   } catch (error) {
-//     next(error);
-//   }
-// });
 
 CourseSchema.post("findOneAndDelete", async function (doc, next) {
   try {

@@ -4,6 +4,8 @@ import { ApiFeature } from "../../utils/apiFeature.js";
 import { roles } from "../../middleware/auth.js";
 import { createImg, deleteImg, GetsingleImg } from "../../utils/aws.s3.js";
 import slugify from "slugify";
+import TrainingRegisterModel from "../../../DB/models/trainingRegister.model.js";
+import trainingResultModel from "../../../DB/models/trainingResult.model.js";
 
 // create new training
 export const addtrain = asyncHandler(async (req, res, next) => {
@@ -28,7 +30,9 @@ export const addtrain = asyncHandler(async (req, res, next) => {
   }
 
   // Assign OpenForRegistration and requiremenst and max_student if provided
-  if (OpenForRegister) training.OpenForRegister = OpenForRegister;
+  if (typeof OpenForRegister !== "undefined") {
+    training.OpenForRegister = OpenForRegister;
+  }
 
   if (requirements) training.requirements = requirements;
 
@@ -92,7 +96,9 @@ export const updatetraining = asyncHandler(async (req, res, next) => {
   if (requirements) training.requirements = requirements;
   if (desc) training.desc = desc;
   if (max_student) training.max_student = max_student;
-  if (OpenForRegister) training.OpenForRegister = OpenForRegister;
+  if (typeof OpenForRegister !== "undefined") {
+    training.OpenForRegister = OpenForRegister;
+  }
   if (AllowLevel) training.AllowLevel = AllowLevel;
 
   await training.save();
@@ -104,14 +110,44 @@ export const updatetraining = asyncHandler(async (req, res, next) => {
 // delete training
 export const deletetrain = asyncHandler(async (req, res, next) => {
   const { training_id } = req.query;
-  const training = await trainingmodel.findByIdAndDelete(training_id);
+
+  // Check if the training exists
+  const training = await trainingmodel.findById(training_id);
   if (!training) {
     return next(new Error("Invalid training Id", { cause: 404 }));
   }
-  return res
-    .status(200)
-    .json({ message: "Training deleted Successfully", training });
+
+  // Delete the training
+  const deleteTrainPromise = trainingmodel.deleteOne({ _id: training_id });
+
+  // Update associated registrations
+  const updateTrainRegistedPromise = TrainingRegisterModel.updateMany(
+    { trainingRegisterd: training_id },
+    { $pull: { trainingRegisterd: training_id } }
+  );
+
+  // Delete associated grades
+  const deleteTrainGradesPromise = trainingResultModel.deleteMany({
+    trainingId: training_id,
+  });
+
+  // Wait for all promises to execute
+  const [deleteTrain, updateTrainRegisted, deleteTrainGrades] =
+    await Promise.all([
+      deleteTrainPromise,
+      updateTrainRegistedPromise,
+      deleteTrainGradesPromise,
+    ]);
+
+  // Return success message
+  return res.status(200).json({
+    message: "Training deleted successfully",
+    deletedTrain: deleteTrain,
+    updatedRegistrations: updateTrainRegisted,
+    deletedGrades: deleteTrainGrades,
+  });
 });
+
 
 // search and get all training
 export const alltraining = asyncHandler(async (req, res, next) => {

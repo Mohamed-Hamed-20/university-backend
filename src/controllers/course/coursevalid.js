@@ -28,7 +28,10 @@ export const addcourse = {
         .items(generalFields._id.optional())
         .optional()
         .messages(customMessages),
-      department: joi.array().items(generalFields.department),
+      department: joi
+        .array()
+        .items(joi.string().valid("cs", "is", "ai", "sc").trim().lowercase())
+        .optional(),
     })
     .required(),
 };
@@ -57,7 +60,10 @@ export const updatecourse = {
         .items(generalFields._id.optional())
         .optional()
         .messages(customMessages),
-      department: joi.array().items(generalFields.department),
+      department: joi
+        .array()
+        .items(joi.string().valid("cs", "is", "ai", "sc").trim().lowercase())
+        .optional(),
     })
     .required(),
   query: joi

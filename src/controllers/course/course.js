@@ -47,10 +47,12 @@ export const addCourse = asyncHandler(async (req, res, next) => {
   }
 
   // Assign OpenForRegistration and description if provided
-  if (OpenForRegistration) course.OpenForRegistration = OpenForRegistration;
+  if (typeof OpenForRegistration !== "undefined") {
+    course.OpenForRegistration = OpenForRegistration;
+  }
 
   if (desc) course.desc = desc;
-  if (department) course.department = department;
+  if (department && department.length > 0) course.department = department;
 
   // Assign credit hour
   course.credit_hour = credit_hour;
@@ -73,12 +75,15 @@ export const updatecourse = asyncHandler(async (req, res, next) => {
     desc,
   } = req.body;
 
-  const course = await CourseModel.findById(courseId);
+  const course = await CourseModel.findById(courseId).lean();
   if (!course) {
     return next(new Error("Invalid course Id", { cause: 404 }));
   }
+
   if (course_name && course?.course_name != course_name) {
-    const chkcourse = await CourseModel.findOne({ course_name });
+    const chkcourse = await CourseModel.findOne({ course_name })
+      .lean()
+      .select("_id");
     if (chkcourse && chkcourse._id.toString() != courseId) {
       return next(new Error("course Name Is Already Exist", { cause: 400 }));
     } else {
@@ -94,7 +99,10 @@ export const updatecourse = asyncHandler(async (req, res, next) => {
     ) {
       const foundPrerequisites = await CourseModel.find({
         _id: { $in: prerequisiteIds },
-      });
+      })
+        .lean()
+        .select("_id");
+
       if (foundPrerequisites.length !== Prerequisites.length) {
         return next(
           new Error("One or more prerequisites are invalid", { cause: 400 })
@@ -106,13 +114,42 @@ export const updatecourse = asyncHandler(async (req, res, next) => {
 
   if (credit_hour) course.credit_hour = credit_hour;
 
-  if (OpenForRegistration) course.OpenForRegistration = OpenForRegistration;
+  if (typeof OpenForRegistration !== "undefined") {
+    course.OpenForRegistration = OpenForRegistration;
+  }
 
   if (desc) course.desc = desc;
-  if (department) course.department = department;
 
-  await course.save();
-  return res.status(200).json({ message: "course  Successfully", course });
+  if (department) {
+    if (department.length < 0) {
+      course.department = [];
+      delete course.department;
+      course.$unset = { department: 1 };
+    }
+    course.department = department;
+  }
+
+  const result = await CourseModel.findByIdAndUpdate(
+    { _id: courseId },
+    course,
+    {
+      new: true,
+      lean: true,
+      select:
+        "_id course_name department credit_hour desc OpenForRegistration Prerequisites",
+    }
+  );
+
+  if (!result) {
+    return next(
+      new Error("Error In update course Try Again later", { cause: 500 })
+    );
+  }
+
+  //response
+  return res
+    .status(200)
+    .json({ message: "course updated Successfully", result });
 });
 
 export const deletecourse = asyncHandler(async (req, res, next) => {
