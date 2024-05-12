@@ -236,7 +236,7 @@ export const addStudent = asyncHandler(async (req, res, next) => {
     role: "user",
   };
 
-  if (department) {
+  if (department && department !== "not specify") {
     student.department = department;
   }
 
@@ -333,12 +333,11 @@ export const updateStudent = asyncHandler(async (req, res, next) => {
     }
   }
 
-  const userUpdate = {};
   // Check and update fields
-  if (Full_Name) userUpdate.Full_Name = Full_Name;
-  if (National_Id) userUpdate.National_Id = National_Id;
-  if (Student_Code) userUpdate.Student_Code = Student_Code;
-  if (PhoneNumber) userUpdate.PhoneNumber = PhoneNumber;
+  if (Full_Name) user.Full_Name = Full_Name;
+  if (National_Id) user.National_Id = National_Id;
+  if (Student_Code) user.Student_Code = Student_Code;
+  if (PhoneNumber) user.PhoneNumber = PhoneNumber;
 
   // reset his password
   if (resetPassword) {
@@ -347,16 +346,25 @@ export const updateStudent = asyncHandler(async (req, res, next) => {
   }
 
   // Update fields
-  if (gender) userUpdate.gender = gender;
-  if (Date_of_Birth) userUpdate.Date_of_Birth = Date_of_Birth;
-  if (department) userUpdate.department = department;
+  if (gender) user.gender = gender;
+  if (Date_of_Birth) user.Date_of_Birth = Date_of_Birth;
+
+  //update department
+  if (department) {
+    if (department == "not specify") {
+      delete user.department;
+      user.$unset = { department: 1 };
+    } else {
+      user.department = department;
+    }
+  }
 
   // Find and update user
-  const updatedUser = await userModel.findByIdAndUpdate(
-    { _id: userId },
-    userUpdate,
-    { new: true, lean: true, select: "_id Full_Name Student_Code gender" }
-  );
+  const updatedUser = await userModel.findByIdAndUpdate({ _id: userId }, user, {
+    new: true,
+    lean: true,
+    select: "_id Full_Name Student_Code gender department",
+  });
 
   // if not updated
   if (!updatedUser) {

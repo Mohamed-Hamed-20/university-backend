@@ -136,9 +136,13 @@ export const CreateInstructor = asyncHandler(async (req, res, next) => {
     Date_of_Birth: Date_of_Birth,
     gender: gender,
     isconfrimed: false,
-    department: department,
     role: "instructor",
   };
+
+  // make sure he has department
+  if (department && department !== "not specify") {
+    user.department = department;
+  }
 
   if (Materials && Materials?.length > 0) {
     const MaterialsIds = arrayofIds(Materials);
@@ -174,24 +178,19 @@ export const CreateInstructor = asyncHandler(async (req, res, next) => {
     user.Training = TrainingIds;
   }
 
-  // إضافة الأستاذ
+  // add instructor
   const result = await InstructorModel.create(user);
   if (!result) {
     return next(new Error("Error Can create Instructor", { cause: 500 }));
   }
 
-  // const link = `${req.protocol}://${req.headers.host}/Api/instructor/confirmEmail`;
-  // const confirmEmail = await sendconfirmEmail(result, link);
-  // if (!confirmEmail) {
-  //   return next(new Error("Email not send successFully", { cause: 400 }));
-  // }
   return res.status(201).json({
     message: "Created Successfully",
     user: {
       FullName: result.FullName,
       Email: result.email,
       role: result.role,
-      department: result.department,
+      department: result?.department,
       gender: result.gender,
     },
   });
@@ -211,32 +210,24 @@ export const updateInstructor = asyncHandler(async (req, res, next) => {
   } = req.body;
   const { userId } = req.query;
 
-  const user = await InstructorModel.findById(userId);
+  const user = await InstructorModel.findById(userId).lean();
+
   if (!user) {
     return next(new Error("Instructor not found", { cause: 404 }));
   }
 
+  const myquery = [];
+
   if (FullName && user?.FullName != FullName) {
-    const name = await InstructorModel.findOne({ FullName: FullName });
-    if (name && name._id.toString() !== userId) {
-      return next(new Error("User name is already in use", { cause: 400 }));
-    }
-    user.FullName = FullName;
+    myquery.push({ FullName: FullName });
   }
+
   if (email && user?.email != email) {
-    const chkemail = await InstructorModel.findOne({ email: email });
-    if (chkemail && chkemail._id.toString() !== userId) {
-      return next(new Error("Email is already in use", { cause: 400 }));
-    }
-    user.email = email;
+    myquery.push({ email: email });
   }
 
   if (phone && user?.phone != phone) {
-    const chkphone = await InstructorModel.findOne({ phone: phone });
-    if (chkphone && chkphone._id.toString() !== userId) {
-      return next(new Error("Phone number is already in use", { cause: 400 }));
-    }
-    user.phone = phone;
+    myquery.push({ phone: phone });
   }
 
   if (password) {
@@ -245,6 +236,28 @@ export const updateInstructor = asyncHandler(async (req, res, next) => {
       saltRound: process.env.salt_Round,
     });
     user.password = hashpass;
+  }
+
+  // make sure no duplication and data set In
+  if (myquery.length > 0) {
+    // Make sure data NOt dublicate
+    const existingInstructor = await InstructorModel.findOne({
+      $or: myquery,
+    }).lean();
+
+    // search if student is already Exist
+    if (existingInstructor) {
+      if (existingInstructor.FullName === FullName) {
+        return next(new Error(" FullName is Already Exist", { cause: 400 }));
+      }
+      if (existingInstructor.email === email) {
+        return next(new Error("email is Already Exist", { cause: 400 }));
+      }
+
+      if (existingInstructor.phone === phone) {
+        return next(new Error("phone is Already Exist", { cause: 400 }));
+      }
+    }
   }
 
   if (Materials && Materials?.length > 0) {
@@ -290,14 +303,31 @@ export const updateInstructor = asyncHandler(async (req, res, next) => {
       user.Training = TrainingIds;
     }
   }
+
   user.email = email || user.email;
   user.phone = phone || user.phone;
   user.FullName = FullName || user.FullName;
   user.Date_of_Birth = Date_of_Birth || user.Date_of_Birth;
   user.gender = gender || user.gender;
-  user.department = department || user.department;
 
-  const result = await user.save();
+  if (department) {
+    if (department == "not specify") {
+      delete user.department;
+      user.$unset = { department: 1 };
+    } else {
+      user.department = department;
+    }
+  }
+
+  const result = await InstructorModel.findByIdAndUpdate(
+    { _id: userId },
+    user,
+    {
+      new: true,
+      lean: true,
+      select: "_id FullName department gender phone",
+    }
+  );
 
   return res
     .status(200)

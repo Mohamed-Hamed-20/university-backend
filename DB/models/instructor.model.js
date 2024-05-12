@@ -61,7 +61,7 @@ const InstructorSchema = new Schema(
     department: {
       type: String,
       enum: ["cs", "is", "sc", "ai"],
-      required: true,
+      required: false,
       lowercase: true,
     },
     imgName: {

@@ -105,7 +105,7 @@ export const generalFields = {
 
   department: joi
     .string()
-    .valid("cs", "is", "ai", "sc")
+    .valid("not specify", "cs", "is", "ai", "sc")
     .trim()
     .lowercase()
     .messages(customMessages),
