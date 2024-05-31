@@ -23,6 +23,7 @@ export const verifypass = async ({ password, hashpassword } = {}) => {
     const matched = bcrypt.compareSync(password, hashpassword);
     return matched;
   } catch (error) {
+    console.log("hi");
     throw new Error(error.message);
   }
 };

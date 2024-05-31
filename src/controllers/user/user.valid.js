@@ -19,6 +19,7 @@ const StudentFields = {
       "any.required": "{#label} is required",
       "string.empty": "{#label} cannot be empty",
       "any.only": "{#label} must be contain 15 numbers",
+      "string.pattern.base": "{#label} must be contain 15 numbers",
     }),
   National_Id: joi
     .string()
@@ -28,6 +29,7 @@ const StudentFields = {
       "any.required": "{#label} is required",
       "string.empty": "{#label} cannot be empty",
       "any.only": "{#label} must be contain 14 numbers",
+      "string.pattern.base": "{#label} must be contain 14 numbers",
     }),
 
   Date_of_Birth: joi.date().iso().messages(customMessages),
@@ -52,13 +54,8 @@ export const login = {
   body: joi
     .object({
       Student_Code: StudentFields.Student_Code.required(),
-      password: joi
-        .string()
-        .trim()
-        .min(8)
-        .max(24)
-        .required()
-        .messages(customMessages),
+      password: joi.string().trim().min(8).max(24).required(),
+      // .messages(customMessages),
     })
     .required(),
 };

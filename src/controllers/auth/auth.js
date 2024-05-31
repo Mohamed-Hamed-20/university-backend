@@ -37,7 +37,6 @@ export const forgetPassword = asyncHandler(async (req, res, next) => {
   const to = user.email;
   const subject = "This message to Reset you Password";
   var frontEndURL = req.headers.referer;
-  console.log(frontEndURL);
   const link = `${frontEndURL}forgetpassword/${encrypted}`;
 
   const html = `${await confirmEmailTemplet(link)}`;

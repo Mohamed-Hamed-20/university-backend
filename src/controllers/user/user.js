@@ -25,7 +25,6 @@ import trainingResultModel from "../../../DB/models/trainingResult.model.js";
 import TokenModel from "../../../DB/models/token.model.js";
 import { decryptData, encryptData } from "../../utils/crypto.js";
 import { sanitizeStudent } from "../../utils/sanitize.data.js";
-import jwt from "jsonwebtoken";
 import * as gqr from "../../utils/qrcode.js";
 
 // student login
@@ -47,16 +46,17 @@ export const login = asyncHandler(async (req, res, next) => {
       password: password,
       hashpassword: user.password,
     });
+
     if (!matched) {
-      return next(new Error("Invalid Student Code or password"), {
-        cause: 400,
-      });
+      return next(
+        new Error("Invalid Student Code or password", { cause: 400 })
+      );
     }
   } else {
     if (password != user.National_Id) {
-      return next(new Error("Invalid Student Code or password"), {
-        cause: 400,
-      });
+      return next(
+        new Error("Invalid Student Code or password", { cause: 400 })
+      );
     }
   }
 
@@ -79,22 +79,24 @@ export const login = asyncHandler(async (req, res, next) => {
     refreshTokenPromise,
   ]);
 
-  // encrpt accesss tokens
-  const encrptAcessTokenpromise = encryptData({
-    data: accessToken,
-    password: process.env.ACCESS_TOKEN_ENCRPTION,
-  });
+  // // encrpt accesss tokens
+  // const encrptAcessTokenpromise = encryptData({
+  //   data: accessToken,
+  //   password: process.env.ACCESS_TOKEN_ENCRPTION,
+  // });
 
-  // encrpt refresh tokens
-  const encrptRefTokenpromise = encryptData({
-    data: refreshToken,
-    password: process.env.REFRESH_TOKEN_ENCRPTION,
-  });
-  const success = await storeRefreshToken(refreshToken, user._id, next);
+  // // encrpt refresh tokens
+  // const encrptRefTokenpromise = encryptData({
+  //   data: refreshToken,
+  //   password: process.env.REFRESH_TOKEN_ENCRPTION,
+  // });
 
-  const [encrptAcessToken, encrptRefToken] = await Promise.all([
-    encrptAcessTokenpromise,
-    encrptRefTokenpromise,
+  const successpromise = storeRefreshToken(refreshToken, user._id, next);
+
+  const [/*encrptAcessToken, encrptRefToken,*/ success] = await Promise.all([
+    // encrptAcessTokenpromise,
+    // encrptRefTokenpromise,
+    successpromise,
   ]);
 
   if (!success) {
@@ -103,8 +105,8 @@ export const login = asyncHandler(async (req, res, next) => {
 
   return res.status(200).json({
     message: "done login",
-    accessToken: encrptAcessToken,
-    refreshToken: encrptRefToken,
+    accessToken: accessToken,
+    refreshToken: refreshToken,
     role: user.role,
   });
 });

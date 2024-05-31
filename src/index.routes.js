@@ -50,7 +50,7 @@ export const bootstrap = (app, express) => {
 
   //Allow feaching Data
   app.use(express.json({ limit: "100kb" }));
-  app.use(express.urlencoded({ extended: true }));
+  app.use(express.urlencoded({ extended: true  }));
 
   //to apply data sanitizing
   app.use(mongosanitize());
