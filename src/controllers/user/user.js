@@ -103,11 +103,24 @@ export const login = asyncHandler(async (req, res, next) => {
     return next(new Error("Failed to store refresh token"), { cause: 500 });
   }
 
+  // Set cookies for access and refresh tokens
+  // res.cookie("accessToken", encrptAcessToken, {
+  //   httpOnly: true,
+  //   secure: process.env.NODE_ENV === "production",
+  //   maxAge: parseInt(process.env.accessExpireIn) * 1000,
+  // });
+
+  // res.cookie("refreshToken", encrptRefToken, {
+  //   httpOnly: true,
+  //   secure: process.env.NODE_ENV === "production",
+  //   maxAge: parseInt(process.env.REFRESH_ExpireIn) * 1000,
+  // });
+
   return res.status(200).json({
-    message: "done login",
+    message: "Login successful",
+    role: user.role,
     accessToken: encrptAcessToken,
     refreshToken: encrptRefToken,
-    role: user.role,
   });
 });
 

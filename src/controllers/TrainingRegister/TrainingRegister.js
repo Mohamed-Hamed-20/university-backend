@@ -3,7 +3,7 @@ import TrainingRegisterModel from "../../../DB/models/trainingRegister.model.js"
 import { roles } from "../../middleware/auth.js";
 import { ApiFeature } from "../../utils/apiFeature.js";
 import { arrayofstring } from "../../utils/arrayobjectIds.js";
-import { GetsingleImg } from "../../utils/aws.s3.js";
+import { GetMultipleImages, GetsingleImg } from "../../utils/aws.s3.js";
 import { calclevel, calculateGPA } from "../../utils/calcGrates.js";
 import { asyncHandler } from "../../utils/errorHandling.js";
 
@@ -159,22 +159,15 @@ export const getTraining = asyncHandler(async (req, res, next) => {
     TrainingRegister = newTrainingRegister;
   }
 
-  // تحميل الصور لكل دورة مسجلة باستخدام Promise.all
-  const promises = [];
-  TrainingRegister?.trainingRegisterd?.forEach((training) => {
-    if (training.ImgUrls && training.ImgUrls.length > 0) {
-      training.images = [];
-      training.ImgUrls.forEach((imgName) => {
-        promises.push(
-          GetsingleImg({ ImgName: imgName }).then(({ url }) => {
-            training.images.push({ imgName, url });
-          })
-        );
-      });
-    }
-  });
 
-  await Promise.all(promises);
+
+  for (const trainings of TrainingRegister) {
+    for (const train of trainings.trainingRegisterd) {
+      const result = await GetMultipleImages(train.ImgUrls);
+      delete train.ImgUrls;
+      train.images = result;
+    }
+  }  
 
   // response success
   return res.status(200).json({
@@ -182,6 +175,7 @@ export const getTraining = asyncHandler(async (req, res, next) => {
     result: TrainingRegister,
   });
 });
+
 export const searchRegisterTraining = asyncHandler(async (req, res, next) => {
   const { trainingId, studentId } = req.query;
   const user = req.user;

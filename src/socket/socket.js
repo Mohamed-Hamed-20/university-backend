@@ -9,27 +9,29 @@ const io = new Server(server, {
     origin: [
       "https://graduation-project-beryl-seven.vercel.app/",
       "http://localhost:3000",
-      "http://graduation-project-beryl-seven.vercel.app/",
+      "http://graduation-project-beryl-seven.vercel.app",
     ],
-    methods: ["GET", "POST"],
+    methods: ["GET", "POST", ""],
   },
 });
 
-const userSocketMap = {};
+export const getReceiverSocketId = (receiverId) => {
+  return userSocketMap[receiverId];
+};
+
+const userSocketMap = {}; // {userId: socketId}
 
 io.on("connection", (socket) => {
-  // make connection
-  console.log("user connected", socket.id);
+  console.log("a user connected", socket.id);
+
   const userId = socket.handshake.query.userId;
+  if (userId != "undefined") userSocketMap[userId] = socket.id;
 
-  //
-  if (userId !== "undefined") userSocketMap[userId] = socket.id;
-
-  // send event to all connected clinets
-  console.log(Object.keys(userSocketMap));
+  // io.emit() is used to send events to all the connected clients
   io.emit("getOnlineUsers", Object.keys(userSocketMap));
 
-  socket.on("disconnected", () => {
+  // socket.on() is used to listen to the events. can be used both on client and server side
+  socket.on("disconnect", () => {
     console.log("user disconnected", socket.id);
     delete userSocketMap[userId];
     io.emit("getOnlineUsers", Object.keys(userSocketMap));

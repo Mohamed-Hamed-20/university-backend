@@ -245,7 +245,7 @@ export const AddTrainingImg = asyncHandler(async (req, res, next) => {
   // Add Images
   if (req.files.length > 0) {
     const newName = slugify(training.training_name, "_");
-    const folder = `${process.env.Folder_course}/${newName}-${training._id}`;
+    const folder = `${process.env.Folder_Training}/${newName}-${training._id}`;
     const { ImgNames, responses } = await createImg({
       folder,
       files: req.files,
