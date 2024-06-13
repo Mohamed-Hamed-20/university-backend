@@ -2,9 +2,13 @@ import CourseModel from "../../../DB/models/course.model.js";
 import { asyncHandler } from "../../utils/errorHandling.js";
 import { arrayofIds } from "../../utils/arrayobjectIds.js";
 import { ApiFeature } from "../../utils/apiFeature.js";
-import { createImg, deleteImg, GetsingleImg } from "../../utils/aws.s3.js";
+import {
+  createImg,
+  deleteImg,
+  GetMultipleImages,
+  GetsingleImg,
+} from "../../utils/aws.s3.js";
 import slugify from "slugify";
-import { GradeModel } from "../../../DB/models/StudentGrades.model.js";
 
 export const addCourse = asyncHandler(async (req, res, next) => {
   const {
@@ -194,38 +198,12 @@ export const searchcourse = asyncHandler(async (req, res, next) => {
 
   const courses = await apiFeatureInstance.MongoseQuery;
 
-  // Create an array to hold all the promises for loading images
-  const allImagePromises = [];
-
-  // Loop through each course
+  // get all images
   for (const course of courses) {
-    if (course?.ImgUrls && course.ImgUrls.length > 0) {
-      // Create promises for each image in the course and add them to the array
-      const imagePromises = course?.ImgUrls?.map(async (imgUrl) => {
-        const { url } = await GetsingleImg({ ImgName: imgUrl });
-        return { imgName: imgUrl, url };
-      });
-      allImagePromises.push(Promise.all(imagePromises));
+    if (course.ImgUrls.length > 0) {
+      course.images = await GetMultipleImages(course.ImgUrls);
+      delete course.ImgUrls;
     }
-  }
-
-  // Wait for all image promises to resolve
-  const allImages = await Promise.all(allImagePromises);
-  // Loop through each course and assign the images
-  for (const course of courses) {
-    // Check if ImgUrls exist and are not empty for this course
-    if (course.ImgUrls && course.ImgUrls.length > 0) {
-      // Check if images exist in allImages array for this course
-      const imagesForCourse = allImages.shift(); // Get images for the current course
-      if (
-        imagesForCourse &&
-        imagesForCourse.length > 0 &&
-        imagesForCourse.every((image) => course.ImgUrls.includes(image.imgName))
-      ) {
-        course.images = imagesForCourse;
-      }
-    }
-    delete course.ImgUrls;
   }
 
   return res
