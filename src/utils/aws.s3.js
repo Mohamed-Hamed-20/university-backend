@@ -121,7 +121,7 @@ export const GetsingleImg = async ({ ImgName }) => {
   return { url };
 };
 
-export const GetMultipleImages = (imgUrls) => {
+export const GetMultipleImages = async (imgUrls) => {
   const promises = imgUrls.map((imgUrl) =>
     getSignedUrl(
       s3Client,

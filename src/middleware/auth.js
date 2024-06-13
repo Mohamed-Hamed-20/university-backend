@@ -15,6 +15,8 @@ export const roles = {
 
 export const isAuth = (roles) => {
   return asyncHandler(async (req, res, next) => {
+    const cokkies = req.cookies;
+    console.log(cokkies);
     const accessToken = req.headers.authorization;
     let refreshToken = req.headers["refresh-token"];
     //check token send
