@@ -538,21 +538,21 @@ export const AddAdminImg = asyncHandler(async (req, res, next) => {
 export const deleteAdminImg = asyncHandler(async (req, res, next) => {
   const { adminId } = req.body;
   let { imgName } = req.body;
-
   let admin;
+
   if (req.user.role == roles.super) {
-    admin = await adminModel.findById(adminId);
+    admin = await adminModel
+      .findById(adminId)
+      .lean()
+      .select("FullName imgName role");
     if (!admin) {
       return next(new Error("admin not found", { cause: 404 }));
     }
   }
 
-  if (req.user.role == roles.admin) {
-    admin = req.user;
-    imgName = req.user?.imgName || undefined;
-  }
+  if (req.user.role == roles.admin) admin = req.user;
 
-  if (admin?.imgName !== imgName) {
+  if (!admin || admin.imgName != imgName) {
     return next(new Error("Invalid imgName or not found", { cause: 400 }));
   }
 
@@ -565,7 +565,7 @@ export const deleteAdminImg = asyncHandler(async (req, res, next) => {
 
   // Remove imgName field from the admin document
   const result = await adminModel.findByIdAndUpdate(
-    adminId,
+    admin._id,
     { $unset: { imgName: "" } },
     { new: true }
   );
@@ -602,5 +602,3 @@ export const logout = asyncHandler(async (req, res, next) => {
   }
   return res.status(200).json({ message: "user logout successfully" });
 });
-
-

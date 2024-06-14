@@ -109,4 +109,10 @@ export const deleteAdminImg = {
     .required(),
 };
 
-
+export const deleteAdminImgByAdmin = {
+  body: joi
+    .object({
+      imgName: joi.string().trim().min(15).required().messages(customMessages),
+    })
+    .required(),
+};
