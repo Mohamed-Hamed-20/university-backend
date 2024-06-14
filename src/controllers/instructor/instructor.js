@@ -589,7 +589,7 @@ export const ScanQrCode = asyncHandler(async (req, res, next) => {
   return res.status(200).json({
     message: "Scanning successfully",
     result: {
-      student: [sanitizeStudent(student)],
+      student: sanitizeStudent(student),
       url: url.url,
     },
   });
