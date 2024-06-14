@@ -108,7 +108,7 @@ router.post(
 router.patch(
   `${Admin.deleteImgByAdmin}`,
   limiter({ limit: 5, Mintute: 30 }),
-  valid(vSchema.deleteAdminImgByAdmin),
+  // valid(vSchema.deleteAdminImgByAdmin),
   isAuth([roles.admin]),
   ac.deleteAdminImg
 );

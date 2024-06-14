@@ -550,10 +550,15 @@ export const deleteAdminImg = asyncHandler(async (req, res, next) => {
     }
   }
 
-  if (req.user.role == roles.admin) admin = req.user;
+  if (req.user.role == roles.admin) {
+    admin = req.user;
+    imgName = req.user.imgName;
+  }
 
-  if (!admin || admin.imgName != imgName) {
-    return next(new Error("Invalid imgName or not found", { cause: 400 }));
+  if (!admin?.imgName) {
+    return next(
+      new Error("Invalid imgName or doesn't have Img", { cause: 400 })
+    );
   }
 
   // Delete image
