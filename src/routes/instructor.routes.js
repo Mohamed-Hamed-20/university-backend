@@ -94,7 +94,7 @@ router.patch(
   Ic.deleteInstructorImg
 );
 
-// delete images  by Admin EDIT_R
+// delete images  by Admin 
 router.patch(
   `${instructor.deleteImgByAdmin}`,
   limiter({ limit: 40, Mintute: 60 }),

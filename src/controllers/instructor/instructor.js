@@ -524,7 +524,7 @@ export const AddInstructorImg = asyncHandler(async (req, res, next) => {
 });
 
 export const deleteInstructorImg = asyncHandler(async (req, res, next) => {
-  const { InstructorId, imgName } = req.body;
+  let { InstructorId, imgName } = req.body;
 
   // Find the Instructor
   let Instructor;
@@ -535,10 +535,11 @@ export const deleteInstructorImg = asyncHandler(async (req, res, next) => {
     }
   } else if (req.user.role == roles.instructor) {
     Instructor = req.user;
+    imgName = Instructor.imgName;
   }
 
   // Check if imgName matches the one in the Instructor document
-  if (Instructor?.imgName !== imgName) {
+  if (!Instructor?.imgName || Instructor?.imgName !== imgName) {
     return next(new Error("Invalid imgName not found", { cause: 400 }));
   }
 
@@ -550,7 +551,7 @@ export const deleteInstructorImg = asyncHandler(async (req, res, next) => {
 
   // Remove imgName field from the Instructor document
   const updateResult = await InstructorModel.findByIdAndUpdate(
-    InstructorId,
+    Instructor._id,
     { $unset: { imgName: "" } },
     { new: true }
   );

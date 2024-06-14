@@ -109,6 +109,7 @@ router.get(
   isAuth([roles.stu]),
   uc.logout
 );
+
 router.get(
   `${student.GetQR}`,
   limiter({ limit: 3, Mintute: 60 }),
