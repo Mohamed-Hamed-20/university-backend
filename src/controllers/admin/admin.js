@@ -555,7 +555,7 @@ export const deleteAdminImg = asyncHandler(async (req, res, next) => {
     imgName = req.user.imgName;
   }
 
-  if (!admin?.imgName) {
+  if (!admin?.imgName || admin?.imgName != imgName) {
     return next(
       new Error("Invalid imgName or doesn't have Img", { cause: 400 })
     );
