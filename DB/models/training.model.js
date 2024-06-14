@@ -6,7 +6,7 @@ const trainingschema = new Schema(
       required: true,
       lowercase: true,
       min: 3,
-      max: 40,
+      max: 97,
     },
     start_date: {
       type: Date,
@@ -19,13 +19,13 @@ const trainingschema = new Schema(
     requirements: {
       type: String,
       min: 5,
-      max: 300,
+      max: 5000,
     },
     desc: {
       type: String,
       required: true,
       min: 10,
-      max: 400,
+      max: 8000,
     },
     max_student: {
       type: Number,

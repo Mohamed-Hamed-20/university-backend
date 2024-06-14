@@ -15,7 +15,7 @@ export const addtrain = {
         .trim()
         .lowercase()
         .min(3)
-        .max(40)
+        .max(90)
         .required()
 
         .messages(customMessages),
@@ -23,7 +23,7 @@ export const addtrain = {
         .string()
         .trim()
         .min(10)
-        .max(400)
+        .max(7000)
         .required()
         .messages(customMessages),
 
@@ -43,7 +43,7 @@ export const addtrain = {
         .string()
         .trim()
         .min(5)
-        .max(300)
+        .max(2000)
         .optional()
         .messages(customMessages),
       max_student: joi.number().optional().messages(customMessages),
@@ -70,14 +70,14 @@ export const updatetrain = {
         .trim()
         .lowercase()
         .min(3)
-        .max(40)
+        .max(90)
         .optional()
         .messages(customMessages),
       desc: joi
         .string()
         .trim()
         .min(10)
-        .max(400)
+        .max(7000)
         .optional()
         .messages(customMessages),
 
@@ -95,7 +95,7 @@ export const updatetrain = {
       requirements: joi
         .string()
         .min(5)
-        .max(300)
+        .max(2000)
         .optional()
         .messages(customMessages),
       max_student: joi.number().optional().messages(customMessages),

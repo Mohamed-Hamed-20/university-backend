@@ -7,7 +7,7 @@ export const addcourse = {
       course_name: joi
         .string()
         .min(3)
-        .max(60)
+        .max(90)
         .trim()
         .lowercase()
         .required()
@@ -17,7 +17,7 @@ export const addcourse = {
         .string()
         .trim()
         .min(20)
-        .max(300)
+        .max(7000)
         .optional()
         .messages(customMessages),
 
@@ -42,7 +42,7 @@ export const updatecourse = {
         .string()
         .trim()
         .min(3)
-        .max(60)
+        .max(90)
         .optional()
         .lowercase()
         .messages(customMessages),
@@ -51,7 +51,7 @@ export const updatecourse = {
         .string()
         .trim()
         .min(20)
-        .max(300)
+        .max(7000)
         .optional()
         .messages(customMessages),
       OpenForRegistration: joi.boolean().optional().messages(customMessages),
