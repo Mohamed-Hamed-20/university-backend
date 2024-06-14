@@ -97,7 +97,7 @@ router.patch(
 router.patch(
   `${student.deleteImgBystu}`,
   limiter({ limit: 9, Mintute: 24 * 60 }),
-  valid(vSchema.StudeleteStuImg),
+  // valid(vSchema.StudeleteStuImg),
   isAuth([roles.stu]),
   uc.deleteStuImg
 );
@@ -111,9 +111,9 @@ router.get(
 );
 router.get(
   `${student.GetQR}`,
-  limiter({limit:3,Mintute:60}),
+  limiter({ limit: 3, Mintute: 60 }),
   isAuth([roles.stu]),
   uc.getqr
-)
+);
 
 export default router;

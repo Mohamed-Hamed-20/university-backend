@@ -563,23 +563,28 @@ export const AddStuImg = asyncHandler(async (req, res, next) => {
 
 // delete student Images
 export const deleteStuImg = asyncHandler(async (req, res, next) => {
-  const { imgName } = req.body;
+  let { imgName } = req.body;
   let { studentId } = req.body;
 
+  let student = {};
+
   if (req.user.role == roles.stu) {
-    studentId = req.user._id;
+    student = req.user;
+    imgName = student?.imgName;
   }
 
-  const student = await userModel
-    .findById(studentId)
-    .lean()
-    .select("_id imgName Full_Name Student_Code");
+  if (req.user.role == roles.admin) {
+    student = await userModel
+      .findById(studentId)
+      .lean()
+      .select("_id imgName Full_Name Student_Code");
 
-  if (!student) {
-    return next(new Error("Student not found", { cause: 404 }));
+    if (!student) {
+      return next(new Error("Student not found", { cause: 404 }));
+    }
   }
 
-  if (student?.imgName !== imgName) {
+  if (!student?.imgName || student?.imgName !== imgName) {
     return next(new Error("Invalid imgName not found", { cause: 404 }));
   }
 
@@ -592,7 +597,7 @@ export const deleteStuImg = asyncHandler(async (req, res, next) => {
 
   // Remove imgName field from the student document
   const result = await userModel
-    .findByIdAndUpdate(studentId, { $unset: { imgName: "" } }, { new: true })
+    .findByIdAndUpdate(student._id, { $unset: { imgName: "" } }, { new: true })
     .lean()
     .select("_id Full_Name National_Id Student_Code imgName");
 
