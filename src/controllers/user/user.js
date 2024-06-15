@@ -79,23 +79,23 @@ export const login = asyncHandler(async (req, res, next) => {
     refreshTokenPromise,
   ]);
 
-  // encrpt accesss tokens
-  const encrptAcessTokenpromise = encryptData({
-    data: accessToken,
-    password: process.env.ACCESS_TOKEN_ENCRPTION,
-  });
+  // // encrpt accesss tokens
+  // const encrptAcessTokenpromise = encryptData({
+  //   data: accessToken,
+  //   password: process.env.ACCESS_TOKEN_ENCRPTION,
+  // });
 
-  // encrpt refresh tokens
-  const encrptRefTokenpromise = encryptData({
-    data: refreshToken,
-    password: process.env.REFRESH_TOKEN_ENCRPTION,
-  });
+  // // encrpt refresh tokens
+  // const encrptRefTokenpromise = encryptData({
+  //   data: refreshToken,
+  //   password: process.env.REFRESH_TOKEN_ENCRPTION,
+  // });
 
   const successpromise = storeRefreshToken(refreshToken, user._id, next);
 
-  const [encrptAcessToken, encrptRefToken, success] = await Promise.all([
-    encrptAcessTokenpromise,
-    encrptRefTokenpromise,
+  const [/*encrptAcessToken, encrptRefToken,*/ success] = await Promise.all([
+    // encrptAcessTokenpromise,
+    // encrptRefTokenpromise,
     successpromise,
   ]);
 
@@ -119,8 +119,8 @@ export const login = asyncHandler(async (req, res, next) => {
   return res.status(200).json({
     message: "Login successful",
     role: user.role,
-    accessToken: encrptAcessToken,
-    refreshToken: encrptRefToken,
+    accessToken: accessToken,
+    refreshToken: refreshToken,
   });
 });
 

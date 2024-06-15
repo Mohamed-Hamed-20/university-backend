@@ -16,7 +16,7 @@ export const roles = {
 export const isAuth = (roles) => {
   return asyncHandler(async (req, res, next) => {
     const cokkies = req.cookies;
-    console.log(cokkies);
+
     const accessToken = req.headers.authorization;
     let refreshToken = req.headers["refresh-token"];
     //check token send
@@ -39,14 +39,14 @@ export const isAuth = (roles) => {
     )[1];
 
     // Decrpt token
-    const splitedToken = await decryptData({
-      encryptedData: splitedTokenEncrpted,
-      password: process.env.ACCESS_TOKEN_ENCRPTION,
-    });
+    // const splitedToken = await decryptData({
+    //   encryptedData: splitedTokenEncrpted,
+    //   password: process.env.ACCESS_TOKEN_ENCRPTION,
+    // });
 
     try {
       const decode = verifyToken({
-        token: splitedToken,
+        token: splitedTokenEncrpted,
         signature: process.env.ACCESS_TOKEN_SECRET,
       });
 
@@ -89,10 +89,10 @@ export const isAuth = (roles) => {
       if (error.message.includes("jwt expired")) {
         try {
           // decrpt token
-          refreshToken = await decryptData({
-            encryptedData: refreshToken,
-            password: process.env.REFRESH_TOKEN_ENCRPTION,
-          });
+          // refreshToken = await decryptData({
+          //   encryptedData: refreshToken,
+          //   password: process.env.REFRESH_TOKEN_ENCRPTION,
+          // });
 
           // verify refresh token
           const verifyreftoken = verifyToken({
@@ -135,15 +135,15 @@ export const isAuth = (roles) => {
             );
           }
 
-          const EncrptedNewacessToken = await encryptData({
-            data: newaccessToken,
-            password: process.env.ACCESS_TOKEN_ENCRPTION,
-          });
+          // const EncrptedNewacessToken = await encryptData({
+          //   data: newaccessToken,
+          //   password: process.env.ACCESS_TOKEN_ENCRPTION,
+          // });
 
           // response refreshed
           return res.status(200).json({
             message: "Token refreshed",
-            accessToken: EncrptedNewacessToken,
+            accessToken: newaccessToken,
             refreshToken: req.headers["refresh-token"],
           });
         } catch (error) {
