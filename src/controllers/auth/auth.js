@@ -60,12 +60,10 @@ export const ResetPassword = asyncHandler(async (req, res, next) => {
     signature: process.env.ForgetPassword,
   });
 
-  console.log(data);
 
   if (!data.email || !data.userId || !data.role) {
     return next(new Error("Invaild Data", { cause: 400 }));
   }
-  console.log(password);
   const hashpass = await hashpassword({
     password: password,
     saltRound: process.env.salt_Round || 8,

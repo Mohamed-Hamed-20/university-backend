@@ -515,12 +515,24 @@ export const ViewSetting = asyncHandler(async (req, res, next) => {
 
 // settingAPIS
 export const settingAPIS = asyncHandler(async (req, res, next) => {
-  const setting = await settingModel.findOne();
-
-  if (setting.deniedRoutes.includes(req.path)) {
+  // تحقق مما إذا كان الوصول إلى هذا المسار ممنوع
+  const deniedRoutes = ["/path1", "/path2"]; // استبدلها بالمسارات التي تريد منعها بدون الوصول إلى قاعدة البيانات
+  if (deniedRoutes.includes(req.path)) {
     return next(new Error("Access to this service is denied", { cause: 403 }));
   }
 
-  req.setting = setting;
+  // في حالة كان المسار غير ممنوع، جلب الإعدادات
+  let cachedSetting = null;
+  let cacheTimestamp = null;
+  const CACHE_DURATION = 10 * 60 * 1000; // 10 دقائق
+
+  const now = Date.now();
+  if (!cachedSetting || now - cacheTimestamp > CACHE_DURATION) {
+    // جلب الإعدادات من قاعدة البيانات وتحديث التخزين المؤقت
+    cachedSetting = await settingModel.findOne();
+    cacheTimestamp = now;
+  }
+
+  req.setting = cachedSetting;
   return next();
 });

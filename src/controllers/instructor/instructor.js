@@ -13,6 +13,7 @@ import { arrayofIds } from "../../utils/arrayobjectIds.js";
 import {
   createImg,
   deleteImg,
+  GetMultipleImages,
   GetsingleImg,
   updateImg,
 } from "../../utils/aws.s3.js";
@@ -376,16 +377,17 @@ export const Getuser = asyncHandler(async (req, res, next) => {
   if ([roles.admin, roles.super].includes(req.user.role)) {
     userId = InstructorId.toString();
   }
+
   const user = await InstructorModel.findById(userId)
     .populate({
       path: "Training",
-      select: "_id training_name desc requirements start_date end_date",
+      select: "_id training_name   start_date end_date",
     })
     .populate({
       path: "Materials",
-      select:
-        "_id course_name desc credit_hour ImgUrls department Prerequisites",
-    });
+      select: "_id course_name  credit_hour ImgUrls department ",
+    })
+    .lean();
 
   if (!user) {
     return next(
@@ -393,11 +395,51 @@ export const Getuser = asyncHandler(async (req, res, next) => {
     );
   }
 
+  const promisesOp = [];
   let urlImg;
+
+  // تحميل صورة المستخدم إذا كانت موجودة
   if (user?.imgName) {
-    const { url } = await GetsingleImg({ ImgName: user.imgName });
-    urlImg = url;
+    const imgPromise = GetsingleImg({ ImgName: user.imgName }).then(
+      ({ url }) => {
+        urlImg = url;
+      }
+    );
+    promisesOp.push(imgPromise);
   }
+
+  // 
+  if (user.Materials && user.Materials.length > 0) {
+    for (const course of user.Materials) {
+      if (course.ImgUrls && course.ImgUrls.length > 0) {
+        const materialsPromise = GetMultipleImages(course.ImgUrls).then(
+          (images) => {
+            course.images = images;
+            delete course.ImgUrls;
+          }
+        );
+        promisesOp.push(materialsPromise);
+      }
+    }
+  }
+
+//Get Training
+  if (user.Training && user.Training.length > 0) {
+    for (const training of user.Training) {
+      if (training.ImgUrls && training.ImgUrls.length > 0) {
+        const trainingPromise = GetMultipleImages(training.ImgUrls).then(
+          (images) => {
+            training.images = images;
+            delete training.ImgUrls;
+          }
+        );
+        promisesOp.push(trainingPromise);
+      }
+    }
+  }
+
+  await Promise.all(promisesOp);
+
 
   const result = {
     FullName: user.FullName,
