@@ -613,12 +613,12 @@ export const deleteStuImg = asyncHandler(async (req, res, next) => {
 // student make log out from his account
 export const logout = asyncHandler(async (req, res, next) => {
   const user = req.user;
-  const HashrefreshToken = req.headers["refresh-token"];
+  const refreshToken = req.headers["refresh-token"];
 
-  const refreshToken = await decryptData({
-    encryptedData: HashrefreshToken,
-    password: process.env.REFRESH_TOKEN_ENCRPTION,
-  });
+  // const refreshToken = await decryptData({
+  //   encryptedData: HashrefreshToken,
+  //   password: process.env.REFRESH_TOKEN_ENCRPTION,
+  // });
 
   const token = await TokenModel.findOneAndUpdate(
     {
