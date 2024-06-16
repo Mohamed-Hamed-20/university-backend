@@ -200,7 +200,7 @@ export const searchcourse = asyncHandler(async (req, res, next) => {
 
   // get all images
   for (const course of courses) {
-    if (course.ImgUrls.length > 0) {
+    if (course?.ImgUrls?.length > 0) {
       course.images = await GetMultipleImages(course.ImgUrls);
       delete course.ImgUrls;
     }
