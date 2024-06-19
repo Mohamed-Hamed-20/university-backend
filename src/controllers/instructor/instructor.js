@@ -381,7 +381,7 @@ export const Getuser = asyncHandler(async (req, res, next) => {
   const user = await InstructorModel.findById(userId)
     .populate({
       path: "Training",
-      select: "_id training_name   start_date end_date",
+      select: "_id training_name ImgUrls start_date end_date",
     })
     .populate({
       path: "Materials",
