@@ -130,6 +130,20 @@ router.get(
   ac.dashboard
 );
 
+router.post(
+  `${Admin.AddImgByTosuperAdmin}`,
+  limiter({ limit: 15, Mintute: 12 * 60 }),
+  multerCloud(allowedExtensions.Image).single("superImage"),
+  isAuth([roles.super]),
+  ac.AddsuperAdminImg
+);
+
+router.patch(
+  `${Admin.deletesuperAdminImg}`,
+  limiter({ limit: 50, Mintute: 60 }),
+  isAuth([roles.super]),
+  ac.deletesuperImg
+);
 // make logout by admin && super
 router.get(`${Admin.logout}`, isAuth([roles.admin, roles.super]), uc.logout);
 

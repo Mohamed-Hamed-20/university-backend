@@ -607,3 +607,88 @@ export const logout = asyncHandler(async (req, res, next) => {
   }
   return res.status(200).json({ message: "user logout successfully" });
 });
+
+export const AddsuperAdminImg = asyncHandler(async (req, res, next) => {
+  let admin = req.user;
+
+  // Add Images
+  let imgName, response;
+  if (req.file) {
+    if (admin?.imgName) {
+      const { imgName: name, response: resp } = await updateImg({
+        imgName: admin.imgName,
+        file: req.file,
+      });
+      imgName = name;
+      response = resp;
+    } else {
+      const newName = slugify(admin.FullName, { trim: true, replacement: "_" });
+      const folder = `${process.env.Folder_Admin}/${newName}-${admin._id}`;
+      const { responses, ImgNames } = await createImg({
+        folder,
+        files: [req.file],
+      });
+
+      // Get response and imgnaem
+      imgName = ImgNames[0];
+      response = responses[0];
+    }
+  } else {
+    return next(new Error("Need to provide Image first", { cause: 404 }));
+  }
+
+  // check its add successfully
+  if (![200, 201, 203, 204].includes(response.$metadata.httpStatusCode)) {
+    return next(new Error("Error In update Image", { cause: 500 }));
+  }
+
+  let result;
+  if (!admin.imgName || admin?.imgName !== imgName) {
+    admin.imgName = imgName;
+    // Save the course
+    result = await admin.save();
+  } else {
+    result = admin;
+  }
+
+  return res.status(200).json({
+    message: "Images Uploaded successfully",
+    FullName: result?.FullName,
+    email: result?.email,
+    imgName: result.imgName,
+  });
+});
+
+export const deletesuperImg = asyncHandler(async (req, res, next) => {
+  let admin = req.user;
+  const imgName = admin.imgName;
+
+  if (!admin?.imgName) {
+    return next(new Error("user doesn't have Img to delete", { cause: 400 }));
+  }
+
+  // Delete image
+  const { response } = await deleteImg({ imgName: imgName });
+
+  if (![200, 201, 202, 203, 204].includes(response.$metadata.httpStatusCode)) {
+    return next(new Error("Failed to delete image", { cause: 500 }));
+  }
+
+  // Remove imgName field from the admin document
+  const result = await adminModel.findByIdAndUpdate(
+    admin._id,
+    { $unset: { imgName: "" } },
+    { new: true }
+  );
+
+  if (!result) {
+    return next(new Error("Failed to update admin", { cause: 500 }));
+  }
+
+  return res.status(200).json({
+    message: "Image deleted successfully",
+    FullName: result?.FullName,
+    email: result?.email,
+    response,
+  });
+});

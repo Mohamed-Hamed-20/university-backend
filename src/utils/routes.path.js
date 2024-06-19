@@ -24,7 +24,7 @@ export const routes = {
     deleteImgBystu: "/delete/image/from/student/By/student",
     Availablecourses: "/get/available/courses",
     logout: "/logout",
-    GetQR:"/get/qr"
+    GetQR: "/get/qr",
   },
   Admin: {
     _id: "/Api/admins",
@@ -39,6 +39,8 @@ export const routes = {
     AddImgByAdmin: "/add/image/to/admin/by/admin",
     deleteImgBysuper: "/delete/image/from/admin/by/super",
     deleteImgByAdmin: "/delete/image/from/admin/by/admin",
+    AddImgByTosuperAdmin: "/add/image/to/super/by/super",
+    deletesuperAdminImg: "/delete/image/from/super/by/super",
     dashboardAdmin: "/information",
     confirmEmail: "/confirm/Email",
     checkConfirmEmail: "/check/confirm/email",
@@ -58,7 +60,7 @@ export const routes = {
     deleteImgByInstructor: "/delete/image/to/instructor/by/instructor",
     deleteImgByAdmin: "/delete/image/to/instructor/by/Admin",
     logout: "/logout",
-    ScannQRCode:"/scann/qr"
+    ScannQRCode: "/scann/qr",
   },
   course: {
     _id: "/Api/courses",
