@@ -32,7 +32,11 @@ import cookieParser from "cookie-parser";
 
 export const bootstrap = (app, express) => {
   const allowedOrigins = [
-
+    "https://graduation-project-beryl-seven.vercel.app/",
+    "https://graduation-project-beryl-seven.vercel.app",
+    "http://localhost:3000/",
+    "http://localhost:3000",
+    "https://localhost:3000",
   ];
 
   const corsOptions = {
