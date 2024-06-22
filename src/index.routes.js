@@ -19,15 +19,13 @@ import TrainingResultRouter from "./routes/trainingResult.routes.js";
 import TrainingRegisterRouter from "./routes/TrainingRegister.routes.js";
 
 import messagesRouter from "./routes/message.routes.js";
+import chatRoutes from "./routes/message.routes.js";
 
 import { asyncHandler, GlobalErrorHandling } from "./utils/errorHandling.js";
 import morgan from "morgan";
 import { hellowpage } from "./utils/templetHtml.js";
 import { settingAPIS } from "./controllers/setting/setting.js";
 import { routes } from "./utils/routes.path.js";
-import { GradeModel } from "../DB/models/StudentGrades.model.js";
-import RegisterModel from "../DB/models/Register.model.js";
-import userModel from "../DB/models/user.model.js";
 import cookieParser from "cookie-parser";
 
 export const bootstrap = (app, express) => {
@@ -89,7 +87,9 @@ export const bootstrap = (app, express) => {
   app.use(`${routes.Training._id}`, trainingRouter);
   app.use(`${routes.RegisterTraining._id}`, TrainingRegisterRouter);
   app.use(`${routes.TrainingResult._id}`, TrainingResultRouter);
-  app.use("/Api/message", messagesRouter);
+  app.use("/api/messages", messagesRouter);
+  app.use("/api/users", chatRoutes);
+
 
   //Welcome Page
   app.get("/", async (req, res, next) => {

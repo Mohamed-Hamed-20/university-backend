@@ -16,4 +16,10 @@ router.post(
   MSG.sendMessage
 );
 
+router.get(
+  "/",
+  isAuth([roles.admin, roles.stu, roles.super, roles.instructor]),
+  MSG.getusersForSidebar
+);
+
 export default router;

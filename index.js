@@ -9,4 +9,6 @@ dotenv.config({ path: "./config/config.env" });
 bootstrap(app, express);
 
 const port = parseInt(process.env.PORT);
-server.listen(port || 5000, () => console.log(`App listening on PORT ${port}!`));
+server.listen(port || 5000, () =>
+  console.log(`App listening on PORT ${port}!`)
+);
