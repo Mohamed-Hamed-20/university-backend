@@ -1,9 +1,6 @@
-Here's a structured design for your README file on GitHub. You can fill in the project images and any other details as necessary.
-
-````markdown
 # University Management System Backend
 
-![Profile Image](https://res.cloudinary.com/dxjng5bfy/image/upload/v1708653907/Genaral%20IMgs/khyx28hxogdpgcejet1u.jpg)
+<img src="https://graduation-project-beryl-seven.vercel.app/assets/images/login_logo.jpg" alt="logo Image" width="100">
 
 ## Table of Contents
 
@@ -14,7 +11,10 @@ Here's a structured design for your README file on GitHub. You can fill in the p
 5. [API Documentation](#api-documentation)
 6. [Live Demo](#live-demo)
 7. [Project Video](#project-video)
-8. [Contact](#contact)
+8. [Database Schema](#database-schema)
+9. [UI Images](#ui-images)
+10. [Contact](#contact)
+11. [Project Links](#project-links)
 
 ## Project Description
 
@@ -27,74 +27,73 @@ To install and run this project locally, follow these steps:
 1. Clone the repository:
    ```sh
    git clone https://github.com/Mohamed-Hamed-20/university-backend.git
-   ```
+
 2. Navigate to the project directory:
    ```sh
-   cd university-system
+   cd university-backend
    ```
 3. Install dependencies:
    ```sh
    npm install
-   add config file
    ```
+4. Add the configuration file as described in the next section.
 
 ## Configuration
 
 Create a `config/config.env` file in the root directory and add the following configuration variables:
 
 ```env
-PORT= EX .. 5000
-MOOD= EX.. DEV
+PORT=5000
+MOOD=DEV
 DB_url="mongodb+srv://name:password@cluster0.4h5fpsc.mongodb.net/DBName"
-salt_Round=
+salt_Round=8
 
 # Access tokens
-ACCESS_TOKEN_SECRET
-accessExpireIn
-ACCESS_TOKEN_startwith
-ACCESS_TOKEN_ENCRPTION
+ACCESS_TOKEN_SECRET="your_access_token_secret"
+accessExpireIn="1h"
+ACCESS_TOKEN_startwith="Bearer "
+ACCESS_TOKEN_ENCRPTION="your_access_token_encryption_key"
 
 # Refresh tokens
-REFRESH_TOKEN_SECRET
-REFRESH_ExpireIn
-REFRESH_TOKEN_ENCRPTION
+REFRESH_TOKEN_SECRET="your_refresh_token_secret"
+REFRESH_ExpireIn="5d"
+REFRESH_TOKEN_ENCRPTION="your_refresh_token_encryption_key"
 
 # Email Configuration
-email
-password
-ConfirmEmailExpireIn
-ConfirmEmailPassword
-universityEmail
+email="your_email@example.com"
+password="your_email_password"
+ConfirmEmailExpireIn="7m"
+ConfirmEmailPassword="your_confirm_email_password"
+universityEmail="university@example.com"
 
 # Folder names
-folder_name
-NODE_ENV
+folder_name="university"
+NODE_ENV="DEV"
 
 # Cloudinary
-api_secret
-cloud_name
-api_key
+api_secret="your_cloudinary_api_secret"
+cloud_name="your_cloudinary_cloud_name"
+api_key="your_cloudinary_api_key"
 
 # Stripe
-STRIPE_KEY
+STRIPE_KEY="your_stripe_key"
 
 # AWS S3
-Bucket_name
-Bucket_Region
-AWS_Access_key
-AWS_key_secret
+Bucket_name="backend-file-university"
+Bucket_Region="eu-north-1"
+AWS_Access_key="your_aws_access_key"
+AWS_key_secret="your_aws_key_secret"
 
 # Image Folders
-Folder_stu
-Folder_Admin
-Folder_Instructor
-Folder_course
-Folder_Training
-Folder_semster
+Folder_stu="university/students"
+Folder_Admin="university/admins"
+Folder_Instructor="university/instructors"
+Folder_course="university/courses"
+Folder_Training="university/Trainings"
+Folder_semster="university/semesters"
 
-cryptoKeyConfirmEmails
+cryptoKeyConfirmEmails="your_crypto_key_for_confirm_emails"
 ```
-````
 
 ## Usage
 
@@ -118,6 +117,48 @@ You can access the live demo of the project [here](https://graduation-project-be
 
 Watch the project video [here](https://www.youtube.com/watch?v=nr8-qxS8cLY).
 
+## Database Schema
+
+### Class Diagram
+
+### Database Schem
+
+<img src="https://res.cloudinary.com/dxjng5bfy/image/upload/v1720431523/Genaral%20IMgs/fcamrvr8nmdp5stqmnry.jpg" alt="Database Schem" width="400">
+
+## UI Images
+
+### Admin Dashboard
+
+<img src="https://res.cloudinary.com/dxjng5bfy/image/upload/v1720433230/Genaral%20IMgs/mp1dnskmajuejkp0fp1b.png" alt="Admin Dashboard" width="400">
+
+### Instructor Dashboard
+
+<img src="https://res.cloudinary.com/dxjng5bfy/image/upload/v1720433230/Genaral%20IMgs/nxqowvqnyahnuczdm8vs.png" alt="Instructor Dashboard" width="400">
+
+### Login Page
+
+<img src="https://res.cloudinary.com/dxjng5bfy/image/upload/v1720433230/Genaral%20IMgs/azftu1xhjpvjxhjayxlf.png" alt="Login Page" width="400">
+
+### Admin Student Add
+
+<img src="https://res.cloudinary.com/dxjng5bfy/image/upload/v1720433230/Genaral%20IMgs/lzlld8jdcsqkjjjaery8.png" alt="Admin Student Add" width="400">
+
+### Newspaper Image for Student
+
+<img src="https://res.cloudinary.com/dxjng5bfy/image/upload/v1720433231/Genaral%20IMgs/ga3f1e2abfetgv9ekec6.png" alt="Newspaper Image for Student" width="400">
+
+### Student Main Front
+
+<img src="https://res.cloudinary.com/dxjng5bfy/image/upload/v1720433231/Genaral%20IMgs/hj7xi40r57ujhddsd53j.png" alt="Student Main Front" width="400">
+
+### Student Registration Front
+
+<img src="https://res.cloudinary.com/dxjng5bfy/image/upload/v1720433233/Genaral%20IMgs/yjyf6m994bvhvj0bi8dw.png" alt="Student Registration Front" width="400">
+
+### Training Registration
+
+<img src="https://res.cloudinary.com/dxjng5bfy/image/upload/v1720433235/Genaral%20IMgs/kdbl7txlcmrikgqs5jqb.png" alt="Training Registration" width="400">
+
 ## Contact
 
 For any inquiries or feedback, you can reach me at:
@@ -130,8 +171,3 @@ For any inquiries or feedback, you can reach me at:
 ## Project Links
 
 - [GitHub Repository](https://github.com/Mohamed-Hamed-20/university-backend)
-
-```
-
-Replace the placeholder URLs with your project image links as necessary.
-```
