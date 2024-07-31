@@ -441,14 +441,14 @@ export const updateSetting = asyncHandler(async (req, res, next) => {
       return next(new Error("Invalid SemsterId not found", { cause: 404 }));
     }
 
-    //new doc
+    // new doc
     const newSetting = {
       MainSemsterId: semster._id,
       deniedRoutes: [],
       MaxAllowTrainingToRegister: MaxAllowTrainingToRegister || 0,
     };
 
-    //create new doc
+    // create new doc
     setting = await settingModel.create(newSetting);
     if (!setting) {
       return next(new Error("Server Error", { cause: 500 }));
@@ -491,6 +491,11 @@ export const updateSetting = asyncHandler(async (req, res, next) => {
 
   // Save the updated setting
   const result = await setting.save();
+
+  // تحديث الكاش
+  cachedSetting = result;
+  cacheTimestamp = Date.now();
+
   return res
     .status(200)
     .json({ message: "Setting updated successfully", setting: result });
@@ -517,7 +522,7 @@ export const ViewSetting = asyncHandler(async (req, res, next) => {
 // المتغيرات العالمية لتخزين الكائن ووقت التحديث
 let cachedSetting = null;
 let cacheTimestamp = null;
-const CACHE_DURATION = 10 * 60 * 1000; // 10 دقائق
+const CACHE_DURATION = 30 * 60 * 1000; // 10 دقائق
 
 export const settingAPIS = asyncHandler(async (req, res, next) => {
   const now = Date.now();
