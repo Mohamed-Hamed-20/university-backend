@@ -21,12 +21,11 @@ import TrainingRegisterRouter from "./routes/TrainingRegister.routes.js";
 import messagesRouter from "./routes/message.routes.js";
 import chatRoutes from "./routes/message.routes.js";
 
-import { asyncHandler, GlobalErrorHandling } from "./utils/errorHandling.js";
+import { GlobalErrorHandling } from "./utils/errorHandling.js";
 import morgan from "morgan";
 import { hellowpage } from "./utils/templetHtml.js";
 import { settingAPIS } from "./controllers/setting/setting.js";
 import { routes } from "./utils/routes.path.js";
-import cookieParser from "cookie-parser";
 
 export const bootstrap = (app, express) => {
   const allowedOrigins = [
@@ -54,7 +53,7 @@ export const bootstrap = (app, express) => {
   app.use(express.urlencoded({ extended: true }));
 
   // cokkies prase
-  app.use(cookieParser());
+  // app.use(cookieParser());
 
   //to apply data sanitizing
   app.use(mongosanitize());
