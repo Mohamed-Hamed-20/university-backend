@@ -514,25 +514,28 @@ export const ViewSetting = asyncHandler(async (req, res, next) => {
 });
 
 // settingAPIS
+// المتغيرات العالمية لتخزين الكائن ووقت التحديث
+let cachedSetting = null;
+let cacheTimestamp = null;
+const CACHE_DURATION = 10 * 60 * 1000; // 10 دقائق
+
 export const settingAPIS = asyncHandler(async (req, res, next) => {
-  // تحقق مما إذا كان الوصول إلى هذا المسار ممنوع
-  const deniedRoutes = ["/path1", "/path2"]; // استبدلها بالمسارات التي تريد منعها بدون الوصول إلى قاعدة البيانات
-  if (deniedRoutes.includes(req.path)) {
-    return next(new Error("Access to this service is denied", { cause: 403 }));
-  }
-
-  // في حالة كان المسار غير ممنوع، جلب الإعدادات
-  let cachedSetting = null;
-  let cacheTimestamp = null;
-  const CACHE_DURATION = 10 * 60 * 1000; // 10 دقائق
-
   const now = Date.now();
+
+  // إذا لم يكن الكائن موجود في الكاش أو انتهت مدة الكاش
   if (!cachedSetting || now - cacheTimestamp > CACHE_DURATION) {
-    // جلب الإعدادات من قاعدة البيانات وتحديث التخزين المؤقت
+    console.log("hellow");
     cachedSetting = await settingModel.findOne();
     cacheTimestamp = now;
+  }
+
+  // تحقق من المسارات الممنوعة باستخدام الكائن المخزن في الكاش
+  const deniedRoutes = cachedSetting?.deniedRoutes || [];
+  if (deniedRoutes.includes(req.path)) {
+    return next(new Error("Access to this service is denied", { cause: 403 }));
   }
 
   req.setting = cachedSetting;
   return next();
 });
+
