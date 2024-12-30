@@ -24,6 +24,7 @@ export const uploadTrainingResult = asyncHandler(async (req, res, next) => {
     studentId: studentId,
     trainingRegisterd: { $in: trainingId },
   });
+
   if (!Register || !Register.trainingRegisterd.includes(trainingId)) {
     return next(
       new Error("This user didn't Register this Training", {
