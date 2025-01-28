@@ -23,7 +23,7 @@ import chatRoutes from "./routes/message.routes.js";
 
 import { GlobalErrorHandling } from "./utils/errorHandling.js";
 import morgan from "morgan";
-import { hellowpage } from "./utils/templetHtml.js";
+import { hellowpage, welcome } from "./utils/templetHtml.js";
 import { settingAPIS } from "./controllers/setting/setting.js";
 import { routes } from "./utils/routes.path.js";
 
@@ -98,7 +98,7 @@ export const bootstrap = (app, express) => {
       "url : " + req.protocol + "://" + req.hostname + req.originalUrl
     );
     // return res.json({ AllRoutes });
-    const result = await hellowpage();
+    const result = await welcome();
     return res.send(`${result}`);
   });
 
